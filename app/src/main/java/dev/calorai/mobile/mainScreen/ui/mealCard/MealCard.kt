@@ -142,7 +142,7 @@ private fun MealCardRightBlock(
         }
 
         Image(
-            painter = painterResource(id = R.drawable.add_button),
+            painter = painterResource(id = R.drawable.add_button_pink),
             contentDescription = stringResource(R.string.add),
             modifier = Modifier
                 .size(circleMediumSize)
