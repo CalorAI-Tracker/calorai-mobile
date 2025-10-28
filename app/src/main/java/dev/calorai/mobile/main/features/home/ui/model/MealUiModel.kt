@@ -1,4 +1,4 @@
-package dev.calorai.mobile.mainScreen.ui.model
+package dev.calorai.mobile.main.features.home.ui.model
 
 data class MealUiModel(
     val id: Long,

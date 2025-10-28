@@ -1,6 +1,5 @@
-package dev.calorai.mobile.mainScreen.ui.bottomNavBar
+package dev.calorai.mobile.main.ui.bottomNavBar
 
-import androidx.annotation.StringRes
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.tween
@@ -12,7 +11,6 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -47,17 +45,18 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import dev.calorai.mobile.R
+import dev.calorai.mobile.main.ui.bottomNavBar.BottomNavItem.Companion.ITEMS
 import dev.calorai.mobile.ui.theme.CalorAiTheme
 import dev.calorai.mobile.ui.theme.circleMediumSize
 
 @Composable
 fun BottomNavBar(
-    selectedItem: BottomNavItemType,
-    onItemSelected: (BottomNavItemType) -> Unit,
+    selectedItem: BottomNavItem,
+    onItemSelected: (BottomNavItem) -> Unit,
     onFabClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val isFabButtonEnabled = selectedItem == BottomNavItemType.Home
+    val isFabButtonEnabled = selectedItem == BottomNavItem.Home
     val fabButtonOffset = 4.dp
     val fabButtonSize = circleMediumSize
     val navBarTopMargin = 20.dp
@@ -86,15 +85,8 @@ fun BottomNavBar(
                 .fillMaxHeight(),
         )
 
-        val items = listOf(
-            BottomNavItemType.Home,
-            BottomNavItemType.Plan,
-            BottomNavItemType.Progress,
-            BottomNavItemType.Settings
-        )
-
-        val leftItems = items.subList(0, 2)
-        val rightItems = items.subList(2, 4)
+        val leftItems = ITEMS.subList(0, 2)
+        val rightItems = ITEMS.subList(2, 4)
 
         Row(
             modifier = Modifier
@@ -153,7 +145,7 @@ fun BottomNavBar(
 }
 
 @Composable
-fun BottomNavBackground(
+private fun BottomNavBackground(
     fabButtonTopMargin: Dp,
     fabButtonSize: Dp,
     fabButtonOuterCornerRadius: Dp,
@@ -262,11 +254,11 @@ private fun DrawScope.drawNavBarMainRectangle(
     drawPath(path = path, color = color)
 }
 
-fun Path.moveToOffset(offset: Offset) = moveTo(offset.x, offset.y)
+private fun Path.moveToOffset(offset: Offset) = moveTo(offset.x, offset.y)
 
 @Composable
 private fun BottomNavItem(
-    item: BottomNavItemType,
+    item: BottomNavItem,
     isSelected: Boolean,
     onClick: () -> Unit,
     modifier: Modifier
@@ -279,12 +271,6 @@ private fun BottomNavItem(
             .clip(RoundedCornerShape(4.dp))
             .clickable { onClick() }
     ) {
-        val iconRes = when (item) {
-            BottomNavItemType.Home -> R.drawable.home_button
-            BottomNavItemType.Plan -> R.drawable.plan_button
-            BottomNavItemType.Progress -> R.drawable.progress_button
-            BottomNavItemType.Settings -> R.drawable.settings_button
-        }
         val color = if (isSelected) {
             MaterialTheme.colorScheme.secondary
         } else {
@@ -292,7 +278,7 @@ private fun BottomNavItem(
         }
 
         Image(
-            painter = painterResource(id = iconRes),
+            painter = painterResource(id = item.iconId),
             contentDescription = stringResource(item.labelId),
             colorFilter = ColorFilter.tint(color),
             modifier = Modifier.size(32.dp)
@@ -306,21 +292,12 @@ private fun BottomNavItem(
     }
 }
 
-enum class BottomNavItemType(
-    @StringRes val labelId: Int,
-) {
-    Home(R.string.navbar_label_home),
-    Plan(R.string.navbar_label_plan),
-    Progress(R.string.navbar_label_progress),
-    Settings(R.string.navbar_label_settings)
-}
-
 @Preview(showBackground = false)
 @Composable
 private fun BottomNavBarPreview() {
     CalorAiTheme {
         BottomNavBar(
-            selectedItem = BottomNavItemType.Home,
+            selectedItem = BottomNavItem.Home,
             onItemSelected = {},
             onFabClick = {}
         )
