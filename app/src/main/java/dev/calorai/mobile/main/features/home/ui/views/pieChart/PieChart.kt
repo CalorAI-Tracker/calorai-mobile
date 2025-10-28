@@ -1,4 +1,4 @@
-package dev.calorai.mobile.mainScreen.ui.pieChart
+package dev.calorai.mobile.main.features.home.ui.views.pieChart
 
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.Arrangement
@@ -20,31 +20,34 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.graphics.BlendMode
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextAlign
+import dev.calorai.mobile.main.features.home.ui.views.utils.angleCorrectionCalc
 import androidx.compose.ui.graphics.Paint as ComposePaint
-import dev.calorai.mobile.mainScreen.ui.model.PieChartUiModel
-import dev.calorai.mobile.mainScreen.ui.utils.angleCorrectionCalc
+import dev.calorai.mobile.main.features.home.ui.model.PieChartUiModel
 import dev.calorai.mobile.ui.theme.CalorAiTheme
 
 @Composable
 fun PieChart(
     pieChartData: PieChartUiModel,
     modifier: Modifier = Modifier,
-    isMainChart: Boolean
+    size: Size
 ) {
-    val chartSize = if(isMainChart) 277.dp else 117.dp
-    val innerRatio = if (isMainChart) 0.65f else 0.736f
-    val additionalOffsetCoeff = if (isMainChart) 1.3f else 1.25f
     Box(
-        modifier = modifier.size(chartSize),
+        modifier = modifier.size(size.chartSize),
         contentAlignment = Alignment.Center
     ) {
-        PieChartBackground(
+        PieChartCircle(
             pieChartData = pieChartData,
-            modifier = Modifier.matchParentSize(),
-            chartSize = chartSize,
-            innerRatio = innerRatio,
-            additionalOffsetCoeff = additionalOffsetCoeff
+            chartSize = size.chartSize,
+            innerRatio = size.innerRatio,
+            additionalOffsetCoeff = size.additionalOffsetCoeff,
+            colors = listOf(
+                MaterialTheme.colorScheme.secondary,
+                MaterialTheme.colorScheme.primary
+            ),
+            modifier = Modifier.matchParentSize()
         )
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
@@ -53,13 +56,13 @@ fun PieChart(
         ) {
             Text(
                 text = pieChartData.targetText,
-                style = if (isMainChart) typography.displayLarge else typography.bodyLarge,
+                style = size.labelStyle(),
                 color = MaterialTheme.colorScheme.onPrimary,
                 textAlign = TextAlign.Center
             )
             Text(
                 text = pieChartData.targetSubtext,
-                style = if (isMainChart) typography.bodyLarge else typography.bodySmall,
+                style = size.textStyle(),
                 color = MaterialTheme.colorScheme.onSurface,
                 textAlign = TextAlign.Center
             )
@@ -68,18 +71,15 @@ fun PieChart(
 }
 
 @Composable
-fun PieChartBackground(
+private fun PieChartCircle(
     pieChartData: PieChartUiModel,
-    modifier: Modifier = Modifier,
     chartSize: Dp,
     innerRatio: Float,
-    additionalOffsetCoeff: Float
+    additionalOffsetCoeff: Float,
+    colors: List<Color>,
+    modifier: Modifier = Modifier
 ) {
     val values = pieChartData.pieData
-    val colors = listOf(
-        MaterialTheme.colorScheme.secondary,
-        MaterialTheme.colorScheme.primary
-    )
     Canvas(modifier = modifier.size(chartSize)) {
         val canvasSize = size
         val total = values.sum()
@@ -91,11 +91,18 @@ fun PieChartBackground(
             left = center.x - outerRadius + strokeWidth / 2,
             top = center.y - outerRadius + strokeWidth / 2,
             right = center.x + outerRadius - strokeWidth / 2,
-            bottom = center.y + outerRadius - strokeWidth / 2
+            bottom = center.y + outerRadius - strokeWidth / 2,
         )
-        val layerBounds = Rect(0f, 0f, canvasSize.width, canvasSize.height)
         val layerPaint = ComposePaint()
-        drawContext.canvas.saveLayer(layerBounds, layerPaint)
+        drawContext.canvas.saveLayer(
+            bounds = Rect(
+                left = 0f,
+                top = 0f,
+                right = canvasSize.width,
+                bottom = canvasSize.height
+            ),
+            layerPaint
+        )
         var startAngle = -90f
         values.forEachIndexed { index, value ->
             val sweepAngle = (value / total) * 360f
@@ -111,7 +118,7 @@ fun PieChartBackground(
                 useCenter = false,
                 style = Stroke(width = strokeWidth, cap = StrokeCap.Round),
                 topLeft = arcRect.topLeft,
-                size = arcRect.size
+                size = arcRect.size,
             )
             startAngle += sweepAngle
         }
@@ -121,9 +128,32 @@ fun PieChartBackground(
     }
 }
 
+enum class Size(
+    val chartSize: Dp,
+    val innerRatio: Float,
+    val additionalOffsetCoeff: Float,
+    val labelStyle: @Composable () -> TextStyle,
+    val textStyle: @Composable () -> TextStyle
+) {
+    Large(
+        chartSize = 277.dp,
+        innerRatio= 0.65f,
+        additionalOffsetCoeff = 1.3f,
+        labelStyle = {typography.displayLarge},
+        textStyle = {typography.bodyLarge}
+    ),
+    Medium(
+        chartSize = 117.dp,
+        innerRatio= 0.736f,
+        additionalOffsetCoeff = 1.25f,
+        labelStyle = {typography.bodyLarge},
+        textStyle = {typography.bodySmall}
+    ),
+}
+
 @Preview(showBackground = true)
 @Composable
-fun PieChartPreview() {
+fun MediumPieChartPreview() {
     val model = PieChartUiModel(
         targetText = "59 г",
         targetSubtext = "белка\nосталось",
@@ -134,25 +164,25 @@ fun PieChartPreview() {
         PieChart(
             pieChartData = model,
             modifier = Modifier,
-            isMainChart = false
+            size = Size.Medium
         )
     }
 }
 
 @Preview(showBackground = true)
 @Composable
-fun PieChartRoundedPreview() {
+fun LargePieChartPreview() {
     val model = PieChartUiModel(
         targetText = "1003",
         targetSubtext = "ккал осталось",
         leftText = "325 ккал",
-        pieData = listOf(20f, 80f)
+        pieData = listOf(40f, 60f)
     )
     CalorAiTheme {
         PieChart(
             pieChartData = model,
             modifier = Modifier,
-            isMainChart = true
+            size = Size.Large
         )
     }
 }

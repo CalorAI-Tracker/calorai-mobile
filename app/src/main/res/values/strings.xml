@@ -1,4 +1,9 @@
 <resources>
     <string name="app_name">calorai-mobile</string>
     <string name="add">Добавить</string>
+
+    <string name="navbar_label_home">Главная</string>
+    <string name="navbar_label_plan">План</string>
+    <string name="navbar_label_progress">Прогресс</string>
+    <string name="navbar_label_settings">Настройки</string>
 </resources>

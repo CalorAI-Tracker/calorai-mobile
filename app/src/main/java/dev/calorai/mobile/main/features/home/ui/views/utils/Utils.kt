@@ -1,4 +1,4 @@
-package dev.calorai.mobile.mainScreen.ui.utils
+package dev.calorai.mobile.main.features.home.ui.views.utils
 
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.times
