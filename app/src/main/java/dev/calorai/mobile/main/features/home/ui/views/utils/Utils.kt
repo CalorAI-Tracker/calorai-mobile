@@ -14,4 +14,4 @@ internal fun angleCorrectionCalc(
     strokeWidth: Float,
     outerRadius: Float,
     additionalOffsetCoeff: Float
-):Float = (strokeWidth / (2 * outerRadius)) * (180f / PI.toFloat()) * additionalOffsetCoeff
+): Float = (strokeWidth / (2 * outerRadius)) * (180f / PI.toFloat()) * additionalOffsetCoeff
