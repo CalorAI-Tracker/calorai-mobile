@@ -1,4 +1,4 @@
-package dev.calorai.mobile.mainScreen.ui.mealCard
+package dev.calorai.mobile.main.features.home.ui.views.mealCard
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
@@ -32,9 +32,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import coil.compose.rememberAsyncImagePainter
 import dev.calorai.mobile.R
-import dev.calorai.mobile.mainScreen.ui.model.FoodUiModel
-import dev.calorai.mobile.mainScreen.ui.model.MealUiModel
-import dev.calorai.mobile.mainScreen.ui.utils.calculateItemOffset
+import dev.calorai.mobile.main.features.home.ui.model.FoodUiModel
+import dev.calorai.mobile.main.features.home.ui.model.MealUiModel
+import dev.calorai.mobile.main.features.home.ui.views.utils.calculateItemOffset
 import dev.calorai.mobile.ui.theme.CalorAiTheme
 import dev.calorai.mobile.ui.theme.circleMediumSize
 
@@ -142,7 +142,7 @@ private fun MealCardRightBlock(
         }
 
         Image(
-            painter = painterResource(id = R.drawable.add_button),
+            painter = painterResource(id = R.drawable.add_button_pink),
             contentDescription = stringResource(R.string.add),
             modifier = Modifier
                 .size(circleMediumSize)
