@@ -7,7 +7,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.MaterialTheme.typography
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -18,11 +17,10 @@ import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
-import androidx.compose.ui.unit.dp
 import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextAlign
+import dev.calorai.mobile.main.features.home.ui.model.PieChartStyle
 import dev.calorai.mobile.main.features.home.ui.views.utils.angleCorrectionCalc
 import androidx.compose.ui.graphics.Paint as ComposePaint
 import dev.calorai.mobile.main.features.home.ui.model.PieChartUiModel
@@ -32,14 +30,14 @@ import dev.calorai.mobile.ui.theme.CalorAiTheme
 fun PieChart(
     pieChartData: PieChartUiModel,
     modifier: Modifier = Modifier,
-    configuration: PieChartConfiguration
+    configuration: PieChartStyle
 ) {
     Box(
         modifier = modifier.size(configuration.chartSize),
         contentAlignment = Alignment.Center
     ) {
         PieChartCircle(
-            pieChartData = pieChartData,
+            values = pieChartData.pieData,
             chartSize = configuration.chartSize,
             innerRatio = configuration.innerRatio,
             additionalOffsetCoeff = configuration.additionalOffsetCoeff,
@@ -72,14 +70,13 @@ fun PieChart(
 
 @Composable
 private fun PieChartCircle(
-    pieChartData: PieChartUiModel,
+    values: List<Float>,
     chartSize: Dp,
     innerRatio: Float,
     additionalOffsetCoeff: Float,
     colors: List<Color>,
     modifier: Modifier = Modifier
 ) {
-    val values = pieChartData.pieData
     Canvas(modifier = modifier.size(chartSize)) {
         val canvasSize = size
         val total = values.sum()
@@ -127,29 +124,6 @@ private fun PieChartCircle(
     }
 }
 
-enum class PieChartConfiguration(
-    val chartSize: Dp,
-    val innerRatio: Float,
-    val additionalOffsetCoeff: Float,
-    val labelStyle: @Composable () -> TextStyle,
-    val textStyle: @Composable () -> TextStyle
-) {
-    LARGE(
-        chartSize = 277.dp,
-        innerRatio = 0.65f,
-        additionalOffsetCoeff = 1.3f,
-        labelStyle = { typography.displayLarge },
-        textStyle = { typography.bodyLarge }
-    ),
-    MEDIUM(
-        chartSize = 117.dp,
-        innerRatio = 0.736f,
-        additionalOffsetCoeff = 1.25f,
-        labelStyle = { typography.bodyLarge },
-        textStyle = { typography.bodySmall }
-    ),
-}
-
 @Preview(showBackground = true)
 @Composable
 fun MediumPieChartPreview() {
@@ -163,7 +137,7 @@ fun MediumPieChartPreview() {
         PieChart(
             pieChartData = model,
             modifier = Modifier,
-            configuration = PieChartConfiguration.MEDIUM
+            configuration = PieChartStyle.MEDIUM
         )
     }
 }
@@ -181,7 +155,7 @@ fun LargePieChartPreview() {
         PieChart(
             pieChartData = model,
             modifier = Modifier,
-            configuration = PieChartConfiguration.LARGE
+            configuration = PieChartStyle.LARGE
         )
     }
 }
