@@ -16,4 +16,6 @@
     <string name="auth_placeholder_email">Ввод email</string>
     <string name="auth_placeholder_password">Ввод пароля</string>
     <string name="auth_divider_or">или</string>
+
+    <string name="next">Далее</string>
 </resources>
