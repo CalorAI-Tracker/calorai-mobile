@@ -19,7 +19,7 @@ import dev.calorai.mobile.ui.theme.CalorAiTheme
 fun PrimaryButton(
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
-    text: String = "Button",
+    text: String,
     content: @Composable RowScope.() -> Unit
 ) {
     Button(
@@ -33,18 +33,18 @@ fun PrimaryButton(
         shape = RoundedCornerShape(25)
     ) {
         Text(
-            text,
-            color = MaterialTheme.colorScheme.onSecondary)
+            text = text,
+            color = MaterialTheme.colorScheme.onSecondary
+        )
         content()
     }
 }
 
 
-
 @Preview(showBackground = true)
 @Composable
-private fun AuthScreenPreview() {
+private fun PrimaryButtonPreview() {
     CalorAiTheme {
-        PrimaryButton(onClick = {}) {}
+        PrimaryButton(text = "Button",onClick = {}) {}
     }
 }
