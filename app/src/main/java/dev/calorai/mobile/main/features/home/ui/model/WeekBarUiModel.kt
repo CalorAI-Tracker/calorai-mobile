@@ -1,30 +1,18 @@
 package dev.calorai.mobile.main.features.home.ui.model
-import java.util.Calendar
+import java.time.LocalDate
 
 data class WeekBarUiModel(
-    val selectedDay: Int,
     val daysList: List<DateUiModel>
 )
 
 data class DateUiModel(
-    val date: Calendar,
-    val day: WeekDay,
+    val date: LocalDate,
     val progressFractions: List<Float>,
-    val timePeriod: TimePeriod,
+    val isSelected: Boolean,
 )
 
-enum class WeekDay(val shortName: String) {
-    MONDAY("Пн"),
-    TUESDAY("Вт"),
-    WEDNESDAY("Ср"),
-    THURSDAY("Чт"),
-    FRIDAY("Пт"),
-    SATURDAY("Сб"),
-    SUNDAY("Вс");
-}
-
-enum class TimePeriod(val time: String) {
-    PAST("past"),
-    PRESENT("present"),
-    FUTURE("future")
+enum class TimePeriod() {
+    PAST(),
+    PRESENT(),
+    FUTURE()
 }

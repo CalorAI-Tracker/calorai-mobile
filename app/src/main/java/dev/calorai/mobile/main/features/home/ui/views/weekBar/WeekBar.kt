@@ -22,9 +22,12 @@ import dev.calorai.mobile.main.features.home.ui.model.DateUiModel
 import dev.calorai.mobile.main.features.home.ui.model.DayItemStyle
 import dev.calorai.mobile.main.features.home.ui.model.TimePeriod
 import dev.calorai.mobile.main.features.home.ui.model.WeekBarUiModel
-import dev.calorai.mobile.main.features.home.ui.model.WeekDay
 import dev.calorai.mobile.ui.theme.CalorAiTheme
-import java.util.Calendar
+import java.time.LocalDate
+import java.time.format.TextStyle
+import java.time.temporal.TemporalAdjusters
+import java.time.temporal.WeekFields
+import java.util.Locale
 
 @Composable
 fun WeekBar(
@@ -33,43 +36,38 @@ fun WeekBar(
     onDateSelected: (date: DateUiModel) -> Unit = {}
 ) {
     val days = weekData.daysList
-    var selectedIndex = weekData.selectedDay
     Row(
         modifier = modifier
             .fillMaxWidth(),
         horizontalArrangement = Arrangement.spacedBy(23.67.dp, Alignment.CenterHorizontally),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        days.forEachIndexed { index, dateUiModel ->
-            val isSelected = (index == selectedIndex)
+        days.forEach {dateUiModel ->
             DayItem(
-                isSelected = isSelected,
                 dateData = dateUiModel,
-                configuration = if (isSelected) DayItemStyle.SELECTED else DayItemStyle.UNSELECTED,
-                onClick = {
-                    selectedIndex = index
-                    onDateSelected(dateUiModel)
-                }
+                onClick = onDateSelected,
+                modifier = Modifier
             )
         }
     }
 }
 
 @Composable
-fun DayItem(
-    isSelected: Boolean,
+private fun DayItem(
     dateData: DateUiModel,
-    configuration: DayItemStyle,
     onClick: (DateUiModel) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val arcColor = when (dateData.timePeriod) {
+    val timePeriod = dateData.date.toTimePeriod()
+    val dayShortName = dateData.date.shortDayName()
+    val configuration = if (dateData.isSelected) DayItemStyle.SELECTED else DayItemStyle.UNSELECTED
+    val arcColor = when (timePeriod) {
         TimePeriod.PRESENT -> MaterialTheme.colorScheme.secondary
         TimePeriod.PAST -> MaterialTheme.colorScheme.onSurface
         else -> Color.Transparent
     }
-    val textColor = when {
-        dateData.timePeriod == TimePeriod.FUTURE -> MaterialTheme.colorScheme.onSurface
+    val textColor = when (timePeriod) {
+        TimePeriod.FUTURE -> MaterialTheme.colorScheme.onSurface
         else -> MaterialTheme.colorScheme.onPrimary
     }
     Box(
@@ -78,7 +76,7 @@ fun DayItem(
             .height(configuration.height)
             .clip(RoundedCornerShape(30.dp))
             .then(
-                if (isSelected) {
+                if (dateData.isSelected) {
                     Modifier.border(
                         width = 1.dp,
                         color = MaterialTheme.colorScheme.secondary,
@@ -86,9 +84,8 @@ fun DayItem(
                     )
                 } else Modifier
             )
-            .let {
-                if (dateData.timePeriod == TimePeriod.FUTURE) it
-                else it.clickable(onClick = { onClick(dateData) })
+            .clickable(enabled = timePeriod != TimePeriod.FUTURE){
+                onClick(dateData)
             },
         contentAlignment = Alignment.Center,
     ) {
@@ -96,30 +93,18 @@ fun DayItem(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center,
         ) {
-            if (isSelected || dateData.timePeriod == TimePeriod.FUTURE) {
-                DayProgressItem(
-                    dayShortName = dateData.day.shortName,
-                    progressFractions = dateData.progressFractions,
-                    arcColor = arcColor,
-                    textColor = textColor,
-                    isArcShowing = false,
-                    itemSize = DayItemStyle.UNSELECTED.width,
-                    modifier = Modifier
-                )
-            } else {
-                DayProgressItem(
-                    dayShortName = dateData.day.shortName,
-                    progressFractions = dateData.progressFractions,
-                    arcColor = arcColor,
-                    textColor = textColor,
-                    isArcShowing = true,
-                    itemSize = DayItemStyle.UNSELECTED.width,
-                    modifier = Modifier
-                )
-            }
+            DayProgressItem(
+                dayShortName = dayShortName,
+                progressFractions = dateData.progressFractions,
+                arcColor = arcColor,
+                textColor = textColor,
+                isArcShowing = !(dateData.isSelected || timePeriod == TimePeriod.FUTURE),
+                itemSize = DayItemStyle.UNSELECTED.width,
+                modifier = Modifier
+            )
             Spacer(modifier = Modifier.height(4.dp))
             Text(
-                text = dateData.date.get(Calendar.DAY_OF_MONTH).toString(),
+                text = dateData.date.dayOfMonth.toString(),
                 style = MaterialTheme.typography.bodyLarge,
                 color = textColor
             )
@@ -142,7 +127,7 @@ private fun DayProgressItem(
             .size(itemSize),
         contentAlignment = Alignment.Center
     ) {
-        if(isArcShowing) {
+        if (isArcShowing) {
             Canvas(modifier = modifier.matchParentSize()) {
                 val canvasSize = size
                 val center = Offset(canvasSize.width / 2f, canvasSize.height / 2f)
@@ -176,19 +161,27 @@ private fun DayProgressItem(
     }
 }
 
+fun LocalDate.shortDayName(locale: Locale = Locale.getDefault()): String {
+    return this.dayOfWeek.getDisplayName(TextStyle.SHORT, locale)
+}
+
+fun LocalDate.toTimePeriod(referenceDate: LocalDate = LocalDate.now()): TimePeriod =
+    when {
+        this.isBefore(referenceDate) -> TimePeriod.PAST
+        this.isAfter(referenceDate) -> TimePeriod.FUTURE
+        else -> TimePeriod.PRESENT
+    }
+
 @Preview(showBackground = true, name = "Выбранный день")
 @Composable
-fun SelectedDayItemPreview() {
+private fun SelectedDayItemPreview() {
     CalorAiTheme {
         DayItem(
-            isSelected = true,
             dateData = DateUiModel(
-                date = Calendar.getInstance().apply { set(2025, Calendar.NOVEMBER, 10) },
-                day = WeekDay.MONDAY,
+                date = LocalDate.of(2025, 11, 10),
                 progressFractions = listOf(0.7f, 0.3f),
-                timePeriod = TimePeriod.PRESENT
+                isSelected = true
             ),
-            configuration = DayItemStyle.SELECTED,
             onClick = {}
         )
     }
@@ -196,17 +189,14 @@ fun SelectedDayItemPreview() {
 
 @Preview(showBackground = true, name = "Сегодняшний день")
 @Composable
-fun TodayItemPreview() {
+private fun TodayItemPreview() {
     CalorAiTheme {
         DayItem(
-            isSelected = false,
             dateData = DateUiModel(
-                date = Calendar.getInstance().apply { add(Calendar.DAY_OF_MONTH, 0) },
-                day = WeekDay.THURSDAY,
+                date = LocalDate.now(),
                 progressFractions = listOf(0.7f, 0.3f),
-                timePeriod = TimePeriod.PRESENT
+                isSelected = false
             ),
-            configuration = DayItemStyle.UNSELECTED,
             onClick = {}
         )
     }
@@ -214,17 +204,14 @@ fun TodayItemPreview() {
 
 @Preview(showBackground = true, name = "Предыдущий день")
 @Composable
-fun LastDayItemPreview(){
+private fun LastDayItemPreview(){
     CalorAiTheme {
         DayItem(
-            isSelected = false,
             dateData = DateUiModel(
-                date = Calendar.getInstance().apply { add(Calendar.DAY_OF_MONTH, -4) },
-                day = WeekDay.SUNDAY,
+                date = LocalDate.now().minusDays(4),
                 progressFractions = listOf(0.9f, 0.0f),
-                timePeriod = TimePeriod.PAST
+                isSelected = false
             ),
-            configuration = DayItemStyle.UNSELECTED,
             onClick = {}
         )
     }
@@ -232,17 +219,14 @@ fun LastDayItemPreview(){
 
 @Preview(showBackground = true, name = "Будущий день")
 @Composable
-fun FutureDayItemPreview(){
+private fun FutureDayItemPreview(){
     CalorAiTheme {
         DayItem(
-            isSelected = false,
             dateData = DateUiModel(
-                date = Calendar.getInstance().apply { add(Calendar.DAY_OF_MONTH, +1) },
-                day = WeekDay.FRIDAY,
+                date = LocalDate.now().plusDays(1),
                 progressFractions = listOf(0.5f, 0.0f),
-                timePeriod = TimePeriod.FUTURE
+                isSelected = false
             ),
-            configuration = DayItemStyle.UNSELECTED,
             onClick = {}
         )
     }
@@ -252,33 +236,19 @@ fun FutureDayItemPreview(){
 @Composable
 private fun FirstWeekBarPreview() {
     CalorAiTheme {
-        val today = Calendar.getInstance().apply { set(2025, Calendar.NOVEMBER, 13) }
-        val days = ( -3..3 ).map { offset ->
-            val date = (today.clone() as Calendar).apply { add(Calendar.DAY_OF_MONTH, offset) }
-            val timePeriod = when {
-                offset == 0 -> TimePeriod.PRESENT
-                offset < 0 -> TimePeriod.PAST
-                else -> TimePeriod.FUTURE
-            }
+        val today = LocalDate.now()
+        val locale = Locale.getDefault()
+        val firstDayOfWeek = WeekFields.of(locale).firstDayOfWeek
+        val startOfWeek = today.with(TemporalAdjusters.previousOrSame(firstDayOfWeek))
+        val days = (0L..6L).map { offset ->
+            val date = startOfWeek.plusDays(offset)
             DateUiModel(
                 date = date,
-                day = when (date.get(Calendar.DAY_OF_WEEK)) {
-                    Calendar.MONDAY -> WeekDay.MONDAY
-                    Calendar.TUESDAY -> WeekDay.TUESDAY
-                    Calendar.WEDNESDAY -> WeekDay.WEDNESDAY
-                    Calendar.THURSDAY -> WeekDay.THURSDAY
-                    Calendar.FRIDAY -> WeekDay.FRIDAY
-                    Calendar.SATURDAY -> WeekDay.SATURDAY
-                    else -> WeekDay.SUNDAY
-                },
                 progressFractions = listOf(0.6f),
-                timePeriod = timePeriod
+                isSelected = date == today
             )
         }
-        val weekData = WeekBarUiModel(
-            selectedDay = 3,
-            daysList = days
-        )
+        val weekData = WeekBarUiModel(daysList = days)
         WeekBar(
             weekData = weekData,
             modifier = Modifier,
@@ -291,33 +261,19 @@ private fun FirstWeekBarPreview() {
 @Composable
 private fun SecondWeekBarPreview() {
     CalorAiTheme {
-        val today = Calendar.getInstance().apply { set(2025, Calendar.NOVEMBER, 13) }
-        val days = ( -3..3 ).map { offset ->
-            val date = (today.clone() as Calendar).apply { add(Calendar.DAY_OF_MONTH, offset) }
-            val timePeriod = when {
-                offset == 0 -> TimePeriod.PRESENT
-                offset < 0 -> TimePeriod.PAST
-                else -> TimePeriod.FUTURE
-            }
+        val today = LocalDate.of(2025, 11, 13)
+        val locale = Locale.getDefault()
+        val firstDayOfWeek = WeekFields.of(locale).firstDayOfWeek
+        val startOfWeek = today.with(TemporalAdjusters.previousOrSame(firstDayOfWeek))
+        val days = (0L..6L).map { offset ->
+            val date = startOfWeek.plusDays(offset)
             DateUiModel(
                 date = date,
-                day = when (date.get(Calendar.DAY_OF_WEEK)) {
-                    Calendar.MONDAY -> WeekDay.MONDAY
-                    Calendar.TUESDAY -> WeekDay.TUESDAY
-                    Calendar.WEDNESDAY -> WeekDay.WEDNESDAY
-                    Calendar.THURSDAY -> WeekDay.THURSDAY
-                    Calendar.FRIDAY -> WeekDay.FRIDAY
-                    Calendar.SATURDAY -> WeekDay.SATURDAY
-                    else -> WeekDay.SUNDAY
-                },
                 progressFractions = listOf(0.6f),
-                timePeriod = timePeriod
+                isSelected = date == today
             )
         }
-        val weekData = WeekBarUiModel(
-            selectedDay = 2,
-            daysList = days
-        )
+        val weekData = WeekBarUiModel(daysList = days)
         WeekBar(
             weekData = weekData,
             modifier = Modifier,
