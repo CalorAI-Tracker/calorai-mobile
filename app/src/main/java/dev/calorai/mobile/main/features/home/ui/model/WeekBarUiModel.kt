@@ -11,8 +11,8 @@ data class DateUiModel(
     val isSelected: Boolean,
 )
 
-enum class TimePeriod() {
-    PAST(),
-    PRESENT(),
-    FUTURE()
+enum class TimePeriod {
+    PAST,
+    PRESENT,
+    FUTURE
 }
