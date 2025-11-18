@@ -15,6 +15,7 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.graphics.*
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -22,9 +23,10 @@ import dev.calorai.mobile.main.features.home.ui.model.DateUiModel
 import dev.calorai.mobile.main.features.home.ui.model.DayItemStyle
 import dev.calorai.mobile.main.features.home.ui.model.TimePeriod
 import dev.calorai.mobile.main.features.home.ui.model.WeekBarUiModel
+import dev.calorai.mobile.main.features.home.ui.model.shortDayName
+import dev.calorai.mobile.main.features.home.ui.model.toTimePeriod
 import dev.calorai.mobile.ui.theme.CalorAiTheme
 import java.time.LocalDate
-import java.time.format.TextStyle
 import java.time.temporal.TemporalAdjusters
 import java.time.temporal.WeekFields
 import java.util.Locale
@@ -58,8 +60,8 @@ private fun DayItem(
     onClick: (DateUiModel) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val timePeriod = dateData.date.toTimePeriod()
-    val dayShortName = dateData.date.shortDayName()
+    val timePeriod = dateData.timePeriod
+    val dayShortName = dateData.shortDayName
     val configuration = if (dateData.isSelected) DayItemStyle.SELECTED else DayItemStyle.UNSELECTED
     val arcColor = when (timePeriod) {
         TimePeriod.PRESENT -> MaterialTheme.colorScheme.secondary
@@ -161,24 +163,17 @@ private fun DayProgressItem(
     }
 }
 
-fun LocalDate.shortDayName(locale: Locale = Locale.getDefault()): String {
-    return this.dayOfWeek.getDisplayName(TextStyle.SHORT, locale)
-}
-
-fun LocalDate.toTimePeriod(referenceDate: LocalDate = LocalDate.now()): TimePeriod =
-    when {
-        this.isBefore(referenceDate) -> TimePeriod.PAST
-        this.isAfter(referenceDate) -> TimePeriod.FUTURE
-        else -> TimePeriod.PRESENT
-    }
-
 @Preview(showBackground = true, name = "Выбранный день")
 @Composable
 private fun SelectedDayItemPreview() {
+    val context = LocalContext.current
+    val date = LocalDate.of(2025, 11, 10)
     CalorAiTheme {
         DayItem(
             dateData = DateUiModel(
-                date = LocalDate.of(2025, 11, 10),
+                date = date,
+                shortDayName = date.shortDayName(context),
+                timePeriod = date.toTimePeriod(),
                 progressFractions = listOf(0.7f, 0.3f),
                 isSelected = true
             ),
@@ -190,10 +185,14 @@ private fun SelectedDayItemPreview() {
 @Preview(showBackground = true, name = "Сегодняшний день")
 @Composable
 private fun TodayItemPreview() {
+    val context = LocalContext.current
+    val date = LocalDate.now()
     CalorAiTheme {
         DayItem(
             dateData = DateUiModel(
-                date = LocalDate.now(),
+                date = date,
+                shortDayName = date.shortDayName(context),
+                timePeriod = date.toTimePeriod(),
                 progressFractions = listOf(0.7f, 0.3f),
                 isSelected = false
             ),
@@ -205,10 +204,14 @@ private fun TodayItemPreview() {
 @Preview(showBackground = true, name = "Предыдущий день")
 @Composable
 private fun LastDayItemPreview(){
+    val context = LocalContext.current
+    val date = LocalDate.now().minusDays(1)
     CalorAiTheme {
         DayItem(
             dateData = DateUiModel(
-                date = LocalDate.now().minusDays(4),
+                date = date,
+                shortDayName = date.shortDayName(context),
+                timePeriod = date.toTimePeriod(),
                 progressFractions = listOf(0.9f, 0.0f),
                 isSelected = false
             ),
@@ -220,10 +223,14 @@ private fun LastDayItemPreview(){
 @Preview(showBackground = true, name = "Будущий день")
 @Composable
 private fun FutureDayItemPreview(){
+    val context = LocalContext.current
+    val date = LocalDate.now().plusDays(1)
     CalorAiTheme {
         DayItem(
             dateData = DateUiModel(
-                date = LocalDate.now().plusDays(1),
+                date = date,
+                shortDayName = date.shortDayName(context),
+                timePeriod = date.toTimePeriod(),
                 progressFractions = listOf(0.5f, 0.0f),
                 isSelected = false
             ),
@@ -235,20 +242,23 @@ private fun FutureDayItemPreview(){
 @Preview(showBackground = true, name = "Панель недели")
 @Composable
 private fun FirstWeekBarPreview() {
+    val context = LocalContext.current
+    val today = LocalDate.now()
+    val locale = Locale.getDefault()
+    val firstDayOfWeek = WeekFields.of(locale).firstDayOfWeek
+    val startOfWeek = today.with(TemporalAdjusters.previousOrSame(firstDayOfWeek))
+    val days = (0L..6L).map { offset ->
+        val date = startOfWeek.plusDays(offset)
+        DateUiModel(
+            date = date,
+            shortDayName = date.shortDayName(context),
+            timePeriod = date.toTimePeriod(),
+            progressFractions = listOf(0.6f),
+            isSelected = date == today
+        )
+    }
+    val weekData = WeekBarUiModel(daysList = days)
     CalorAiTheme {
-        val today = LocalDate.now()
-        val locale = Locale.getDefault()
-        val firstDayOfWeek = WeekFields.of(locale).firstDayOfWeek
-        val startOfWeek = today.with(TemporalAdjusters.previousOrSame(firstDayOfWeek))
-        val days = (0L..6L).map { offset ->
-            val date = startOfWeek.plusDays(offset)
-            DateUiModel(
-                date = date,
-                progressFractions = listOf(0.6f),
-                isSelected = date == today
-            )
-        }
-        val weekData = WeekBarUiModel(daysList = days)
         WeekBar(
             weekData = weekData,
             modifier = Modifier,
@@ -260,20 +270,23 @@ private fun FirstWeekBarPreview() {
 @Preview(showBackground = true, name = "Панель недели (выбран не сегодняшний день)")
 @Composable
 private fun SecondWeekBarPreview() {
+    val context = LocalContext.current
+    val today = LocalDate.of(2025, 11, 13)
+    val locale = Locale.getDefault()
+    val firstDayOfWeek = WeekFields.of(locale).firstDayOfWeek
+    val startOfWeek = today.with(TemporalAdjusters.previousOrSame(firstDayOfWeek))
+    val days = (0L..6L).map { offset ->
+        val date = startOfWeek.plusDays(offset)
+        DateUiModel(
+            date = date,
+            shortDayName = date.shortDayName(context),
+            timePeriod = date.toTimePeriod(),
+            progressFractions = listOf(0.6f),
+            isSelected = date == today
+        )
+    }
+    val weekData = WeekBarUiModel(daysList = days)
     CalorAiTheme {
-        val today = LocalDate.of(2025, 11, 13)
-        val locale = Locale.getDefault()
-        val firstDayOfWeek = WeekFields.of(locale).firstDayOfWeek
-        val startOfWeek = today.with(TemporalAdjusters.previousOrSame(firstDayOfWeek))
-        val days = (0L..6L).map { offset ->
-            val date = startOfWeek.plusDays(offset)
-            DateUiModel(
-                date = date,
-                progressFractions = listOf(0.6f),
-                isSelected = date == today
-            )
-        }
-        val weekData = WeekBarUiModel(daysList = days)
         WeekBar(
             weekData = weekData,
             modifier = Modifier,
