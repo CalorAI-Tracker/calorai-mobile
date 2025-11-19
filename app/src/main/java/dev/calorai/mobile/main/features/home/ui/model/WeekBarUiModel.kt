@@ -13,7 +13,7 @@ data class DateUiModel(
     val date: LocalDate,
     val shortDayName: String,
     val timePeriod: TimePeriod,
-    val progressFractions: List<Float>,
+    val progress: Float,
     val isSelected: Boolean,
 )
 

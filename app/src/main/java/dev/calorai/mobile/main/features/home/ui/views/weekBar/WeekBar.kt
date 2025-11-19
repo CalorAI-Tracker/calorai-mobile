@@ -1,32 +1,43 @@
 package dev.calorai.mobile.main.features.home.ui.views.weekBar
 
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.foundation.Canvas
-import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Rect
-import androidx.compose.ui.graphics.*
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import dev.calorai.mobile.main.features.home.ui.model.DateUiModel
-import dev.calorai.mobile.main.features.home.ui.model.DayItemStyle
 import dev.calorai.mobile.main.features.home.ui.model.TimePeriod
 import dev.calorai.mobile.main.features.home.ui.model.WeekBarUiModel
 import dev.calorai.mobile.main.features.home.ui.model.shortDayName
 import dev.calorai.mobile.main.features.home.ui.model.toTimePeriod
 import dev.calorai.mobile.ui.theme.CalorAiTheme
+import java.time.DayOfWeek
 import java.time.LocalDate
+import java.time.format.TextStyle
 import java.time.temporal.TemporalAdjusters
 import java.time.temporal.WeekFields
 import java.util.Locale
@@ -37,14 +48,12 @@ fun WeekBar(
     modifier: Modifier = Modifier,
     onDateSelected: (date: DateUiModel) -> Unit = {}
 ) {
-    val days = weekData.daysList
     Row(
-        modifier = modifier
-            .fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(23.67.dp, Alignment.CenterHorizontally),
+        modifier = modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.SpaceAround,
         verticalAlignment = Alignment.CenterVertically
     ) {
-        days.forEach {dateUiModel ->
+        weekData.daysList.forEach { dateUiModel ->
             DayItem(
                 dateData = dateUiModel,
                 onClick = onDateSelected,
@@ -62,20 +71,19 @@ private fun DayItem(
 ) {
     val timePeriod = dateData.timePeriod
     val dayShortName = dateData.shortDayName
-    val configuration = if (dateData.isSelected) DayItemStyle.SELECTED else DayItemStyle.UNSELECTED
-    val arcColor = when (timePeriod) {
-        TimePeriod.PRESENT -> MaterialTheme.colorScheme.secondary
-        TimePeriod.PAST -> MaterialTheme.colorScheme.onSurface
-        else -> Color.Transparent
-    }
+    val progressArcColor = MaterialTheme.colorScheme.onSurface
     val textColor = when (timePeriod) {
         TimePeriod.FUTURE -> MaterialTheme.colorScheme.onSurface
-        else -> MaterialTheme.colorScheme.onPrimary
+        TimePeriod.PAST,
+        TimePeriod.PRESENT,
+            -> MaterialTheme.colorScheme.onPrimary
     }
-    Box(
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center,
         modifier = modifier
-            .width(configuration.width)
-            .height(configuration.height)
+            .width(39.dp)
+            .wrapContentHeight()
             .clip(RoundedCornerShape(30.dp))
             .then(
                 if (dateData.isSelected) {
@@ -86,81 +94,64 @@ private fun DayItem(
                     )
                 } else Modifier
             )
-            .clickable(enabled = timePeriod != TimePeriod.FUTURE){
+            .clickable(enabled = timePeriod != TimePeriod.FUTURE) {
                 onClick(dateData)
-            },
-        contentAlignment = Alignment.Center,
-    ) {
-        Column(
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center,
-        ) {
-            DayProgressItem(
-                dayShortName = dayShortName,
-                progressFractions = dateData.progressFractions,
-                arcColor = arcColor,
-                textColor = textColor,
-                isArcShowing = !(dateData.isSelected || timePeriod == TimePeriod.FUTURE),
-                itemSize = DayItemStyle.UNSELECTED.width,
-                modifier = Modifier
-            )
-            Spacer(modifier = Modifier.height(4.dp))
-            Text(
-                text = dateData.date.dayOfMonth.toString(),
-                style = MaterialTheme.typography.bodyLarge,
-                color = textColor
-            )
-        }
-    }
-}
-
-@Composable
-private fun DayProgressItem(
-    dayShortName: String,
-    progressFractions: List<Float>,
-    arcColor: Color,
-    textColor: Color,
-    isArcShowing: Boolean,
-    itemSize: Dp,
-    modifier: Modifier
-) {
-    Box(
-        modifier = modifier
-            .size(itemSize),
-        contentAlignment = Alignment.Center
-    ) {
-        if (isArcShowing) {
-            Canvas(modifier = modifier.matchParentSize()) {
-                val canvasSize = size
-                val center = Offset(canvasSize.width / 2f, canvasSize.height / 2f)
-                val outerRadius = minOf(canvasSize.width, canvasSize.height) / 2f
-                val strokeWidth = outerRadius * 0.07f
-                val arcRect = Rect(
-                    left = center.x - outerRadius + strokeWidth / 2,
-                    top = center.y - outerRadius + strokeWidth / 2,
-                    right = center.x + outerRadius - strokeWidth / 2,
-                    bottom = center.y + outerRadius - strokeWidth / 2
-                )
-                val startAngle = -90f
-                val filledArea = progressFractions[0].coerceIn(0f, 1f)
-                val sweep = (filledArea / 1f) * 360f
-                drawArc(
-                    color = arcColor,
-                    startAngle = startAngle + 0.5f,
-                    sweepAngle = sweep - 1f,
-                    useCenter = false,
-                    style = Stroke(width = strokeWidth, cap = StrokeCap.Round),
-                    topLeft = arcRect.topLeft,
-                    size = arcRect.size
-                )
             }
-        }
+            .padding(vertical = 10.dp)
+
+    ) {
         Text(
             text = dayShortName,
+            textAlign = TextAlign.Center,
+            style = MaterialTheme.typography.bodySmall,
+            color = textColor,
+            modifier = Modifier
+                .drawBehind {
+                    if (!(dateData.isSelected || timePeriod == TimePeriod.FUTURE)) {
+                        drawProgressCircle(
+                            progress = dateData.progress,
+                            arcColor = progressArcColor,
+                        )
+                    }
+                }
+                .width(30.dp)
+                .padding(2.dp)
+        )
+        Spacer(modifier = Modifier.height(8.dp))
+        Text(
+            text = dateData.date.dayOfMonth.toString(),
             style = MaterialTheme.typography.bodyLarge,
             color = textColor
         )
     }
+}
+
+private fun DrawScope.drawProgressCircle(
+    progress: Float,
+    arcColor: Color,
+) {
+    val canvasSize = size
+    val center = Offset(canvasSize.width / 2f, canvasSize.height / 2f)
+    val outerRadius = maxOf(canvasSize.width, canvasSize.height) / 2f
+    val strokeWidth = outerRadius * 0.07f
+    val arcRect = Rect(
+        left = center.x - outerRadius + strokeWidth / 2,
+        top = center.y - outerRadius + strokeWidth / 2,
+        right = center.x + outerRadius - strokeWidth / 2,
+        bottom = center.y + outerRadius - strokeWidth / 2
+    )
+    val startAngle = -90f
+    val filledArea = progress.coerceIn(0f, 1f)
+    val sweep = (filledArea / 1f) * 360f
+    drawArc(
+        color = arcColor,
+        startAngle = startAngle + 0.5f,
+        sweepAngle = sweep - 1f,
+        useCenter = false,
+        style = Stroke(width = strokeWidth, cap = StrokeCap.Round),
+        topLeft = arcRect.topLeft,
+        size = arcRect.size
+    )
 }
 
 @Preview(showBackground = true, name = "Выбранный день")
@@ -174,7 +165,7 @@ private fun SelectedDayItemPreview() {
                 date = date,
                 shortDayName = date.shortDayName(context),
                 timePeriod = date.toTimePeriod(),
-                progressFractions = listOf(0.7f, 0.3f),
+                progress = 0.7f,
                 isSelected = true
             ),
             onClick = {}
@@ -193,7 +184,7 @@ private fun TodayItemPreview() {
                 date = date,
                 shortDayName = date.shortDayName(context),
                 timePeriod = date.toTimePeriod(),
-                progressFractions = listOf(0.7f, 0.3f),
+                progress = 0.7f,
                 isSelected = false
             ),
             onClick = {}
@@ -203,7 +194,7 @@ private fun TodayItemPreview() {
 
 @Preview(showBackground = true, name = "Предыдущий день")
 @Composable
-private fun LastDayItemPreview(){
+private fun LastDayItemPreview() {
     val context = LocalContext.current
     val date = LocalDate.now().minusDays(1)
     CalorAiTheme {
@@ -212,7 +203,7 @@ private fun LastDayItemPreview(){
                 date = date,
                 shortDayName = date.shortDayName(context),
                 timePeriod = date.toTimePeriod(),
-                progressFractions = listOf(0.9f, 0.0f),
+                progress = 0.9f,
                 isSelected = false
             ),
             onClick = {}
@@ -222,7 +213,7 @@ private fun LastDayItemPreview(){
 
 @Preview(showBackground = true, name = "Будущий день")
 @Composable
-private fun FutureDayItemPreview(){
+private fun FutureDayItemPreview() {
     val context = LocalContext.current
     val date = LocalDate.now().plusDays(1)
     CalorAiTheme {
@@ -231,7 +222,7 @@ private fun FutureDayItemPreview(){
                 date = date,
                 shortDayName = date.shortDayName(context),
                 timePeriod = date.toTimePeriod(),
-                progressFractions = listOf(0.5f, 0.0f),
+                progress = 0.5f,
                 isSelected = false
             ),
             onClick = {}
@@ -253,7 +244,7 @@ private fun FirstWeekBarPreview() {
             date = date,
             shortDayName = date.shortDayName(context),
             timePeriod = date.toTimePeriod(),
-            progressFractions = listOf(0.6f),
+            progress = 0.6f,
             isSelected = date == today
         )
     }
@@ -281,7 +272,36 @@ private fun SecondWeekBarPreview() {
             date = date,
             shortDayName = date.shortDayName(context),
             timePeriod = date.toTimePeriod(),
-            progressFractions = listOf(0.6f),
+            progress = 0.6f,
+            isSelected = date == today
+        )
+    }
+    val weekData = WeekBarUiModel(daysList = days)
+    CalorAiTheme {
+        WeekBar(
+            weekData = weekData,
+            modifier = Modifier,
+            onDateSelected = {}
+        )
+    }
+}
+
+@Preview(showBackground = true, name = "Панель недели (выбран не сегодняшний день)")
+@Composable
+private fun SecondWeekBarPreviewRu() {
+    val locale = Locale.forLanguageTag("ru")
+    val today = LocalDate.of(2025, 9, 13)
+    val startOfWeek = today.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY))
+    val days = (0L..6L).map { offset ->
+        val date = startOfWeek.plusDays(offset)
+        DateUiModel(
+            date = date,
+            shortDayName = date.dayOfWeek.getDisplayName(TextStyle.SHORT_STANDALONE, locale)
+                .capitalize(
+                    Locale.ROOT
+                ),
+            timePeriod = date.toTimePeriod(),
+            progress = 0.6f,
             isSelected = date == today
         )
     }
