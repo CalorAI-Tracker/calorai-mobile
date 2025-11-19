@@ -13,20 +13,23 @@ import androidx.navigation.NavDestination.Companion.hasRoute
 import androidx.navigation.NavOptions
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
-import dev.calorai.mobile.main.ui.bottomNavBar.BottomNavBar
-import dev.calorai.mobile.main.ui.bottomNavBar.BottomNavItem
-import dev.calorai.mobile.main.ui.bottomNavBar.BottomNavItem.Companion.ITEMS
 import dev.calorai.mobile.main.MainNavGraph
 import dev.calorai.mobile.main.features.home.navigateToHomeScreen
 import dev.calorai.mobile.main.features.plan.navigateToPlanScreen
 import dev.calorai.mobile.main.features.progress.navigateToProgressScreen
 import dev.calorai.mobile.main.features.settings.navigateToSettingsScreen
+import dev.calorai.mobile.main.ui.bottomNavBar.BottomNavBar
+import dev.calorai.mobile.main.ui.bottomNavBar.BottomNavItem
+import dev.calorai.mobile.main.ui.bottomNavBar.BottomNavItem.Companion.ITEMS
 import dev.calorai.mobile.ui.theme.CalorAiTheme
 import dev.calorai.mobile.ui.theme.Pink
 import dev.calorai.mobile.ui.theme.White
+import org.koin.androidx.compose.koinViewModel
 
 @Composable
-fun MainRoot() {
+fun MainRoot(
+    viewModel: MainViewModel = koinViewModel(),
+) {
     MainScreen()
 }
 
@@ -43,7 +46,12 @@ private fun MainScreen() {
                 } ?: BottomNavItem.Home,
                 onItemSelected = { bottomNavItem ->
                     val options = NavOptions.Builder()
-                        .setPopUpTo(currentDestination?.route, true)
+                        .setRestoreState(restoreState = true)
+                        .setPopUpTo(
+                            route = currentDestination?.route,
+                            inclusive = true,
+                            saveState = true,
+                        )
                         .build()
                     when (bottomNavItem) {
                         BottomNavItem.Home -> mainNavController.navigateToHomeScreen(options)
