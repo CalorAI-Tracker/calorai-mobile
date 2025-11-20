@@ -7,4 +7,5 @@
     <string name="navbar_label_progress">Прогресс</string>
     <string name="navbar_label_settings">Настройки</string>
     <string name="home_welcome_title">Привет, %1$s!</string>
+    <string name="select_meal_type">Выбери прием пищи</string>
 </resources>
