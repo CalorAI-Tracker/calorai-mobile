@@ -20,4 +20,29 @@
     <string name="auth_continue">Далее</string>
     <string name="auth_no_account">Нет аккаунта?</string>
     <string name="auth_registration">Регистрация</string>
+
+    <string name="settings_title">Настройки</string>
+    <string name="settings_name">Имя</string>
+    <string name="settings_email">Email</string>
+    <string name="settings_birthday">Дата рождения</string>
+    <string name="settings_sex">Пол</string>
+    <string name="settings_sex_women">Женский</string>
+    <string name="settings_sex_man">Мужской</string>
+    <string name="settings_height">Рост</string>
+    <string name="settings_height_val">Рост (см)</string>
+    <string name="settings_weight">Вес</string>
+    <string name="settings_weight_val">Вес (кг)</string>
+    <string name="settings_height_val_type">%1$d см</string>
+    <string name="settings_weight_val_type">%1$d кг</string>
+    <string name="settings_activity">Активность</string>
+    <string name="settings_activity_2">0–2 (Иногда тренируюсь)</string>
+    <string name="settings_activity_4">3–4 (Умеренная активность)</string>
+    <string name="settings_activity_6">5–6 (Высокая активность)</string>
+    <string name="settings_activity_7">7+ (Профессионально)</string>
+    <string name="settings_activity_goal">Цель</string>
+    <string name="settings_goal_weight_loss">Сбросить вес</string>
+    <string name="settings_goal_weight_stability">Поддерживать вес</string>
+    <string name="settings_goal_get_weight">Набрать массу</string>
+    <string name="settings_save_btn">Сохранить</string>
+    <string name="settings_date_picker_apply">Apply</string>
 </resources>
