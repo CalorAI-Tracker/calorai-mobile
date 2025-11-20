@@ -37,6 +37,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -62,6 +63,8 @@ private fun AuthScreen(
     onGoogleLoginClick: () -> Unit = {},
     onRegisterClick: () -> Unit = {}
 ) {
+    var email by remember { mutableStateOf("") }
+    var password by remember { mutableStateOf("") }
 
     Column(
         modifier = Modifier
@@ -83,12 +86,18 @@ private fun AuthScreen(
             Spacer(Modifier.size(51.dp))
             TextFieldWithTitle(
                 title = stringResource(R.string.auth_label_email),
-                placeholder = stringResource(R.string.auth_placeholder_email)
+                placeholder = stringResource(R.string.auth_placeholder_email),
+                value = email,
+                onValueChange = { email = it },
+                keyboardType = KeyboardType.Email
             )
             Spacer(Modifier.size(20.dp))
             TextFieldWithTitle(
                 title = stringResource(R.string.auth_label_password),
                 placeholder = stringResource(R.string.auth_placeholder_password),
+                value = password,
+                onValueChange = { password = it },
+                isPassword = true
             )
             Spacer(Modifier.size(12.dp))
             Divider()
@@ -138,7 +147,7 @@ private fun AuthScreen(
 }
 
 @Composable
-fun TitleWithDescription(
+private fun TitleWithDescription(
     title: String,
     description: String,
 ) {
@@ -162,7 +171,7 @@ fun TitleWithDescription(
 }
 
 @Composable
-fun Divider() {
+private fun Divider() {
     Row(
         verticalAlignment = Alignment.CenterVertically,
         modifier = Modifier
@@ -196,21 +205,30 @@ fun Divider() {
 }
 
 @Composable
-private fun TextFieldWithTitle(title: String, placeholder: String) {
-    var value: String by remember { mutableStateOf("") }
-
-    Text(
-        text = title,
-        style = MaterialTheme.typography.bodyLarge
-    )
-    Spacer(Modifier.size(4.dp))
-    PrimaryTextField(
-        value = value,
-        onValueChange = { value = it },
-        placeholder = placeholder,
-        visualTransformation = PasswordVisualTransformation(),
-        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password)
-    )
+private fun TextFieldWithTitle(
+    title: String,
+    placeholder: String,
+    value: String,
+    onValueChange: (String) -> Unit,
+    isPassword: Boolean = false,
+    keyboardType: KeyboardType = KeyboardType.Text,
+    modifier: Modifier = Modifier
+) {
+    Column(modifier = modifier) {
+        Text(
+            text = title,
+            style = MaterialTheme.typography.bodyLarge
+        )
+        Spacer(Modifier.size(4.dp))
+        PrimaryTextField(
+            value = value,
+            onValueChange = onValueChange,
+            placeholder = placeholder,
+            visualTransformation = if (isPassword) PasswordVisualTransformation()
+                else VisualTransformation.None,
+            keyboardOptions = KeyboardOptions(keyboardType = keyboardType)
+        )
+    }
 }
 
 @Preview(showBackground = true)
