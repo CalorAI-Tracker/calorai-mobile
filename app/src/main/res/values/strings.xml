@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">calorai-mobile</string>
+    <string name="app_name">CalorAI</string>
     <string name="add">Добавить</string>
 
     <string name="navbar_label_home">Главная</string>
@@ -8,14 +8,4 @@
     <string name="navbar_label_settings">Настройки</string>
     <string name="home_welcome_title">Привет, %1$s!</string>
     <string name="select_meal_type">Выбери прием пищи</string>
-
-    <string name="auth_label_greeting1">Привет!</string>
-    <string name="auth_label_greeting2">Возвращайся в строй.</string>
-    <string name="auth_label_email">Email</string>
-    <string name="auth_label_password">Пароль</string>
-    <string name="auth_placeholder_email">Ввод email</string>
-    <string name="auth_placeholder_password">Ввод пароля</string>
-    <string name="auth_divider_or">или</string>
-
-    <string name="next">Далее</string>
 </resources>
