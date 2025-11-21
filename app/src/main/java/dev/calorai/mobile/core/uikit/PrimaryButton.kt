@@ -33,7 +33,8 @@ fun PrimaryButton(
     ) {
         Text(
             text = text,
-            color = MaterialTheme.colorScheme.onSecondary
+            color = MaterialTheme.colorScheme.onSecondary,
+            style = MaterialTheme.typography.bodyMedium
         )
         content()
     }
@@ -44,6 +45,6 @@ fun PrimaryButton(
 @Composable
 private fun PrimaryButtonPreview() {
     CalorAiTheme {
-        PrimaryButton(text = "Button",onClick = {}) {}
+        PrimaryButton(text = "Далее",onClick = {}) {}
     }
 }
