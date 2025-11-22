@@ -1,15 +1,26 @@
 package dev.calorai.mobile.features.main.di
 
+import dev.calorai.mobile.core.navigation.GlobalRouterContext
+import dev.calorai.mobile.core.navigation.RouterController
+import dev.calorai.mobile.core.navigation.RouterControllerImpl
+import dev.calorai.mobile.features.main.MainRouterContext
 import dev.calorai.mobile.features.main.features.home.di.homeModule
 import dev.calorai.mobile.features.main.features.plan.di.planModule
 import dev.calorai.mobile.features.main.features.progress.di.progressModule
 import dev.calorai.mobile.features.main.features.settings.di.settingsModule
 import dev.calorai.mobile.features.main.ui.MainViewModel
-import org.koin.core.module.dsl.viewModelOf
+import org.koin.core.module.dsl.viewModel
+import org.koin.core.qualifier.qualifier
 import org.koin.dsl.module
 
 internal val mainModule = module {
-    viewModelOf(::MainViewModel)
+    single<RouterController>(qualifier<MainRouterContext>()) { RouterControllerImpl() }
+    viewModel {
+        MainViewModel(
+            globalRouter = get<RouterController>(qualifier<GlobalRouterContext>()),
+            mainRouter = get<RouterController>(qualifier<MainRouterContext>()),
+        )
+    }
     includes(
         homeModule,
         planModule,

@@ -16,85 +16,61 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.navigation.NavDestination.Companion.hasRoute
-import androidx.navigation.NavHostController
-import androidx.navigation.NavOptions
-import androidx.navigation.compose.currentBackStackEntryAsState
-import androidx.navigation.compose.rememberNavController
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dev.calorai.mobile.R
 import dev.calorai.mobile.core.uikit.CalorAiTheme
 import dev.calorai.mobile.core.uikit.Pink
 import dev.calorai.mobile.core.uikit.White
 import dev.calorai.mobile.core.uikit.bottomNavBar.BottomNavBar
 import dev.calorai.mobile.core.uikit.bottomNavBar.BottomNavItem
-import dev.calorai.mobile.core.uikit.bottomNavBar.BottomNavItem.Companion.ITEMS
 import dev.calorai.mobile.core.uikit.mealCard.MealType
 import dev.calorai.mobile.features.main.MainNavGraph
-import dev.calorai.mobile.features.main.features.home.navigateToHomeScreen
-import dev.calorai.mobile.features.main.features.plan.navigateToPlanScreen
-import dev.calorai.mobile.features.main.features.progress.navigateToProgressScreen
-import dev.calorai.mobile.features.main.features.settings.navigateToSettingsScreen
-import dev.calorai.mobile.features.meal.create.navigateToCreateMealScreen
 import kotlinx.coroutines.launch
 import org.koin.androidx.compose.koinViewModel
 
 @Composable
 fun MainRoot(
-    navController: NavHostController,
     viewModel: MainViewModel = koinViewModel(),
 ) {
+    val state by viewModel.state.collectAsStateWithLifecycle()
+
     MainScreen(
-        parentNavController = navController,
+        state = state,
+        onEvent = viewModel::onEvent,
+        content = {
+            MainNavGraph()
+            LaunchedEffect(MainUiEvent.FetchStartDestination) {
+                viewModel.onEvent(MainUiEvent.FetchStartDestination)
+            }
+        },
     )
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun MainScreen(
-    parentNavController: NavHostController = rememberNavController(),
+    state: MainUiState,
+    onEvent: (MainUiEvent) -> Unit = {},
+    content: @Composable () -> Unit = {},
 ) {
-    val mainNavController = rememberNavController()
-    val navBackStackEntry by mainNavController.currentBackStackEntryAsState()
-    val currentDestination = navBackStackEntry?.destination
-
     val sheetState = rememberModalBottomSheetState()
     val scope = rememberCoroutineScope()
-    var showBottomSheet by remember { mutableStateOf(false) }
 
     Scaffold(
         bottomBar = {
             BottomNavBar(
-                selectedItem = ITEMS.find { item ->
-                    currentDestination?.hasRoute(item.route) == true
-                } ?: BottomNavItem.Home,
-                onItemSelected = { bottomNavItem ->
-                    val options = NavOptions.Builder()
-                        .setRestoreState(restoreState = true)
-                        .setPopUpTo(
-                            route = currentDestination?.route,
-                            inclusive = true,
-                            saveState = true,
-                        )
-                        .build()
-                    when (bottomNavItem) {
-                        BottomNavItem.Home -> mainNavController.navigateToHomeScreen(options)
-                        BottomNavItem.Plan -> mainNavController.navigateToPlanScreen(options)
-                        BottomNavItem.Progress -> mainNavController.navigateToProgressScreen(options)
-                        BottomNavItem.Settings -> mainNavController.navigateToSettingsScreen(options)
-                    }
-                },
-                onFabClick = { showBottomSheet = true },
+                selectedItem = state.selectedItem,
+                onItemSelected = { onEvent(MainUiEvent.BottomNavItemSelect(it)) },
+                onFabClick = { onEvent(MainUiEvent.AddButtonClick) },
             )
         }
     ) { innerPadding ->
@@ -103,28 +79,19 @@ private fun MainScreen(
                 .background(Brush.verticalGradient(listOf(Pink, White)), alpha = 0.3f)
                 .padding(top = innerPadding.calculateTopPadding(), bottom = 50.dp)
         ) {
-            MainNavGraph(
-                parentNavController = parentNavController,
-                navController = mainNavController,
-            )
+            content()
         }
 
-        if (showBottomSheet) {
+        if (state.bottomSheet) {
             ModalBottomSheet(
-                onDismissRequest = {
-                    showBottomSheet = false
-                },
-                sheetState = sheetState
+                onDismissRequest = { onEvent(MainUiEvent.BottomSheetHideRequest) },
+                sheetState = sheetState,
             ) {
                 CreateMealBottomSheet(
-                    navAction = { meal ->
-                        scope.launch {
-                            sheetState.hide()
-                        }.invokeOnCompletion {
-                            if (!sheetState.isVisible) {
-                                showBottomSheet = false
-                            }
-                            parentNavController.navigateToCreateMealScreen(meal)
+                    onMealButtonClick = { meal ->
+                        scope.launch { sheetState.hide() }.invokeOnCompletion {
+                            if (!sheetState.isVisible) onEvent(MainUiEvent.BottomSheetHideRequest)
+                            onEvent(MainUiEvent.ModalMealButtonClick(meal))
                         }
                     }
                 )
@@ -135,7 +102,7 @@ private fun MainScreen(
 
 @Composable
 private fun CreateMealBottomSheet(
-    navAction: (MealType) -> Unit = {},
+    onMealButtonClick: (MealType) -> Unit = {},
 ) {
     Column(
         modifier = Modifier
@@ -148,10 +115,10 @@ private fun CreateMealBottomSheet(
             text = stringResource(R.string.select_meal_type),
             style = MaterialTheme.typography.titleLarge
         )
-        ModalButton("Breakfast") { navAction(MealType.BREAKFAST) }
-        ModalButton("Lunch") { navAction(MealType.LUNCH) }
-        ModalButton("Dinner") { navAction(MealType.DINNER) }
-        ModalButton("Snack") { navAction(MealType.SNACK) }
+        ModalButton("Breakfast") { onMealButtonClick(MealType.BREAKFAST) }
+        ModalButton("Lunch") { onMealButtonClick(MealType.LUNCH) }
+        ModalButton("Dinner") { onMealButtonClick(MealType.DINNER) }
+        ModalButton("Snack") { onMealButtonClick(MealType.SNACK) }
     }
 }
 
@@ -180,7 +147,27 @@ private fun ModalButton(
 @Composable
 private fun MainScreenPreview() {
     CalorAiTheme {
-        MainScreen()
+        MainScreen(
+            state = MainUiState(
+                selectedItem = BottomNavItem.Home,
+                bottomSheet = false,
+            ),
+            content = { Text("Home") }
+        )
+    }
+}
+
+@Preview
+@Composable
+private fun MainScreenFabPreview() {
+    CalorAiTheme {
+        MainScreen(
+            state = MainUiState(
+                selectedItem = BottomNavItem.Home,
+                bottomSheet = true,
+            ),
+            content = { Text("Home") }
+        )
     }
 }
 
