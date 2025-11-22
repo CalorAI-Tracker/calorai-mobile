@@ -17,17 +17,16 @@ import org.koin.androidx.compose.koinViewModel
 
 @Composable
 fun AuthRoot(
-    navigateToAuthorizedZone: () -> Unit,
     viewModel: AuthViewModel = koinViewModel(),
 ) {
     AuthScreen(
-        onClick = navigateToAuthorizedZone,
+        onEvent = viewModel::onEvent,
     )
 }
 
 @Composable
 private fun AuthScreen(
-    onClick: () -> Unit = {},
+    onEvent: (AuthUiEvent) -> Unit = {},
 ) {
     Column(
         modifier = Modifier.fillMaxSize(),
@@ -36,7 +35,7 @@ private fun AuthScreen(
     ) {
         Text(text = "AuthScreen")
         Spacer(modifier = Modifier.size(32.dp))
-        Button(onClick) {
+        Button(onClick = { onEvent(AuthUiEvent.ButtonClick)}) {
             Text("Authorize")
         }
     }

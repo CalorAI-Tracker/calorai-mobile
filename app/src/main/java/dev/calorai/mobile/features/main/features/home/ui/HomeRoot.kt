@@ -22,18 +22,14 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.navigation.NavHostController
 import dev.calorai.mobile.R
 import dev.calorai.mobile.core.uikit.CalorAiTheme
 import dev.calorai.mobile.core.uikit.mealCard.MealCard
-import dev.calorai.mobile.core.uikit.mealCard.MealType
 import dev.calorai.mobile.core.uikit.mealCard.MealUiModel
 import dev.calorai.mobile.core.uikit.weekBar.DateUiModel
 import dev.calorai.mobile.core.uikit.weekBar.WeekBar
 import dev.calorai.mobile.core.uikit.weekBar.WeekBarUiModel
 import dev.calorai.mobile.core.uikit.weekBar.toTimePeriod
-import dev.calorai.mobile.features.meal.create.navigateToCreateMealScreen
-import dev.calorai.mobile.features.meal.details.navigateToMealDetailsScreen
 import org.koin.androidx.compose.koinViewModel
 import java.time.DayOfWeek
 import java.time.LocalDate
@@ -43,7 +39,6 @@ import java.util.Locale
 
 @Composable
 fun HomeRoot(
-    parentNavController: NavHostController,
     viewModel: HomeViewModel = koinViewModel(),
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
@@ -52,8 +47,6 @@ fun HomeRoot(
         state = state,
         meals = meals,
         onEvent = viewModel::onEvent,
-        navigateToMealDetails = { parentNavController.navigateToMealDetailsScreen(it.id) },
-        navigateToCreateMeal = { parentNavController.navigateToCreateMealScreen(it) },
     )
 }
 
@@ -62,8 +55,6 @@ private fun HomeScreen(
     state: HomeUiState,
     meals: HomeMealsUiState,
     onEvent: (HomeUiEvent) -> Unit = {},
-    navigateToMealDetails: (MealUiModel) -> Unit = {},
-    navigateToCreateMeal: (MealType) -> Unit = {},
 ) {
     Column(
         modifier = Modifier.fillMaxSize(),
@@ -92,8 +83,7 @@ private fun HomeScreen(
                 HomeMealsUiState.Loading -> CircularProgressIndicator()
                 is HomeMealsUiState.MealData -> MealsList(
                     meals = meals.data,
-                    navigateToMealDetails = navigateToMealDetails,
-                    navigateToCreateMeal = navigateToCreateMeal,
+                    onEvent = onEvent,
                 )
             }
         }
@@ -103,8 +93,7 @@ private fun HomeScreen(
 @Composable
 private fun MealsList(
     meals: List<MealUiModel>,
-    navigateToMealDetails: (MealUiModel) -> Unit = {},
-    navigateToCreateMeal: (MealType) -> Unit = {},
+    onEvent: (HomeUiEvent) -> Unit = {},
 ) {
     LazyColumn {
         items(meals) { meal ->
@@ -113,8 +102,8 @@ private fun MealsList(
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(80.dp)
-                    .clickable { navigateToMealDetails.invoke(meal) },
-                onAddClick = { navigateToCreateMeal.invoke(meal.type) },
+                    .clickable { onEvent(HomeUiEvent.MealCardClick(meal)) },
+                onAddClick = { onEvent(HomeUiEvent.MealCardAddButtonClick(meal)) },
             )
             Spacer(modifier = Modifier.height(6.dp))
         }
