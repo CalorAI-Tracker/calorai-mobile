@@ -38,9 +38,12 @@ fun PrimaryTextField(
         visualTransformation = visualTransformation,
         modifier = modifier
             .fillMaxWidth()
-            .shadow(elevation = 4.dp, shape = RoundedCornerShape(8.dp)),
-        shape = MaterialTheme.shapes.medium,
+            .shadow(3.dp, RoundedCornerShape(16.dp)),
+        shape = RoundedCornerShape(12.dp),
         colors = TextFieldDefaults.colors(
+            focusedContainerColor = MaterialTheme.colorScheme.surface,
+            unfocusedContainerColor = MaterialTheme.colorScheme.surface,
+            errorContainerColor = MaterialTheme.colorScheme.surface,
             disabledTextColor = Color.Transparent,
             focusedIndicatorColor = Color.Transparent,
             unfocusedIndicatorColor = Color.Transparent,
