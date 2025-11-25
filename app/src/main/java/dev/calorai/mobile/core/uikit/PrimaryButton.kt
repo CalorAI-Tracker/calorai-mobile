@@ -17,18 +17,17 @@ import androidx.compose.ui.unit.dp
 @Composable
 fun PrimaryButton(
     onClick: () -> Unit,
-    modifier: Modifier = Modifier,
-    text: String,
-    content: @Composable RowScope.() -> Unit
+    modifier: Modifier = Modifier
+        .fillMaxWidth()
+        .height(56.dp),
+    text: String
 ) {
     Button(
         onClick = onClick,
         colors = ButtonDefaults.buttonColors(
             containerColor = MaterialTheme.colorScheme.secondary
         ),
-        modifier = modifier
-            .fillMaxWidth()
-            .height(56.dp),
+        modifier = modifier,
         shape = RoundedCornerShape(25)
     ) {
         Text(
@@ -36,7 +35,6 @@ fun PrimaryButton(
             color = MaterialTheme.colorScheme.onSecondary,
             style = MaterialTheme.typography.bodyMedium
         )
-        content()
     }
 }
 
@@ -45,6 +43,6 @@ fun PrimaryButton(
 @Composable
 private fun PrimaryButtonPreview() {
     CalorAiTheme {
-        PrimaryButton(text = "Далее",onClick = {}) {}
+        PrimaryButton(text = "Далее",onClick = {})
     }
 }
