@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">calorai-mobile</string>
+    <string name="app_name">CalorAI</string>
     <string name="add">Добавить</string>
 
     <string name="navbar_label_home">Главная</string>
