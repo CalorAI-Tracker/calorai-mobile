@@ -42,6 +42,7 @@ import dev.calorai.mobile.core.uikit.Pink
 import dev.calorai.mobile.core.uikit.PrimaryButton
 import dev.calorai.mobile.core.uikit.PrimaryTextField
 import dev.calorai.mobile.core.uikit.White
+import dev.calorai.mobile.core.uikit.commonGradientBackground
 import org.koin.androidx.compose.koinViewModel
 
 
@@ -65,7 +66,7 @@ private fun AuthScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(Brush.verticalGradient(listOf(Pink, White)))
+            .commonGradientBackground()
             .padding(8.dp, 16.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
