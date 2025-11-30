@@ -1,6 +1,8 @@
 package dev.calorai.mobile.features.main.features.home.ui
 
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectDragGestures
+import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -16,8 +18,15 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.input.pointer.positionChange
+import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -57,7 +66,13 @@ private fun HomeScreen(
     onEvent: (HomeUiEvent) -> Unit = {},
 ) {
     Column(
-        modifier = Modifier.fillMaxSize(),
+        modifier = Modifier
+            .fillMaxSize()
+            .onSwipe(
+                threshold = 150f,
+                onRightSwipe = { onEvent(HomeUiEvent.SelectPreviousDate) },
+                onLeftSwipe = { onEvent(HomeUiEvent.SelectNextDate) },
+            )
     ) {
         Text(
             text = stringResource(R.string.home_welcome_title, state.userName),
@@ -112,7 +127,7 @@ private fun MealsList(
 
 @Preview(showBackground = true)
 @Composable
-private fun HomeScreenPreview() {
+fun HomeScreenPreview() {
     val locale = Locale.forLanguageTag("ru")
     val today = LocalDate.of(2025, 9, 13)
     val startOfWeek = today.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY))
@@ -126,16 +141,40 @@ private fun HomeScreenPreview() {
                 ),
             timePeriod = date.toTimePeriod(),
             progress = 0.6f,
-            isSelected = date == today
         )
     }
     CalorAiTheme {
         HomeScreen(
             state = HomeUiState(
-                weekBar = WeekBarUiModel(daysList = days),
+                weekBar = WeekBarUiModel(daysList = days, selectedDate = today),
                 userName = "Олег",
             ),
             meals = HomeMealsUiState.MealData(emptyList()),
         )
+    }
+}
+
+private fun Modifier.onSwipe(
+    threshold: Float,
+    onRightSwipe: () -> Unit,
+    onLeftSwipe: () -> Unit,
+) = pointerInput(Unit) {
+    awaitPointerEventScope {
+        while (true) {
+            awaitPointerEvent().changes.firstOrNull() ?: continue
+            var totalX = 0f
+            while (true) {
+                val event = awaitPointerEvent()
+                val drag = event.changes.firstOrNull() ?: break
+                val changeX = drag.positionChange().x
+                totalX += changeX
+                drag.consume()
+                if (!drag.pressed) break
+            }
+            when {
+                totalX > threshold -> onRightSwipe()
+                totalX < -threshold -> onLeftSwipe()
+            }
+        }
     }
 }

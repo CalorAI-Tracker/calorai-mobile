@@ -1,6 +1,7 @@
 package dev.calorai.mobile.features.main.features.home.domain
 
 import android.content.Context
+import androidx.core.os.ConfigurationCompat
 import dev.calorai.mobile.core.uikit.weekBar.DateUiModel
 import dev.calorai.mobile.core.uikit.weekBar.shortDayName
 import dev.calorai.mobile.core.uikit.weekBar.toTimePeriod
@@ -10,20 +11,19 @@ import java.time.temporal.TemporalAdjusters
 import java.time.temporal.WeekFields
 import java.util.Locale
 
-interface GetCurrentWeekUseCase {
-    operator fun invoke(): List<DateUiModel>
+interface GetWeekByDateUseCase {
+    operator fun invoke(date: LocalDate): List<DateUiModel>
 }
 
-internal class GetCurrentWeekUseCaseImpl constructor(
+internal class GetWeekByDateUseCaseImpl constructor(
     private val context: Context,
-    private val clock: Clock,
-) : GetCurrentWeekUseCase {
+) : GetWeekByDateUseCase {
 
-    override fun invoke(): List<DateUiModel> {
-        val today = LocalDate.now(clock)
-        val locale = Locale.getDefault()
+    override fun invoke(date: LocalDate): List<DateUiModel> {
+        val locales = ConfigurationCompat.getLocales(context.resources.configuration)
+        val locale = locales[0] ?: Locale.getDefault()
         val firstDayOfWeek = WeekFields.of(locale).firstDayOfWeek
-        val startOfWeek = today.with(TemporalAdjusters.previousOrSame(firstDayOfWeek))
+        val startOfWeek = date.with(TemporalAdjusters.previousOrSame(firstDayOfWeek))
         return (0L..6L).map { offset ->
             val date = startOfWeek.plusDays(offset)
             DateUiModel(
@@ -31,7 +31,6 @@ internal class GetCurrentWeekUseCaseImpl constructor(
                 shortDayName = date.shortDayName(context),
                 timePeriod = date.toTimePeriod(),
                 progress = 0.6f,
-                isSelected = date == today,
             )
         }
     }

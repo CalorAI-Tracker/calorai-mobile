@@ -7,7 +7,8 @@ import java.time.format.TextStyle
 import java.util.Locale
 
 data class WeekBarUiModel(
-    val daysList: List<DateUiModel>
+    val daysList: List<DateUiModel>,
+    val selectedDate: LocalDate,
 )
 
 data class DateUiModel(
@@ -15,7 +16,6 @@ data class DateUiModel(
     val shortDayName: String,
     val timePeriod: TimePeriod,
     val progress: Float,
-    val isSelected: Boolean,
 )
 
 enum class TimePeriod {

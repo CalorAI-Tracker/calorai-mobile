@@ -22,6 +22,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.TextAutoSize
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -276,14 +277,12 @@ private fun BottomNavItem(
         } else {
             MaterialTheme.colorScheme.onSurface
         }
-
-        Image(
+        Icon(
             painter = painterResource(id = item.iconId),
             contentDescription = stringResource(item.labelId),
-            colorFilter = ColorFilter.tint(color),
+            tint = color,
             modifier = Modifier.size(32.dp)
         )
-
         Text(
             text = stringResource(item.labelId),
             style = MaterialTheme.typography.bodySmall,
