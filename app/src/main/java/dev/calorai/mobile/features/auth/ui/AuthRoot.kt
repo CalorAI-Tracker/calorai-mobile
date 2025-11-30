@@ -17,23 +17,14 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.HorizontalDivider
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.ModifierLocalBeyondBoundsLayout
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
@@ -41,31 +32,35 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dev.calorai.mobile.R
-import dev.calorai.mobile.ui.theme.CalorAiTheme
-import dev.calorai.mobile.ui.theme.Pink
-import dev.calorai.mobile.ui.theme.White
-import dev.calorai.mobile.uikit.PrimaryButton
-import dev.calorai.mobile.uikit.PrimaryTextField
+import dev.calorai.mobile.core.uikit.CalorAiTheme
+import dev.calorai.mobile.core.uikit.Pink
+import dev.calorai.mobile.core.uikit.PrimaryButton
+import dev.calorai.mobile.core.uikit.PrimaryTextField
+import dev.calorai.mobile.core.uikit.White
+import dev.calorai.mobile.features.auth.ui.AuthUiEvent
+import dev.calorai.mobile.features.auth.ui.AuthUiState
+import dev.calorai.mobile.features.auth.ui.AuthViewModel
+import org.koin.androidx.compose.koinViewModel
+
 
 @Composable
-fun AuthRoot(
-    navigateToAuthorizedZone: () -> Unit,
-) {
+fun AuthRoot() {
+    val viewModel: AuthViewModel = koinViewModel()
+    val state by viewModel.state.collectAsStateWithLifecycle()
+
     AuthScreen(
-        onLoginClick = navigateToAuthorizedZone,
+        state = state,
+        onEvent = viewModel::onEvent
     )
 }
 
 @Composable
 private fun AuthScreen(
-    onLoginClick: () -> Unit = {},
-    onGoogleLoginClick: () -> Unit = {},
-    onRegisterClick: () -> Unit = {}
+    state: AuthUiState,
+    onEvent: (AuthUiEvent) -> Unit = {}
 ) {
-    var email by remember { mutableStateOf("") }
-    var password by remember { mutableStateOf("") }
-
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -87,23 +82,23 @@ private fun AuthScreen(
             TextFieldWithTitle(
                 title = stringResource(R.string.auth_label_email),
                 placeholder = stringResource(R.string.auth_placeholder_email),
-                value = email,
-                onValueChange = { email = it },
+                value = state.email,
+                onValueChange = { onEvent(AuthUiEvent.EmailChanged(it)) },
                 keyboardType = KeyboardType.Email
             )
             Spacer(Modifier.size(20.dp))
             TextFieldWithTitle(
                 title = stringResource(R.string.auth_label_password),
                 placeholder = stringResource(R.string.auth_placeholder_password),
-                value = password,
-                onValueChange = { password = it },
+                value = state.password,
+                onValueChange = { onEvent(AuthUiEvent.PasswordChanged(it)) },
                 isPassword = true
             )
             Spacer(Modifier.size(12.dp))
             Divider()
             Spacer(Modifier.size(12.dp))
             Button(
-                onClick = onGoogleLoginClick,
+                onClick = { onEvent(AuthUiEvent.GoogleLoginClick) },
                 colors = ButtonDefaults.buttonColors(
                     containerColor = MaterialTheme.colorScheme.primary
                 ),
@@ -120,9 +115,9 @@ private fun AuthScreen(
             }
             Spacer(Modifier.weight(1f))
             PrimaryButton(
-                onClick = onLoginClick,
+                onClick = { onEvent(AuthUiEvent.LoginButtonClick) },
                 text = stringResource(R.string.auth_continue),
-            ) { }
+            )
             Spacer(Modifier.size(9.dp))
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -137,9 +132,9 @@ private fun AuthScreen(
                     text = stringResource(R.string.auth_registration),
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.secondary,
-                    modifier = Modifier.clickable(
-                        onClick = onRegisterClick
-                    )
+                    modifier = Modifier.clickable {
+                        onEvent(AuthUiEvent.RegisterClick)
+                    }
                 )
             }
         }
@@ -161,8 +156,8 @@ private fun TitleWithDescription(
         Text(
             text = title,
             style = MaterialTheme.typography.titleLarge,
-            modifier = Modifier.padding(bottom = 5.dp),
         )
+        Spacer(Modifier.size(5.dp))
         Text(
             text = description,
             style = MaterialTheme.typography.bodyLarge
@@ -235,6 +230,12 @@ private fun TextFieldWithTitle(
 @Composable
 private fun AuthScreenPreview() {
     CalorAiTheme {
-        AuthScreen()
+        AuthScreen(
+            state = AuthUiState(
+                email = "example@email.com",
+                password = "password123"
+            ),
+            onEvent = {}
+        )
     }
 }
