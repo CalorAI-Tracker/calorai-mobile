@@ -9,5 +9,5 @@ fun Modifier.commonGradientBackground(): Modifier =
         Brush.verticalGradient(
             colors = listOf(Pink, White),
         ),
-        alpha = 0.8f
+        alpha = 0.3f
     )

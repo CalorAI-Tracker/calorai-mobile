@@ -54,7 +54,8 @@ fun WeekBar(
             DayItem(
                 dateData = dateUiModel,
                 onClick = onDateSelected,
-                modifier = Modifier
+                modifier = Modifier,
+                isSelected = dateUiModel.date == weekData.selectedDate,
             )
         }
     }
@@ -63,6 +64,7 @@ fun WeekBar(
 @Composable
 private fun DayItem(
     dateData: DateUiModel,
+    isSelected: Boolean,
     onClick: (DateUiModel) -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -76,7 +78,7 @@ private fun DayItem(
     }
     val progressArcColor = MaterialTheme.colorScheme.onSurface
     val progressArc: Float by animateFloatAsState(
-        if (!(dateData.isSelected || timePeriod == TimePeriod.FUTURE)) dateData.progress else 0f
+        if (!(isSelected || timePeriod == TimePeriod.FUTURE)) dateData.progress else 0f
     )
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -86,7 +88,7 @@ private fun DayItem(
             .wrapContentHeight()
             .clip(RoundedCornerShape(30.dp))
             .then(
-                if (dateData.isSelected) {
+                if (isSelected) {
                     Modifier.border(
                         width = 1.dp,
                         color = MaterialTheme.colorScheme.secondary,
@@ -162,9 +164,9 @@ private fun SelectedDayItemPreview() {
                 shortDayName = date.shortDayName(context),
                 timePeriod = date.toTimePeriod(),
                 progress = 0.7f,
-                isSelected = true
             ),
-            onClick = {}
+            onClick = {},
+            isSelected = true,
         )
     }
 }
@@ -181,9 +183,9 @@ private fun TodayItemPreview() {
                 shortDayName = date.shortDayName(context),
                 timePeriod = date.toTimePeriod(),
                 progress = 0.7f,
-                isSelected = false
             ),
-            onClick = {}
+            onClick = {},
+            isSelected = false,
         )
     }
 }
@@ -200,9 +202,9 @@ private fun LastDayItemPreview() {
                 shortDayName = date.shortDayName(context),
                 timePeriod = date.toTimePeriod(),
                 progress = 0.9f,
-                isSelected = false
             ),
-            onClick = {}
+            onClick = {},
+            isSelected = false,
         )
     }
 }
@@ -219,9 +221,9 @@ private fun FutureDayItemPreview() {
                 shortDayName = date.shortDayName(context),
                 timePeriod = date.toTimePeriod(),
                 progress = 0.5f,
-                isSelected = false
             ),
-            onClick = {}
+            onClick = {},
+            isSelected = false,
         )
     }
 }
@@ -241,10 +243,12 @@ private fun FirstWeekBarPreview() {
             shortDayName = date.shortDayName(context),
             timePeriod = date.toTimePeriod(),
             progress = 0.6f,
-            isSelected = date == today
         )
     }
-    val weekData = WeekBarUiModel(daysList = days)
+    val weekData = WeekBarUiModel(
+        daysList = days,
+        selectedDate = today,
+    )
     CalorAiTheme {
         WeekBar(
             weekData = weekData,
@@ -269,10 +273,12 @@ private fun SecondWeekBarPreview() {
             shortDayName = date.shortDayName(context),
             timePeriod = date.toTimePeriod(),
             progress = 0.6f,
-            isSelected = date == today
         )
     }
-    val weekData = WeekBarUiModel(daysList = days)
+    val weekData = WeekBarUiModel(
+        daysList = days,
+        selectedDate = today,
+    )
     CalorAiTheme {
         WeekBar(
             weekData = weekData,
@@ -298,10 +304,12 @@ private fun SecondWeekBarPreviewRu() {
                 ),
             timePeriod = date.toTimePeriod(),
             progress = 0.6f,
-            isSelected = date == today
         )
     }
-    val weekData = WeekBarUiModel(daysList = days)
+    val weekData = WeekBarUiModel(
+        daysList = days,
+        selectedDate = today,
+    )
     CalorAiTheme {
         WeekBar(
             weekData = weekData,

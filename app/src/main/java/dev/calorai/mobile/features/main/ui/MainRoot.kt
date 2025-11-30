@@ -1,6 +1,5 @@
 package dev.calorai.mobile.features.main.ui
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -21,19 +20,19 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dev.calorai.mobile.R
 import dev.calorai.mobile.core.uikit.CalorAiTheme
-import dev.calorai.mobile.core.uikit.Pink
-import dev.calorai.mobile.core.uikit.White
 import dev.calorai.mobile.core.uikit.bottomNavBar.BottomNavBar
 import dev.calorai.mobile.core.uikit.bottomNavBar.BottomNavItem
+import dev.calorai.mobile.core.uikit.commonGradientBackground
 import dev.calorai.mobile.core.uikit.mealCard.MealType
 import dev.calorai.mobile.features.main.MainNavGraph
+import dev.calorai.mobile.features.main.features.home.ui.HomeScreenPreview
 import kotlinx.coroutines.launch
 import org.koin.androidx.compose.koinViewModel
 
@@ -72,11 +71,12 @@ private fun MainScreen(
                 onItemSelected = { onEvent(MainUiEvent.BottomNavItemSelect(it)) },
                 onFabClick = { onEvent(MainUiEvent.AddButtonClick) },
             )
-        }
+        },
+        containerColor = Color.Unspecified,
     ) { innerPadding ->
         Box(
             modifier = Modifier
-                .background(Brush.verticalGradient(listOf(Pink, White)), alpha = 0.3f)
+                .commonGradientBackground()
                 .padding(top = innerPadding.calculateTopPadding(), bottom = 50.dp)
         ) {
             content()
@@ -143,7 +143,7 @@ private fun ModalButton(
     }
 }
 
-@Preview
+@Preview(showBackground = true)
 @Composable
 private fun MainScreenPreview() {
     CalorAiTheme {
@@ -152,21 +152,7 @@ private fun MainScreenPreview() {
                 selectedItem = BottomNavItem.Home,
                 bottomSheet = false,
             ),
-            content = { Text("Home") }
-        )
-    }
-}
-
-@Preview
-@Composable
-private fun MainScreenFabPreview() {
-    CalorAiTheme {
-        MainScreen(
-            state = MainUiState(
-                selectedItem = BottomNavItem.Home,
-                bottomSheet = true,
-            ),
-            content = { Text("Home") }
+            content = { HomeScreenPreview() }
         )
     }
 }

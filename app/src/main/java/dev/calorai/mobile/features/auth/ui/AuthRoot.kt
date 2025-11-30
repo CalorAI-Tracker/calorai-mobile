@@ -25,7 +25,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -38,10 +37,8 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dev.calorai.mobile.R
 import dev.calorai.mobile.core.uikit.CalorAiTheme
-import dev.calorai.mobile.core.uikit.Pink
 import dev.calorai.mobile.core.uikit.PrimaryButton
 import dev.calorai.mobile.core.uikit.PrimaryTextField
-import dev.calorai.mobile.core.uikit.White
 import dev.calorai.mobile.core.uikit.commonGradientBackground
 import org.koin.androidx.compose.koinViewModel
 
@@ -67,7 +64,7 @@ private fun AuthScreen(
         modifier = Modifier
             .fillMaxSize()
             .commonGradientBackground()
-            .padding(8.dp, 16.dp),
+            .padding(16.dp, 16.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         TitleWithDescription(

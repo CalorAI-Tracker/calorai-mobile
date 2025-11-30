@@ -2,10 +2,12 @@ package dev.calorai.mobile.features.main.features.home.di
 
 import dev.calorai.mobile.core.navigation.GlobalRouterContext
 import dev.calorai.mobile.core.navigation.RouterController
+import dev.calorai.mobile.features.main.features.home.domain.CheckIsFirstDayOfWeekUseCase
+import dev.calorai.mobile.features.main.features.home.domain.CheckIsFirstDayOfWeekUseCaseImpl
 import dev.calorai.mobile.features.main.features.home.domain.GetCurrentUserNameUseCase
 import dev.calorai.mobile.features.main.features.home.domain.GetCurrentUserNameUseCaseImpl
-import dev.calorai.mobile.features.main.features.home.domain.GetCurrentWeekUseCase
-import dev.calorai.mobile.features.main.features.home.domain.GetCurrentWeekUseCaseImpl
+import dev.calorai.mobile.features.main.features.home.domain.GetWeekByDateUseCase
+import dev.calorai.mobile.features.main.features.home.domain.GetWeekByDateUseCaseImpl
 import dev.calorai.mobile.features.main.features.home.domain.GetMealsForDayUseCase
 import dev.calorai.mobile.features.main.features.home.domain.GetMealsForDayUseCaseImpl
 import dev.calorai.mobile.features.main.features.home.ui.HomeViewModel
@@ -13,14 +15,13 @@ import org.koin.android.ext.koin.androidContext
 import org.koin.core.module.dsl.viewModel
 import org.koin.core.qualifier.qualifier
 import org.koin.dsl.module
-import java.time.Clock
 
 internal val homeModule = module {
-    factory<GetCurrentWeekUseCase> {
-        GetCurrentWeekUseCaseImpl(
-            context = androidContext(),
-            clock = Clock.systemDefaultZone(),
-        )
+    factory<GetWeekByDateUseCase> {
+        GetWeekByDateUseCaseImpl(androidContext())
+    }
+    factory<CheckIsFirstDayOfWeekUseCase> {
+        CheckIsFirstDayOfWeekUseCaseImpl(androidContext())
     }
     factory<GetCurrentUserNameUseCase> {
         GetCurrentUserNameUseCaseImpl()
@@ -30,9 +31,10 @@ internal val homeModule = module {
     }
     viewModel {
         HomeViewModel(
-            getCurrentWeekUseCase = get<GetCurrentWeekUseCase>(),
+            getWeekByDateUseCase = get<GetWeekByDateUseCase>(),
             getCurrentUserNameUseCase = get<GetCurrentUserNameUseCase>(),
             getMealsForDayUseCase = get<GetMealsForDayUseCase>(),
+            checkIsFirstDayOfWeekUseCase = get<CheckIsFirstDayOfWeekUseCase>(),
             globalRouter = get<RouterController>(qualifier<GlobalRouterContext>()),
         )
     }
