@@ -8,6 +8,7 @@ import dev.calorai.mobile.features.auth.AuthRoute
 import dev.calorai.mobile.features.main.navigateToMainScreen
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 class AuthViewModel constructor(
@@ -28,11 +29,11 @@ class AuthViewModel constructor(
     }
 
     private fun updateEmail(email: String) {
-        _state.value = _state.value.copy(email = email)
+        _state.update { it.copy(email = email) }
     }
 
     private fun updatePassword(password: String) {
-        _state.value = _state.value.copy(password = password)
+        _state.update { it.copy(password = password) }
     }
 
     private fun login() {
