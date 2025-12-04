@@ -45,4 +45,10 @@
     <string name="settings_goal_get_weight">Набрать массу</string>
     <string name="settings_save_btn">Сохранить</string>
     <string name="settings_date_picker_apply">Apply</string>
+
+    <string name="details_done">Готово</string>
+    <string name="details_ingredients">Ингредиенты</string>
+    <string name="details_add_more">+ Добавить еще</string>
+    <string name="details_add_manual">Добавить вручную</string>
+    <string name="details_choose_ready">Выбрать готовое</string>
 </resources>
