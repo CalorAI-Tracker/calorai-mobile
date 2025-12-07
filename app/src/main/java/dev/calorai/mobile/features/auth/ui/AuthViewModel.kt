@@ -6,6 +6,7 @@ import androidx.navigation.NavOptions
 import dev.calorai.mobile.core.navigation.Router
 import dev.calorai.mobile.features.auth.AuthRoute
 import dev.calorai.mobile.features.main.navigateToMainScreen
+import dev.calorai.mobile.features.signUp.navigateToSignUpScreen
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
@@ -48,6 +49,15 @@ class AuthViewModel constructor(
 
     private fun navigateToRegister() {
         // Навигация к экрану регистрации
+        viewModelScope.launch {
+            globalRouter.emit {
+                navigateToSignUpScreen(
+                    navOptions = NavOptions.Builder()
+                        .setPopUpTo<AuthRoute>(inclusive = true)
+                        .build()
+                )
+            }
+        }
     }
 
     private fun navigateToAuthorizedZone() {

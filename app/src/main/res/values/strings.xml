@@ -51,4 +51,11 @@
     <string name="details_add_more">+ Добавить еще</string>
     <string name="details_add_manual">Добавить вручную</string>
     <string name="details_choose_ready">Выбрать готовое</string>
+
+    <string name="signup_title">Создай свой аккаунт</string>
+    <string name="signup_description">Начни питаться лучше</string>
+    <string name="signup_name">Имя</string>
+    <string name="signup_placeholder_name">Ввод имени</string>
+    <string name="signup_account_exist">Уже есть аккаунт?</string>
+    <string name="signup_login">Войти</string>
 </resources>
