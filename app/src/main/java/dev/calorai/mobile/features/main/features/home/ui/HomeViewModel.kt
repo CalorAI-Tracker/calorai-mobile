@@ -22,7 +22,7 @@ import java.time.LocalDate
 
 class HomeViewModel constructor(
     private val getWeekByDateUseCase: GetWeekByDateUseCase,
-    getCurrentUserNameUseCase: GetCurrentUserNameUseCase,
+    private val getCurrentUserNameUseCase: GetCurrentUserNameUseCase,
     private val checkIsFirstDayOfWeekUseCase: CheckIsFirstDayOfWeekUseCase,
     private val getMealsForDayUseCase: GetMealsForDayUseCase,
     private val getPieChartsDataForDayUseCase: GetPieChartsDataForDayUseCase,
