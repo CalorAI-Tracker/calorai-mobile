@@ -9,6 +9,7 @@ import dev.calorai.mobile.features.main.features.home.domain.CheckIsFirstDayOfWe
 import dev.calorai.mobile.features.main.features.home.domain.GetCurrentUserNameUseCase
 import dev.calorai.mobile.features.main.features.home.domain.GetWeekByDateUseCase
 import dev.calorai.mobile.features.main.features.home.domain.GetMealsForDayUseCase
+import dev.calorai.mobile.features.main.features.home.domain.GetPieChartsDataForDayUseCase
 import dev.calorai.mobile.features.meal.create.navigateToCreateMealScreen
 import dev.calorai.mobile.features.meal.details.navigateToMealDetailsScreen
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -21,9 +22,10 @@ import java.time.LocalDate
 
 class HomeViewModel constructor(
     private val getWeekByDateUseCase: GetWeekByDateUseCase,
-    getCurrentUserNameUseCase: GetCurrentUserNameUseCase,
+    private val getCurrentUserNameUseCase: GetCurrentUserNameUseCase,
     private val checkIsFirstDayOfWeekUseCase: CheckIsFirstDayOfWeekUseCase,
     private val getMealsForDayUseCase: GetMealsForDayUseCase,
+    private val getPieChartsDataForDayUseCase: GetPieChartsDataForDayUseCase,
     private val globalRouter: Router,
 ) : ViewModel() {
 
@@ -41,13 +43,13 @@ class HomeViewModel constructor(
 
     val state: StateFlow<HomeUiState> = _state
 
-    private val _mealsState: MutableStateFlow<HomeMealsUiState> =
-        MutableStateFlow(HomeMealsUiState.Loading)
+    private val _dataState: MutableStateFlow<HomeDataUiState> =
+        MutableStateFlow(HomeDataUiState.Loading)
 
-    val mealsState: StateFlow<HomeMealsUiState> = _mealsState.stateIn(
+    val dataState: StateFlow<HomeDataUiState> = _dataState.stateIn(
         scope = viewModelScope,
         started = SharingStarted.Lazily,
-        initialValue = HomeMealsUiState.Loading,
+        initialValue = HomeDataUiState.Loading,
     )
 
     init {
@@ -73,9 +75,15 @@ class HomeViewModel constructor(
             }
         }
         viewModelScope.launch {
-            _mealsState.update { HomeMealsUiState.Loading }
+            _dataState.update { HomeDataUiState.Loading }
             val meals = getMealsForDayUseCase.invoke(selectedDate)
-            _mealsState.update { HomeMealsUiState.MealData(meals) }
+            val pieChartsData = getPieChartsDataForDayUseCase.invoke(selectedDate)
+            _dataState.update {
+                HomeDataUiState.HomeData(
+                mealsData = meals,
+                pieChartsData = pieChartsData
+                )
+            }
         }
     }
 
@@ -95,9 +103,15 @@ class HomeViewModel constructor(
                 }
             }
             viewModelScope.launch {
-                _mealsState.update { HomeMealsUiState.Loading }
+                _dataState.update { HomeDataUiState.Loading }
                 val meals = getMealsForDayUseCase.invoke(nextDate)
-                _mealsState.update { HomeMealsUiState.MealData(meals) }
+                val pieChartsData = getPieChartsDataForDayUseCase.invoke(nextDate)
+                _dataState.update {
+                    HomeDataUiState.HomeData(
+                        mealsData = meals,
+                        pieChartsData = pieChartsData
+                    )
+                }
             }
         } else {
             handleSelectDate(nextDate)
@@ -119,9 +133,15 @@ class HomeViewModel constructor(
                 }
             }
             viewModelScope.launch {
-                _mealsState.update { HomeMealsUiState.Loading }
+                _dataState.update { HomeDataUiState.Loading }
                 val meals = getMealsForDayUseCase.invoke(previousDate)
-                _mealsState.update { HomeMealsUiState.MealData(meals) }
+                val pieChartsData = getPieChartsDataForDayUseCase.invoke(previousDate)
+                _dataState.update {
+                    HomeDataUiState.HomeData(
+                        mealsData = meals,
+                        pieChartsData = pieChartsData
+                    )
+                }
             }
         } else {
             handleSelectDate(previousDate)

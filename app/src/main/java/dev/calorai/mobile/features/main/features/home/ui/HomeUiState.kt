@@ -1,6 +1,7 @@
 package dev.calorai.mobile.features.main.features.home.ui
 
 import dev.calorai.mobile.core.uikit.mealCard.MealUiModel
+import dev.calorai.mobile.core.uikit.pieChart.PieChartUiModel
 import dev.calorai.mobile.core.uikit.weekBar.WeekBarUiModel
 
 data class HomeUiState constructor(
@@ -8,8 +9,11 @@ data class HomeUiState constructor(
     val userName: String,
 )
 
-sealed interface HomeMealsUiState {
-    data class MealData(val data: List<MealUiModel>) : HomeMealsUiState
-    data object Loading : HomeMealsUiState
-    data object Error : HomeMealsUiState
+sealed interface HomeDataUiState {
+    data class HomeData(
+        val mealsData: List<MealUiModel>,
+        val pieChartsData: List<PieChartUiModel>,
+    ) : HomeDataUiState
+    data object Loading : HomeDataUiState
+    data object Error : HomeDataUiState
 }

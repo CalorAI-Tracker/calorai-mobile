@@ -10,6 +10,8 @@ import dev.calorai.mobile.features.main.features.home.domain.GetWeekByDateUseCas
 import dev.calorai.mobile.features.main.features.home.domain.GetWeekByDateUseCaseImpl
 import dev.calorai.mobile.features.main.features.home.domain.GetMealsForDayUseCase
 import dev.calorai.mobile.features.main.features.home.domain.GetMealsForDayUseCaseImpl
+import dev.calorai.mobile.features.main.features.home.domain.GetPieChartsDataForDayUseCase
+import dev.calorai.mobile.features.main.features.home.domain.GetPieChartsDataForDayUseCaseImpl
 import dev.calorai.mobile.features.main.features.home.ui.HomeViewModel
 import org.koin.android.ext.koin.androidContext
 import org.koin.core.module.dsl.viewModel
@@ -29,11 +31,15 @@ internal val homeModule = module {
     factory<GetMealsForDayUseCase> {
         GetMealsForDayUseCaseImpl()
     }
+    factory<GetPieChartsDataForDayUseCase> {
+        GetPieChartsDataForDayUseCaseImpl()
+    }
     viewModel {
         HomeViewModel(
             getWeekByDateUseCase = get<GetWeekByDateUseCase>(),
             getCurrentUserNameUseCase = get<GetCurrentUserNameUseCase>(),
             getMealsForDayUseCase = get<GetMealsForDayUseCase>(),
+            getPieChartsDataForDayUseCase = get<GetPieChartsDataForDayUseCase>(),
             checkIsFirstDayOfWeekUseCase = get<CheckIsFirstDayOfWeekUseCase>(),
             globalRouter = get<RouterController>(qualifier<GlobalRouterContext>()),
         )
