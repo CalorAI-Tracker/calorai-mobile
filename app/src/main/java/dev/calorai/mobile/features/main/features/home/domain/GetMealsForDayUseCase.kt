@@ -28,6 +28,27 @@ internal class GetMealsForDayUseCaseImpl constructor(
                 visibleFoodList = emptyList(),
                 subtitle = "345 ккал",
                 type = MealType.LUNCH,
+            ),
+            MealUiModel(
+                id = 3,
+                title = "Обед от ${date}",
+                visibleFoodList = emptyList(),
+                subtitle = "345 ккал",
+                type = MealType.LUNCH,
+            ),
+            MealUiModel(
+                id = 4,
+                title = "Обед от ${date}",
+                visibleFoodList = emptyList(),
+                subtitle = "345 ккал",
+                type = MealType.LUNCH,
+            ),
+            MealUiModel(
+                id = 5,
+                title = "Обед от ${date}",
+                visibleFoodList = emptyList(),
+                subtitle = "345 ккал",
+                type = MealType.LUNCH,
             )
         )
     }

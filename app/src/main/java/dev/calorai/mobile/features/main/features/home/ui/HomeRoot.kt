@@ -1,15 +1,15 @@
 package dev.calorai.mobile.features.main.features.home.ui
 
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.gestures.detectDragGestures
-import androidx.compose.foundation.gestures.detectHorizontalDragGestures
+import androidx.compose.foundation.gestures.awaitHorizontalDragOrCancellation
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -18,15 +18,10 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.input.pointer.positionChange
-import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -35,6 +30,9 @@ import dev.calorai.mobile.R
 import dev.calorai.mobile.core.uikit.CalorAiTheme
 import dev.calorai.mobile.core.uikit.mealCard.MealCard
 import dev.calorai.mobile.core.uikit.mealCard.MealUiModel
+import dev.calorai.mobile.core.uikit.pieChart.PieChart
+import dev.calorai.mobile.core.uikit.pieChart.PieChartStyle
+import dev.calorai.mobile.core.uikit.pieChart.PieChartUiModel
 import dev.calorai.mobile.core.uikit.weekBar.DateUiModel
 import dev.calorai.mobile.core.uikit.weekBar.WeekBar
 import dev.calorai.mobile.core.uikit.weekBar.WeekBarUiModel
@@ -51,10 +49,10 @@ fun HomeRoot(
     viewModel: HomeViewModel = koinViewModel(),
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
-    val meals by viewModel.mealsState.collectAsStateWithLifecycle()
+    val data by viewModel.dataState.collectAsStateWithLifecycle()
     HomeScreen(
         state = state,
-        meals = meals,
+        data = data,
         onEvent = viewModel::onEvent,
     )
 }
@@ -62,7 +60,7 @@ fun HomeRoot(
 @Composable
 private fun HomeScreen(
     state: HomeUiState,
-    meals: HomeMealsUiState,
+    data: HomeDataUiState,
     onEvent: (HomeUiEvent) -> Unit = {},
 ) {
     Column(
@@ -84,21 +82,68 @@ private fun HomeScreen(
             modifier = Modifier.fillMaxWidth(),
             onDateSelected = { onEvent(HomeUiEvent.SelectDate(it)) }
         )
-        Spacer(modifier = Modifier.height(12.dp))
-        Column(
+        LazyColumn(
             modifier = Modifier
-                .fillMaxWidth()
-                .wrapContentHeight()
-                .padding(horizontal = 12.dp, vertical = 24.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Bottom,
+                .fillMaxSize(),
+            contentPadding = PaddingValues(horizontal = 12.dp, vertical = 24.dp),
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            when (meals) {
-                HomeMealsUiState.Error -> Unit
-                HomeMealsUiState.Loading -> CircularProgressIndicator()
-                is HomeMealsUiState.MealData -> MealsList(
-                    meals = meals.data,
-                    onEvent = onEvent,
+            when (data) {
+                HomeDataUiState.Error -> Unit
+                HomeDataUiState.Loading -> {
+                    item {
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .wrapContentHeight(),
+                            horizontalAlignment = Alignment.CenterHorizontally
+                        ) {
+                            CircularProgressIndicator()
+                        }
+                    }
+                }
+                is HomeDataUiState.HomeData -> {
+                    item {
+                        PieChartsList(data.pieChartsData)
+                        Spacer(modifier = Modifier.height(25.dp))
+                    }
+                    items(data.mealsData) { meal ->
+                        MealsListItem(meal = meal, onEvent = onEvent)
+                        Spacer(modifier = Modifier.height(6.dp))
+                    }
+                    item { Spacer(modifier = Modifier.height(30.dp)) }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun PieChartsList(
+    pieChartsData: List<PieChartUiModel>,
+) {
+    if (pieChartsData.isEmpty()) return
+
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        PieChart(
+            pieChartData = pieChartsData.first(),
+            configuration = PieChartStyle.LARGE
+        )
+        Spacer(modifier = Modifier.height(30.dp))
+        val smallPieCharts = pieChartsData.drop(1)
+        Row(
+            modifier = Modifier
+                .fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(20.dp, Alignment.CenterHorizontally),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            smallPieCharts.forEach { model ->
+                PieChart(
+                    pieChartData = model,
+                    configuration = PieChartStyle.MEDIUM,
                 )
             }
         }
@@ -106,23 +151,18 @@ private fun HomeScreen(
 }
 
 @Composable
-private fun MealsList(
-    meals: List<MealUiModel>,
+private fun MealsListItem(
+    meal: MealUiModel,
     onEvent: (HomeUiEvent) -> Unit = {},
 ) {
-    LazyColumn {
-        items(meals) { meal ->
-            MealCard(
-                mealData = meal,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(80.dp)
-                    .clickable { onEvent(HomeUiEvent.MealCardClick(meal)) },
-                onAddClick = { onEvent(HomeUiEvent.MealCardAddButtonClick(meal)) },
-            )
-            Spacer(modifier = Modifier.height(6.dp))
-        }
-    }
+    MealCard(
+        mealData = meal,
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(80.dp)
+            .clickable { onEvent(HomeUiEvent.MealCardClick(meal)) },
+        onAddClick = { onEvent(HomeUiEvent.MealCardAddButtonClick(meal)) },
+    )
 }
 
 @Preview(showBackground = true)
@@ -149,27 +189,29 @@ fun HomeScreenPreview() {
                 weekBar = WeekBarUiModel(daysList = days, selectedDate = today),
                 userName = "Олег",
             ),
-            meals = HomeMealsUiState.MealData(emptyList()),
+            data = HomeDataUiState.HomeData(
+                mealsData = emptyList(),
+                pieChartsData = emptyList(),
+            )
         )
     }
 }
 
-private fun Modifier.onSwipe(
+fun Modifier.onSwipe(
     threshold: Float,
     onRightSwipe: () -> Unit,
     onLeftSwipe: () -> Unit,
 ) = pointerInput(Unit) {
-    awaitPointerEventScope {
-        while (true) {
-            awaitPointerEvent().changes.firstOrNull() ?: continue
+    while (true) {
+        awaitPointerEventScope {
+            val down = awaitPointerEvent().changes.firstOrNull() ?: return@awaitPointerEventScope
+            if (!down.pressed) return@awaitPointerEventScope
             var totalX = 0f
             while (true) {
-                val event = awaitPointerEvent()
-                val drag = event.changes.firstOrNull() ?: break
-                val changeX = drag.positionChange().x
-                totalX += changeX
-                drag.consume()
-                if (!drag.pressed) break
+                val event = awaitHorizontalDragOrCancellation(down.id) ?: break
+                val dragX = event.positionChange().x
+                totalX += dragX
+                event.consume()
             }
             when {
                 totalX > threshold -> onRightSwipe()
