@@ -12,13 +12,11 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.defaultMinSize
-import androidx.compose.foundation.layout.fillMaxHeight
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.TextAutoSize
@@ -38,7 +36,6 @@ import androidx.compose.ui.geometry.RoundRect
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.ClipOp
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.clipPath
@@ -56,7 +53,7 @@ fun BottomNavBar(
     selectedItem: BottomNavItem,
     onItemSelected: (BottomNavItem) -> Unit,
     onFabClick: () -> Unit,
-    modifier: Modifier = Modifier,
+    bottomPadding: Dp = 0.dp,
 ) {
     val isFabButtonEnabled = selectedItem == BottomNavItem.Home
     val fabButtonOffset = 4.dp
@@ -71,60 +68,25 @@ fun BottomNavBar(
         if (isFabButtonEnabled) fabButtonOuterCornerRadius else 0.dp,
     )
     Box(
-        modifier = modifier
+        modifier = Modifier
             .fillMaxWidth()
-            .height(110.dp),
+            .wrapContentHeight(),
         contentAlignment = Alignment.BottomCenter
     ) {
-        BottomNavBackground(
-            fabButtonTopMargin = fabButtonOffset,
-            fabButtonSize = animatedSize,
-            navBarTopMargin = navBarTopMargin,
-            fabButtonInnerCornerRadius = fabButtonInnerCornerRadius,
-            fabButtonOuterCornerRadius = animatedRadius,
+        BottomNavButtons(
             modifier = Modifier
                 .fillMaxWidth()
-                .fillMaxHeight(),
+                .bottomNavBackground(
+                    fabButtonTopMargin = fabButtonOffset,
+                    fabButtonSize = animatedSize,
+                    fabButtonOuterCornerRadius = animatedRadius,
+                    fabButtonInnerCornerRadius = fabButtonInnerCornerRadius,
+                    navBarTopMargin = navBarTopMargin,
+                )
+                .padding(bottom = 8.dp + bottomPadding, top = 16.dp + navBarTopMargin),
+            selectedItem = selectedItem,
+            onItemSelected = onItemSelected,
         )
-        Row(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(top = 24.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceAround
-        ) {
-            Row(
-                horizontalArrangement = Arrangement.SpaceEvenly,
-                modifier = Modifier.weight(1f),
-            ) {
-                listOf(BottomNavItem.Home, BottomNavItem.Plan).forEach { item ->
-                    BottomNavItem(
-                        item = item,
-                        isSelected = selectedItem == item,
-                        onClick = { onItemSelected(item) },
-                        modifier = Modifier
-                            .wrapContentWidth()
-                            .defaultMinSize(minWidth = 64.dp),
-                    )
-                }
-            }
-
-            Row(
-                horizontalArrangement = Arrangement.SpaceEvenly,
-                modifier = Modifier.weight(1f),
-            ) {
-                listOf(BottomNavItem.Progress, BottomNavItem.Settings).forEach { item ->
-                    BottomNavItem(
-                        item = item,
-                        isSelected = selectedItem == item,
-                        onClick = { onItemSelected(item) },
-                        modifier = Modifier
-                            .wrapContentWidth()
-                            .defaultMinSize(minWidth = 64.dp),
-                    )
-                }
-            }
-        }
         AnimatedVisibility(
             visible = isFabButtonEnabled,
             enter = fadeIn(animationSpec = tween(400)),
@@ -146,35 +108,74 @@ fun BottomNavBar(
 }
 
 @Composable
-private fun BottomNavBackground(
+private fun BottomNavButtons(
+    modifier: Modifier,
+    selectedItem: BottomNavItem,
+    onItemSelected: (BottomNavItem) -> Unit
+) {
+    Row(
+        modifier = modifier,
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.SpaceAround
+    ) {
+        Row(
+            horizontalArrangement = Arrangement.SpaceEvenly,
+            modifier = Modifier.weight(1f),
+        ) {
+            listOf(BottomNavItem.Home, BottomNavItem.Plan).forEach { item ->
+                BottomNavItem(
+                    item = item,
+                    isSelected = selectedItem == item,
+                    onClick = { onItemSelected(item) },
+                    modifier = Modifier
+                        .wrapContentWidth()
+                        .defaultMinSize(minWidth = 64.dp),
+                )
+            }
+        }
+
+        Row(
+            horizontalArrangement = Arrangement.SpaceEvenly,
+            modifier = Modifier.weight(1f),
+        ) {
+            listOf(BottomNavItem.Progress, BottomNavItem.Settings).forEach { item ->
+                BottomNavItem(
+                    item = item,
+                    isSelected = selectedItem == item,
+                    onClick = { onItemSelected(item) },
+                    modifier = Modifier
+                        .wrapContentWidth()
+                        .defaultMinSize(minWidth = 64.dp),
+                )
+            }
+        }
+    }
+}
+
+private fun Modifier.bottomNavBackground(
     fabButtonTopMargin: Dp,
     fabButtonSize: Dp,
     fabButtonOuterCornerRadius: Dp,
     fabButtonInnerCornerRadius: Dp,
     navBarTopMargin: Dp,
-    modifier: Modifier = Modifier,
-) {
-    Box(
-        modifier = modifier.drawBehind {
-            clipPath(
-                path = fabButtonClipPath(
-                    fabButtonSize = fabButtonSize,
-                    navBarTopMargin = navBarTopMargin,
-                    fabButtonTopMargin = fabButtonTopMargin,
-                    fabButtonSizeOffset = 3.dp,
-                    outerCornerRadius = fabButtonOuterCornerRadius.toPx(),
-                    innerCornerRadius = fabButtonInnerCornerRadius.toPx(),
-                ),
-                clipOp = ClipOp.Difference,
-            ) {
-                drawNavBarMainRectangle(
-                    topMargin = navBarTopMargin,
-                    cornerRadius = CornerRadius(130f),
-                    color = Color(0xE6FFFFFF),
-                )
-            }
-        }
-    )
+) = drawBehind {
+    clipPath(
+        path = fabButtonClipPath(
+            fabButtonSize = fabButtonSize,
+            navBarTopMargin = navBarTopMargin,
+            fabButtonTopMargin = fabButtonTopMargin,
+            fabButtonSizeOffset = 3.dp,
+            outerCornerRadius = fabButtonOuterCornerRadius.toPx(),
+            innerCornerRadius = fabButtonInnerCornerRadius.toPx(),
+        ),
+        clipOp = ClipOp.Difference,
+    ) {
+        drawNavBarMainRectangle(
+            topMargin = navBarTopMargin,
+            cornerRadius = CornerRadius(130f),
+            color = Color(0xFFFFFFFF),
+        )
+    }
 }
 
 private fun DrawScope.fabButtonClipPath(
@@ -302,7 +303,8 @@ private fun BottomNavBarPreview() {
         BottomNavBar(
             selectedItem = BottomNavItem.Home,
             onItemSelected = {},
-            onFabClick = {}
+            onFabClick = {},
+            bottomPadding = 0.dp,
         )
     }
 }

@@ -8,10 +8,13 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -30,13 +33,13 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import dev.calorai.mobile.R
 import dev.calorai.mobile.core.uikit.CalorAiTheme
 import dev.calorai.mobile.core.uikit.PrimaryButton
 import dev.calorai.mobile.core.uikit.commonGradientBackground
 import dev.calorai.mobile.core.uikit.pieChart.PieChart
 import dev.calorai.mobile.core.uikit.pieChart.PieChartStyle
 import dev.calorai.mobile.core.uikit.pieChart.PieChartUiModel
-import dev.calorai.mobile.R
 import org.koin.androidx.compose.koinViewModel
 
 @Composable
@@ -207,6 +210,7 @@ private fun AddIngredientBottomPanel(
     onAddManualClick: () -> Unit,
     onChooseReadyClick: () -> Unit
 ) {
+    val system = WindowInsets.systemBars.asPaddingValues()
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -221,7 +225,12 @@ private fun AddIngredientBottomPanel(
                     color = MaterialTheme.colorScheme.surface,
                     shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp)
                 )
-                .padding(16.dp),
+                .padding(
+                    top = system.calculateTopPadding(),
+                    bottom = system.calculateBottomPadding(),
+                    start = 16.dp,
+                    end = 16.dp,
+                ),
             horizontalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             OutlinedButton(

@@ -3,14 +3,20 @@ package dev.calorai.mobile.features.main.ui
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBars
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.systemBars
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
@@ -70,10 +76,12 @@ private fun MainScreen(
                 selectedItem = state.selectedItem,
                 onItemSelected = { onEvent(MainUiEvent.BottomNavItemSelect(it)) },
                 onFabClick = { onEvent(MainUiEvent.AddButtonClick) },
+                bottomPadding = WindowInsets.systemBars.asPaddingValues().calculateBottomPadding(),
             )
         },
         containerColor = Color.Unspecified,
     ) { innerPadding ->
+
         Box(
             modifier = Modifier
                 .commonGradientBackground()
@@ -81,7 +89,6 @@ private fun MainScreen(
         ) {
             content()
         }
-
         if (state.bottomSheet) {
             ModalBottomSheet(
                 onDismissRequest = { onEvent(MainUiEvent.BottomSheetHideRequest) },

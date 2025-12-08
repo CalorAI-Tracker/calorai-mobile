@@ -6,10 +6,13 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -49,13 +52,19 @@ private fun SignUpScreen(
     state: SignUpUiState,
     onEvent: (SignUpUiEvent) -> Unit = {}
 ) {
+    val system = WindowInsets.systemBars.asPaddingValues()
     Column(
         modifier = Modifier
             .fillMaxSize()
             .commonGradientBackground()
-            .padding(16.dp, 16.dp),
+            .padding(
+                top = system.calculateTopPadding(),
+                bottom = system.calculateBottomPadding(),
+                start = 16.dp,
+                end = 16.dp,
+            ),
         horizontalAlignment = Alignment.CenterHorizontally,
-    ) {
+    )  {
         TitleWithDescription(
             title = stringResource(R.string.signup_title),
             description = stringResource(R.string.signup_description)
