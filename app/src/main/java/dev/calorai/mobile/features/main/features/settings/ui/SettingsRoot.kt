@@ -26,6 +26,8 @@ import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
@@ -34,9 +36,11 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
@@ -56,16 +60,42 @@ import java.time.format.DateTimeFormatter
 fun SettingsRoot(
     viewModel: SettingsViewModel = koinViewModel(),
 ) {
-    SettingsScreen()
+    val viewState by viewModel.state.collectAsStateWithLifecycleSafe()
+    val snackbarHostState = remember { SnackbarHostState() }
+
+    val currentError by rememberUpdatedState(viewState.errorMessage)
+    val currentSaved by rememberUpdatedState(viewState.saved)
+
+    LaunchedEffect(currentError) {
+        currentError?.let { snackbarHostState.showSnackbar(it) }
+    }
+
+    val savedMessage = stringResource(R.string.settings_profile_saved)
+
+    LaunchedEffect(currentSaved) {
+        if (currentSaved) {
+            snackbarHostState.showSnackbar(message = savedMessage)
+        }
+    }
+
+    SettingsScreen(
+        formState = viewState.form,
+        isSaving = viewState.isSaving,
+        snackbarHostState = snackbarHostState,
+        onStateChange = viewModel::onFormChange,
+        onSave = viewModel::onSave,
+    )
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun SettingsScreen(
-    onSave: (UserSettingsUiState) -> Unit = {}
+    formState: UserSettingsUiState,
+    isSaving: Boolean,
+    snackbarHostState: SnackbarHostState,
+    onStateChange: (UserSettingsUiState) -> Unit,
+    onSave: () -> Unit,
 ) {
-
-    var uiState by remember { mutableStateOf(UserSettingsUiState()) }
 
     Scaffold(
         topBar = {
@@ -77,6 +107,7 @@ private fun SettingsScreen(
                 title = { Text(text = stringResource(R.string.settings_title)) }
             )
         },
+        snackbarHost = { SnackbarHost(snackbarHostState) },
         containerColor = Color.Transparent,
     ) { paddingValues ->
         Box(
@@ -85,9 +116,10 @@ private fun SettingsScreen(
                 .padding(top = paddingValues.calculateTopPadding())
         ) {
             SettingsContent(
-                state = uiState,
-                onStateChange = { uiState = it },
-                onSaveClick = { onSave(uiState) }
+                state = formState,
+                onStateChange = onStateChange,
+                onSaveClick = onSave,
+                isSaving = isSaving,
             )
         }
     }
@@ -97,7 +129,8 @@ private fun SettingsScreen(
 private fun SettingsContent(
     state: UserSettingsUiState,
     onStateChange: (UserSettingsUiState) -> Unit,
-    onSaveClick: () -> Unit
+    onSaveClick: () -> Unit,
+    isSaving: Boolean,
 ) {
     val scroll = rememberScrollState()
     var showDatePicker by remember { mutableStateOf(false) }
@@ -203,10 +236,15 @@ private fun SettingsContent(
                 .fillMaxWidth()
                 .height(52.dp),
             shape = RoundedCornerShape(12.dp),
-            colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.secondary)
+            colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.secondary),
+            enabled = !isSaving,
         ) {
             Text(
-                text = stringResource(R.string.settings_save_btn),
+                text = if (isSaving) {
+                    stringResource(R.string.settings_saving)
+                } else {
+                    stringResource(R.string.settings_save_btn)
+                },
                 color = MaterialTheme.colorScheme.surface
             )
         }
@@ -241,6 +279,10 @@ private fun SettingsContent(
         }
     }
 }
+
+@Composable
+private fun <T> kotlinx.coroutines.flow.StateFlow<T>.collectAsStateWithLifecycleSafe() =
+    this.collectAsState()
 
 @Composable
 private fun LabeledTextField(
@@ -352,6 +394,13 @@ private fun SimpleDropdown(
 @Composable
 private fun SettingScreenPreview() {
     CalorAiTheme {
-        SettingsScreen()
+        // TODO заглушка
+        SettingsScreen(
+            formState = UserSettingsUiState(),
+            isSaving = false,
+            snackbarHostState = remember { SnackbarHostState() },
+            onStateChange = {},
+            onSave = {}
+        )
     }
 }

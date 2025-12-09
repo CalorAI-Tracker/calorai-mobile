@@ -58,4 +58,12 @@
     <string name="signup_placeholder_name">Ввод имени</string>
     <string name="signup_account_exist">Уже есть аккаунт?</string>
     <string name="signup_login">Войти</string>
+
+    <string name="settings_saving">Сохранение...</string>
+    <string name="settings_profile_saved">Профиль сохранён</string>
+    <string name="settings_save_error">Не удалось сохранить профиль</string>
+    <string name="settings_unknown_activity">Неизвестная активность: %s</string>
+    <string name="settings_unknown_goal">Неизвестная цель: %s</string>
+    <string name="settings_unknown_gender">Неизвестный пол: %s</string>
+    <string name="settings_number_parse_error">Не удалось прочитать число из "%1$s"</string>
 </resources>
