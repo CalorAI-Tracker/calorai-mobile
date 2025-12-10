@@ -60,4 +60,10 @@
     <string name="signup_login">Войти</string>
 
     <string name="create_meal_manual_name">Название продукта</string>
+    <string name="create_meal_manual_calories">Калории</string>
+    <string name="create_meal_manual_protein">Белки</string>
+    <string name="create_meal_manual_fats">Жиры</string>
+    <string name="create_meal_manual_carbohydrates">Углеводы</string>
+    <string name="create_meal_manual_portion">Порция</string>
+    <string name="create_meal_manual_add">Добавить</string>
 </resources>

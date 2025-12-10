@@ -61,53 +61,155 @@ private fun CreateMealManualScreen(
             .padding(16.dp),
         verticalArrangement = Arrangement.SpaceBetween
     ) {
+        Column(verticalArrangement = Arrangement.spacedBy(20.dp)) {
 
-        ManualTextFieldWithTitle("12",{},"GGGG")
+            ProductNameField(
+                value = uiState.name,
+                onValueChange = { onEvent(CreateMealManualUiEvent.NameChange(it)) },
+                modifier = Modifier.fillMaxWidth()
+            )
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                ManualTextFieldWithTitle(
+                    title = stringResource(R.string.create_meal_manual_calories),
+                    value = uiState.calories.toString(),
+                    onValueChange = { onEvent(CreateMealManualUiEvent.CaloriesChange(it)) },
+                    modifier = Modifier.weight(1f)
+                )
+                ManualTextFieldWithTitle(
+                    title = stringResource(R.string.create_meal_manual_protein),
+                    value = uiState.proteins.toString(),
+                    onValueChange = { onEvent(CreateMealManualUiEvent.ProteinsChange(it)) },
+                    modifier = Modifier.weight(1f)
+                )
+            }
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                ManualTextFieldWithTitle(
+                    title = stringResource(R.string.create_meal_manual_fats),
+                    value = uiState.fats.toString(),
+                    onValueChange = { onEvent(CreateMealManualUiEvent.FatsChange(it)) },
+                    modifier = Modifier.weight(1f)
+                )
+                ManualTextFieldWithTitle(
+                    title = stringResource(R.string.create_meal_manual_carbohydrates),
+                    value = uiState.carbs.toString(),
+                    onValueChange = { onEvent(CreateMealManualUiEvent.CarbsChange(it)) },
+                    modifier = Modifier.weight(1f)
+                )
+            }
+
+            ManualTextFieldWithTitle(
+                title = stringResource(R.string.create_meal_manual_portion),
+                value = uiState.portion.toString(),
+                onValueChange = { onEvent(CreateMealManualUiEvent.PortionChange(it)) },
+                modifier = Modifier.fillMaxWidth()
+            )
+        }
 
         PrimaryButton(
             onClick = { onEvent(CreateMealManualUiEvent.AddClick) },
-            text = "Добавить",
+            text = stringResource(R.string.create_meal_manual_add),
             modifier = Modifier.fillMaxWidth()
         )
     }
 }
 
 @Composable
-private fun ManualTextFieldWithTitle(
+private fun ProductNameField(
     value: String,
     onValueChange: (String) -> Unit,
-    title: String,
     modifier: Modifier = Modifier
 ) {
-    Column {
+    TextField(
+        value = value,
+        onValueChange = onValueChange,
+        singleLine = true,
+        placeholder = { Text(text = stringResource(R.string.create_meal_manual_name)) },
+        shape = RoundedCornerShape(50),
+        textStyle = TextStyle(fontSize = 18.sp, fontWeight = FontWeight.Medium),
+        modifier = modifier
+            .fillMaxWidth()
+            .shadow(1.dp, RoundedCornerShape(50)),
+        colors = TextFieldDefaults.colors(
+            focusedContainerColor = MaterialTheme.colorScheme.surface,
+            unfocusedContainerColor = MaterialTheme.colorScheme.surface,
+            errorContainerColor = MaterialTheme.colorScheme.surface,
+            focusedIndicatorColor = Color.Transparent,
+            unfocusedIndicatorColor = Color.Transparent,
+            disabledIndicatorColor = Color.Transparent,
+            focusedTrailingIconColor = MaterialTheme.colorScheme.onSurface,
+            unfocusedTrailingIconColor = MaterialTheme.colorScheme.onSurface,
+        ),
+        trailingIcon = {
+            Icon(
+                painter = painterResource(R.drawable.ic_edit),
+                contentDescription = null,
+                modifier = Modifier.size(20.dp)
+            )
+        },
+        keyboardOptions = KeyboardOptions(
+            imeAction = ImeAction.Next,
+            keyboardType = KeyboardType.Text
+        )
+    )
+}
+
+@Composable
+private fun ManualTextFieldWithTitle(
+    title: String,
+    value: String,
+    onValueChange: (String) -> Unit,
+    modifier: Modifier = Modifier,
+    placeholder: String = "",
+    imeAction: ImeAction = ImeAction.Next,
+    keyboardType: KeyboardType = KeyboardType.Number,
+) {
+    Column(modifier = modifier) {
         Text(
             text = title,
-            color = MaterialTheme.colorScheme.onSurface
+            style = MaterialTheme.typography.bodyLarge,
+            color = MaterialTheme.colorScheme.onSurface,
+            fontSize = 16.sp
         )
 
-        Spacer(modifier = Modifier.size(10.dp))
+        Spacer(Modifier.size(10.dp))
 
         TextField(
             value = value,
             onValueChange = onValueChange,
             singleLine = true,
-            modifier = modifier
-                .shadow(1.dp, RoundedCornerShape(50)),
+            placeholder = {
+                if (placeholder.isNotEmpty()) Text(placeholder)
+            },
+            keyboardOptions = KeyboardOptions(
+                keyboardType = keyboardType,
+                imeAction = imeAction
+            ),
             shape = RoundedCornerShape(50),
+            modifier = Modifier
+                .fillMaxWidth()
+                .shadow(1.dp, RoundedCornerShape(50)),
             colors = TextFieldDefaults.colors(
                 focusedContainerColor = MaterialTheme.colorScheme.surface,
                 unfocusedContainerColor = MaterialTheme.colorScheme.surface,
                 errorContainerColor = MaterialTheme.colorScheme.surface,
-                disabledTextColor = Color.Transparent,
                 focusedIndicatorColor = Color.Transparent,
                 unfocusedIndicatorColor = Color.Transparent,
-                disabledIndicatorColor = Color.Transparent
+                disabledIndicatorColor = Color.Transparent,
+                focusedTrailingIconColor = MaterialTheme.colorScheme.onSurface,
+                unfocusedTrailingIconColor = MaterialTheme.colorScheme.onSurface,
             ),
             trailingIcon = {
                 Icon(
                     painter = painterResource(R.drawable.ic_edit),
-                    contentDescription = "Edit",
-                    tint = MaterialTheme.colorScheme.onSurface,
+                    contentDescription = null,
                     modifier = Modifier.size(20.dp)
                 )
             }
