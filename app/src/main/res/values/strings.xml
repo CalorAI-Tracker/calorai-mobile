@@ -58,4 +58,6 @@
     <string name="signup_placeholder_name">Ввод имени</string>
     <string name="signup_account_exist">Уже есть аккаунт?</string>
     <string name="signup_login">Войти</string>
+
+    <string name="create_meal_manual_name">Название продукта</string>
 </resources>

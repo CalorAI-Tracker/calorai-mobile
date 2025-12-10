@@ -6,18 +6,18 @@ import androidx.navigation.NavOptions
 import androidx.navigation.compose.composable
 import dev.calorai.mobile.core.navigation.Destination
 import dev.calorai.mobile.core.uikit.mealCard.MealType
-import dev.calorai.mobile.features.meal.create.ui.CreateMealRoot
+import dev.calorai.mobile.features.meal.create.ui.CreateMealManualRoot
 import kotlinx.serialization.Serializable
 
 @Serializable
-data class CreateMealRoute(val mealType: MealType) : Destination
+data class CreateMealManualRoute(val mealType: MealType) : Destination
 
 fun NavController.navigateToCreateMealScreen(mealType: MealType, navOptions: NavOptions? = null) {
-    navigate(route = CreateMealRoute(mealType), navOptions = navOptions)
+    navigate(route = CreateMealManualRoute(mealType), navOptions = navOptions)
 }
 
 fun NavGraphBuilder.createMealSection() {
-    composable<CreateMealRoute> {
-        CreateMealRoot()
+    composable<CreateMealManualRoute> {
+        CreateMealManualRoot()
     }
 }
