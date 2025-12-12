@@ -152,6 +152,7 @@ private fun AuthScreen(
                     }
                 )
             }
+            Spacer(Modifier.size(9.dp))
         }
     }
 }
