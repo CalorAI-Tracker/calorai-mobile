@@ -33,6 +33,8 @@ import androidx.compose.ui.unit.sp
 import dev.calorai.mobile.R
 import dev.calorai.mobile.core.uikit.CalorAiTheme
 import dev.calorai.mobile.core.uikit.PrimaryButton
+import dev.calorai.mobile.core.uikit.PrimaryTextField
+import dev.calorai.mobile.core.uikit.PrimaryTextFieldWithTitle
 import dev.calorai.mobile.core.uikit.commonGradientBackground
 import org.koin.androidx.compose.koinViewModel
 
@@ -126,26 +128,11 @@ private fun ProductNameField(
     onValueChange: (String) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    TextField(
+    PrimaryTextField(
         value = value,
         onValueChange = onValueChange,
-        singleLine = true,
-        placeholder = { Text(text = stringResource(R.string.create_meal_manual_name)) },
-        shape = RoundedCornerShape(50),
-        textStyle = TextStyle(fontSize = 18.sp, fontWeight = FontWeight.Medium),
-        modifier = modifier
-            .fillMaxWidth()
-            .shadow(1.dp, RoundedCornerShape(50)),
-        colors = TextFieldDefaults.colors(
-            focusedContainerColor = MaterialTheme.colorScheme.surface,
-            unfocusedContainerColor = MaterialTheme.colorScheme.surface,
-            errorContainerColor = MaterialTheme.colorScheme.surface,
-            focusedIndicatorColor = Color.Transparent,
-            unfocusedIndicatorColor = Color.Transparent,
-            disabledIndicatorColor = Color.Transparent,
-            focusedTrailingIconColor = MaterialTheme.colorScheme.onSurface,
-            unfocusedTrailingIconColor = MaterialTheme.colorScheme.onSurface,
-        ),
+        placeholder = stringResource(R.string.create_meal_manual_name_placeholder),
+        modifier = modifier,
         trailingIcon = {
             Icon(
                 painter = painterResource(R.drawable.ic_edit),
@@ -166,54 +153,25 @@ private fun ManualTextFieldWithTitle(
     value: String,
     onValueChange: (String) -> Unit,
     modifier: Modifier = Modifier,
-    placeholder: String = "",
-    imeAction: ImeAction = ImeAction.Next,
-    keyboardType: KeyboardType = KeyboardType.Number,
 ) {
-    Column(modifier = modifier) {
-        Text(
-            text = title,
-            style = MaterialTheme.typography.bodyLarge,
-            color = MaterialTheme.colorScheme.onSurface,
-            fontSize = 16.sp
-        )
-
-        Spacer(Modifier.size(10.dp))
-
-        TextField(
-            value = value,
-            onValueChange = onValueChange,
-            singleLine = true,
-            placeholder = {
-                if (placeholder.isNotEmpty()) Text(placeholder)
-            },
-            keyboardOptions = KeyboardOptions(
-                keyboardType = keyboardType,
-                imeAction = imeAction
+    PrimaryTextFieldWithTitle(
+        title = title,
+        value = value,
+        onValueChange = onValueChange,
+        modifier = modifier,
+        placeholder = stringResource(R.string.create_meal_manual_textfield_placeholder),
+        keyboardOptions = KeyboardOptions(
+                keyboardType = KeyboardType.Number,
+                imeAction = ImeAction.Next
             ),
-            shape = RoundedCornerShape(50),
-            modifier = Modifier
-                .fillMaxWidth()
-                .shadow(1.dp, RoundedCornerShape(50)),
-            colors = TextFieldDefaults.colors(
-                focusedContainerColor = MaterialTheme.colorScheme.surface,
-                unfocusedContainerColor = MaterialTheme.colorScheme.surface,
-                errorContainerColor = MaterialTheme.colorScheme.surface,
-                focusedIndicatorColor = Color.Transparent,
-                unfocusedIndicatorColor = Color.Transparent,
-                disabledIndicatorColor = Color.Transparent,
-                focusedTrailingIconColor = MaterialTheme.colorScheme.onSurface,
-                unfocusedTrailingIconColor = MaterialTheme.colorScheme.onSurface,
-            ),
-            trailingIcon = {
-                Icon(
-                    painter = painterResource(R.drawable.ic_edit),
-                    contentDescription = null,
-                    modifier = Modifier.size(20.dp)
-                )
-            }
-        )
-    }
+        trailingIcon = {
+            Icon(
+                painter = painterResource(R.drawable.ic_edit),
+                contentDescription = null,
+                modifier = Modifier.size(20.dp)
+            )
+        }
+    )
 }
 
 @Preview(showBackground = true)

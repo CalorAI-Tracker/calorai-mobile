@@ -12,12 +12,10 @@ import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Button
@@ -35,7 +33,6 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
-import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -43,7 +40,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dev.calorai.mobile.R
 import dev.calorai.mobile.core.uikit.CalorAiTheme
 import dev.calorai.mobile.core.uikit.PrimaryButton
-import dev.calorai.mobile.core.uikit.PrimaryTextField
+import dev.calorai.mobile.core.uikit.PrimaryTextFieldWithTitle
 import dev.calorai.mobile.core.uikit.commonGradientBackground
 import org.koin.androidx.compose.koinViewModel
 
@@ -89,20 +86,21 @@ private fun AuthScreen(
             horizontalAlignment = Alignment.Start,
         ) {
             Spacer(Modifier.size(51.dp))
-            TextFieldWithTitle(
+            PrimaryTextFieldWithTitle(
                 title = stringResource(R.string.auth_label_email),
                 placeholder = stringResource(R.string.auth_placeholder_email),
                 value = state.email,
                 onValueChange = { onEvent(AuthUiEvent.EmailChanged(it)) },
-                keyboardType = KeyboardType.Email
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email)
             )
             Spacer(Modifier.size(20.dp))
-            TextFieldWithTitle(
+            PrimaryTextFieldWithTitle(
                 title = stringResource(R.string.auth_label_password),
                 placeholder = stringResource(R.string.auth_placeholder_password),
                 value = state.password,
                 onValueChange = { onEvent(AuthUiEvent.PasswordChanged(it)) },
-                isPassword = true
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text),
+                visualTransformation = PasswordVisualTransformation()
             )
             Spacer(Modifier.size(12.dp))
             Divider()
@@ -216,42 +214,12 @@ private fun Divider() {
     }
 }
 
-@Composable
-private fun TextFieldWithTitle(
-    title: String,
-    placeholder: String,
-    value: String,
-    onValueChange: (String) -> Unit,
-    isPassword: Boolean = false,
-    keyboardType: KeyboardType = KeyboardType.Text,
-    modifier: Modifier = Modifier
-) {
-    Column(modifier = modifier) {
-        Text(
-            text = title,
-            style = MaterialTheme.typography.bodyLarge
-        )
-        Spacer(Modifier.size(4.dp))
-        PrimaryTextField(
-            value = value,
-            onValueChange = onValueChange,
-            placeholder = placeholder,
-            visualTransformation = if (isPassword) PasswordVisualTransformation()
-                else VisualTransformation.None,
-            keyboardOptions = KeyboardOptions(keyboardType = keyboardType)
-        )
-    }
-}
-
 @Preview(showBackground = true)
 @Composable
 private fun AuthScreenPreview() {
     CalorAiTheme {
         AuthScreen(
-            state = AuthUiState(
-                email = "example@email.com",
-                password = "password123"
-            ),
+            state = AuthUiState(),
             onEvent = {}
         )
     }

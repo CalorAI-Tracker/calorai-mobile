@@ -13,8 +13,8 @@
     <string name="auth_label_greeting2">Возвращайся в строй.</string>
     <string name="auth_label_email">Email</string>
     <string name="auth_label_password">Пароль</string>
-    <string name="auth_placeholder_email">Ввод email</string>
-    <string name="auth_placeholder_password">Ввод пароля</string>
+    <string name="auth_placeholder_email">example@email.com</string>
+    <string name="auth_placeholder_password">password</string>
     <string name="auth_divider_or">или</string>
     <string name="auth_continue_with_google">Continue with google</string>
     <string name="auth_continue">Далее</string>
@@ -59,11 +59,12 @@
     <string name="signup_account_exist">Уже есть аккаунт?</string>
     <string name="signup_login">Войти</string>
 
-    <string name="create_meal_manual_name">Название продукта</string>
+    <string name="create_meal_manual_name_placeholder">Название продукта</string>
     <string name="create_meal_manual_calories">Калории</string>
     <string name="create_meal_manual_protein">Белки</string>
     <string name="create_meal_manual_fats">Жиры</string>
     <string name="create_meal_manual_carbohydrates">Углеводы</string>
     <string name="create_meal_manual_portion">Порция</string>
     <string name="create_meal_manual_add">Добавить</string>
+    <string name="create_meal_manual_textfield_placeholder">0.0</string>
 </resources>
