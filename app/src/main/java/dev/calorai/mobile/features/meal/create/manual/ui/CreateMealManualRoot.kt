@@ -187,20 +187,6 @@ private fun ManualTextFieldWithTitle(
     )
 }
 
-
-fun formatDoubleInput(input: String): String {
-    val number = input
-        .replace(',','.')
-        .toDoubleOrNull()
-        ?: return "0.0"
-
-    return if (number % 1.0 == 0.0) {
-        number.toInt().toString() // 12.0 → "12"
-    } else {
-        number.toString().trimEnd('0').trimEnd('.') // 15.500 → "15.5"
-    }
-}
-
 @Preview(showBackground = true)
 @Composable
 private fun CreateMealManualScreenPreview() {
