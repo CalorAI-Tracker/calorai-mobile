@@ -1,9 +1,9 @@
-package dev.calorai.mobile.features.meal.create.ui
+package dev.calorai.mobile.features.meal.create.manual.ui
 
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.navigation.toRoute
-import dev.calorai.mobile.features.meal.create.CreateMealManualRoute
+import dev.calorai.mobile.features.meal.create.manual.CreateMealManualRoute
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update

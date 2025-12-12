@@ -10,7 +10,7 @@ import dev.calorai.mobile.features.main.features.home.domain.GetCurrentUserNameU
 import dev.calorai.mobile.features.main.features.home.domain.GetWeekByDateUseCase
 import dev.calorai.mobile.features.main.features.home.domain.GetMealsForDayUseCase
 import dev.calorai.mobile.features.main.features.home.domain.GetPieChartsDataForDayUseCase
-import dev.calorai.mobile.features.meal.create.navigateToCreateMealScreen
+import dev.calorai.mobile.features.meal.create.manual.navigateToCreateMealScreen
 import dev.calorai.mobile.features.meal.details.navigateToMealDetailsScreen
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted

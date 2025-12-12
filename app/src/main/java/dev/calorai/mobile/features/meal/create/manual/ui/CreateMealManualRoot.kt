@@ -1,4 +1,4 @@
-package dev.calorai.mobile.features.meal.create.ui
+package dev.calorai.mobile.features.meal.create.manual.ui
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -33,7 +33,6 @@ import androidx.compose.ui.unit.sp
 import dev.calorai.mobile.R
 import dev.calorai.mobile.core.uikit.CalorAiTheme
 import dev.calorai.mobile.core.uikit.PrimaryButton
-import dev.calorai.mobile.core.uikit.PrimaryTextField
 import dev.calorai.mobile.core.uikit.commonGradientBackground
 import org.koin.androidx.compose.koinViewModel
 

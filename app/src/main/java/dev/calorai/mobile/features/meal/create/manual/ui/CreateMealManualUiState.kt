@@ -1,4 +1,4 @@
-package dev.calorai.mobile.features.meal.create.ui
+package dev.calorai.mobile.features.meal.create.manual.ui
 
 data class CreateMealManualUiState(
     val name: String = "",

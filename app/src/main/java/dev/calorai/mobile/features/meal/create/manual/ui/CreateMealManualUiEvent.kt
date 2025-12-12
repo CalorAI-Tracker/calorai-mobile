@@ -1,4 +1,4 @@
-package dev.calorai.mobile.features.meal.create.ui
+package dev.calorai.mobile.features.meal.create.manual.ui
 
 sealed interface CreateMealManualUiEvent {
     data class NameChange(val value: String) : CreateMealManualUiEvent
