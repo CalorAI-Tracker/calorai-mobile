@@ -25,19 +25,19 @@ class CreateMealManualViewModel constructor(
                 update { copy(name = event.value) }
 
             is CreateMealManualUiEvent.CaloriesChange ->
-                update { copy(calories = event.value.toDoubleOrNull() ?: calories) }
+                update { copy(calories = event.value) }
 
             is CreateMealManualUiEvent.ProteinsChange ->
-                update { copy(proteins = event.value.toDoubleOrNull() ?: proteins) }
+                update { copy(proteins = event.value) }
 
             is CreateMealManualUiEvent.FatsChange ->
-                update { copy(fats = event.value.toDoubleOrNull() ?: fats) }
+                update { copy(fats = event.value) }
 
             is CreateMealManualUiEvent.CarbsChange ->
-                update { copy(carbs = event.value.toDoubleOrNull() ?: carbs) }
+                update { copy(carbs = event.value) }
 
             is CreateMealManualUiEvent.PortionChange ->
-                update { copy(portion = event.value.toDoubleOrNull() ?: portion) }
+                update { copy(portion = event.value) }
 
             CreateMealManualUiEvent.AddClick ->
                 onAddClick()

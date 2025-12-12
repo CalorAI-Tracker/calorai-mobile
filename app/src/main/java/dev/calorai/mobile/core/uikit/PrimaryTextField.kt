@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -31,6 +32,7 @@ fun PrimaryTextField(
     placeholder: String,
     modifier: Modifier = Modifier,
     keyboardOptions: KeyboardOptions = KeyboardOptions.Default,
+    keyboardActions: KeyboardActions = KeyboardActions.Default,
     visualTransformation: VisualTransformation = VisualTransformation.None,
     trailingIcon: @Composable (() -> Unit) = {},
 ) {
@@ -45,6 +47,7 @@ fun PrimaryTextField(
         },
         singleLine = true,
         keyboardOptions = keyboardOptions,
+        keyboardActions =keyboardActions,
         visualTransformation = visualTransformation,
         modifier = modifier
             .fillMaxWidth()
@@ -74,6 +77,7 @@ fun PrimaryTextFieldWithTitle(
     placeholder: String,
     modifier: Modifier = Modifier,
     keyboardOptions: KeyboardOptions = KeyboardOptions.Default,
+    keyboardActions: KeyboardActions = KeyboardActions.Default,
     visualTransformation: VisualTransformation = VisualTransformation.None,
     trailingIcon: @Composable (() -> Unit) = {}
 ) {
@@ -90,6 +94,7 @@ fun PrimaryTextFieldWithTitle(
             onValueChange = onValueChange,
             placeholder = placeholder,
             keyboardOptions = keyboardOptions,
+            keyboardActions = keyboardActions,
             visualTransformation = visualTransformation,
             trailingIcon = trailingIcon
         )

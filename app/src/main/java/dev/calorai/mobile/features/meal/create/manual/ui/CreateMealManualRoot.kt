@@ -11,12 +11,16 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.systemBars
+import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Icon
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusDirection
+import androidx.compose.ui.focus.FocusManager
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
@@ -155,6 +159,7 @@ private fun ManualTextFieldWithTitle(
     value: String,
     onValueChange: (String) -> Unit,
     modifier: Modifier = Modifier,
+    focusManager: FocusManager = LocalFocusManager.current
 ) {
     PrimaryTextFieldWithTitle(
         title = title,
@@ -163,9 +168,15 @@ private fun ManualTextFieldWithTitle(
         modifier = modifier,
         placeholder = stringResource(R.string.create_meal_manual_textfield_placeholder),
         keyboardOptions = KeyboardOptions(
-                keyboardType = KeyboardType.Number,
-                imeAction = ImeAction.Next
-            ),
+            keyboardType = KeyboardType.Number,
+            imeAction = ImeAction.Next,
+        ),
+        keyboardActions = KeyboardActions(
+            onNext = {
+                onValueChange(formatDoubleInput(value))
+                focusManager.moveFocus(FocusDirection.Next)
+            }
+        ),
         trailingIcon = {
             Icon(
                 painter = painterResource(R.drawable.ic_edit),
@@ -176,6 +187,20 @@ private fun ManualTextFieldWithTitle(
     )
 }
 
+
+fun formatDoubleInput(input: String): String {
+    val number = input
+        .replace(',','.')
+        .toDoubleOrNull()
+        ?: return "0.0"
+
+    return if (number % 1.0 == 0.0) {
+        number.toInt().toString() // 12.0 → "12"
+    } else {
+        number.toString().trimEnd('0').trimEnd('.') // 15.500 → "15.5"
+    }
+}
+
 @Preview(showBackground = true)
 @Composable
 private fun CreateMealManualScreenPreview() {
@@ -183,11 +208,11 @@ private fun CreateMealManualScreenPreview() {
         CreateMealManualScreen(
             uiState = CreateMealManualUiState(
                 name = "Овсяная каша",
-                calories = 71.0,
-                proteins = 2.5,
-                fats = 1.5,
-                carbs = 12.0,
-                portion = 100.0
+                calories = "71.0",
+                proteins = "2.5",
+                fats = "1.5",
+                carbs = "12.0",
+                portion = "100.0"
             ),
             onEvent = {}
         )
