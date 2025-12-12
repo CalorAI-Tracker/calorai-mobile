@@ -57,6 +57,11 @@ dependencies {
     // Koin
     implementation(libs.koin.androidx.compose)
 
+    // Retrofit
+    implementation(libs.retrofit)
+    implementation(libs.kotlinx.serialization.json)
+    implementation(libs.retrofit2.kotlinx.serialization.converter)
+
     // Test
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
