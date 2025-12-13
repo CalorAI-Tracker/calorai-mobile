@@ -37,6 +37,10 @@ fun AddIngredientBottomPanel(
         modifier = Modifier
             .fillMaxSize()
             .clickable { onDismiss() }
+            .padding(
+                top = system.calculateTopPadding(),
+                bottom = system.calculateBottomPadding(),
+            ),
     ) {
         Row(
             modifier = Modifier
@@ -47,7 +51,12 @@ fun AddIngredientBottomPanel(
                     color = MaterialTheme.colorScheme.surface,
                     shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp)
                 )
-                .padding(vertical = 32.dp, horizontal = 16.dp),
+                .padding(
+                    top = 26.dp,
+                    bottom = 32.dp,
+                    start = 16.dp,
+                    end = 16.dp
+                ),
             horizontalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             OutlinedButton(
