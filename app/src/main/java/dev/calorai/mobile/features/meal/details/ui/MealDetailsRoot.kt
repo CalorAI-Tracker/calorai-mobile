@@ -29,13 +29,14 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import dev.calorai.mobile.R
+import dev.calorai.mobile.core.uikit.AddIngredientBottomPanel
 import dev.calorai.mobile.core.uikit.CalorAiTheme
 import dev.calorai.mobile.core.uikit.PrimaryButton
 import dev.calorai.mobile.core.uikit.commonGradientBackground
+import dev.calorai.mobile.core.uikit.mealCard.MealType
 import dev.calorai.mobile.core.uikit.pieChart.PieChart
 import dev.calorai.mobile.core.uikit.pieChart.PieChartStyle
 import dev.calorai.mobile.core.uikit.pieChart.PieChartUiModel
-import dev.calorai.mobile.core.uikit.AddIngredientBottomPanel
 import org.koin.androidx.compose.koinViewModel
 
 @Composable
@@ -44,7 +45,15 @@ fun MealDetailsRoot(
 ) {
     val uiState by viewModel.uiState.collectAsState()
 
+    val title = when (uiState.mealType) {
+        MealType.BREAKFAST -> stringResource(R.string.details_meal_type_breakfast)
+        MealType.LUNCH -> stringResource(R.string.details_meal_type_lunch)
+        MealType.DINNER -> stringResource(R.string.details_meal_type_dinner)
+        MealType.SNACK -> stringResource(R.string.details_meal_type_snack)
+    }
+
     MealDetailsScreen(
+        title = title,
         uiState = uiState,
         onEvent = viewModel::onEvent
     )
@@ -53,6 +62,7 @@ fun MealDetailsRoot(
 
 @Composable
 private fun MealDetailsScreen(
+    title: String,
     uiState: MealDetailsUiState,
     onEvent: (MealDetailsUiEvent) -> Unit
 ) {
@@ -73,7 +83,7 @@ private fun MealDetailsScreen(
         Spacer(modifier = Modifier.height(16.dp))
 
         Text(
-            text = uiState.title,
+            text = title,
             style = MaterialTheme.typography.headlineLarge,
             color = MaterialTheme.colorScheme.onPrimary,
             modifier = Modifier.align(Alignment.Start)
@@ -211,8 +221,9 @@ private fun IngredientItem(
 private fun MealDetailsScreenPreview() {
     CalorAiTheme {
         MealDetailsScreen(
+            title = "Ужин",
             uiState = MealDetailsUiState(
-                title = "Завтрак",
+                mealType = MealType.DINNER,
                 macros = listOf(
                     MacroUi("16 г", "Белок", listOf(70f, 30f)),
                     MacroUi("24 г", "Углеводы", listOf(85f, 15f)),

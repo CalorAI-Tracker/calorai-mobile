@@ -51,6 +51,10 @@
     <string name="details_add_more">+ Добавить еще</string>
     <string name="details_add_manual">Добавить вручную</string>
     <string name="details_choose_ready">Выбрать готовое</string>
+    <string name="details_meal_type_breakfast">Завтрак</string>
+    <string name="details_meal_type_lunch">Обед</string>
+    <string name="details_meal_type_dinner">Ужин</string>
+    <string name="details_meal_type_snack">Перекус</string>
 
     <string name="signup_title">Создай свой аккаунт</string>
     <string name="signup_description">Начни питаться лучше</string>

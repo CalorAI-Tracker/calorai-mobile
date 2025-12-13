@@ -13,9 +13,12 @@ class MealDetailsViewModel constructor(
 ) : ViewModel() {
 
     private val mealRoute = savedStateHandle.toRoute<MealDetailsRoute>()
-    val mealType = mealRoute.mealType
 
-    private val _uiState = MutableStateFlow(MealDetailsUiState())
+    private val _uiState = MutableStateFlow(
+        MealDetailsUiState(
+            mealType = mealRoute.mealType
+        )
+    )
     val uiState = _uiState.asStateFlow()
 
 
@@ -48,7 +51,7 @@ class MealDetailsViewModel constructor(
     }
 
     private fun addIngredientManual() {
-        // здесь будет навигация на экран ручного добавления
+        // TODO: mealId хз что с ним делать и как передавать
         _uiState.update {
             it.copy(showAddIngredientSheet = false)
         }
