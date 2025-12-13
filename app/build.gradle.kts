@@ -53,9 +53,19 @@ dependencies {
     implementation(libs.coil.compose)
     implementation(libs.androidx.graphics.shapes)
     implementation(libs.androidx.navigation.compose)
+    implementation(libs.androidx.security.crypto)
 
     // Koin
     implementation(libs.koin.androidx.compose)
+
+    // Retrofit
+    implementation(libs.retrofit)
+    implementation(libs.kotlinx.serialization.json)
+    implementation(libs.retrofit2.kotlinx.serialization.converter)
+
+    //Room
+    implementation(libs.androidx.room.runtime)
+    implementation(libs.androidx.room.ktx)
 
     // Test
     testImplementation(libs.junit)
