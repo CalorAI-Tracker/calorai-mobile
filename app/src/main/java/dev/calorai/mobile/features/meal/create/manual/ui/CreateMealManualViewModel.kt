@@ -13,7 +13,7 @@ class CreateMealManualViewModel constructor(
 ) : ViewModel() {
 
     private val mealRoute = savedStateHandle.toRoute<CreateMealManualRoute>()
-    val mealType = mealRoute.mealType
+    val mealId = mealRoute.mealId
 
     private val _uiState = MutableStateFlow(CreateMealManualUiState())
     val uiState = _uiState.asStateFlow()

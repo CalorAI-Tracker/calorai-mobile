@@ -13,6 +13,7 @@ import dev.calorai.mobile.features.main.features.plan.navigateToPlanScreen
 import dev.calorai.mobile.features.main.features.progress.navigateToProgressScreen
 import dev.calorai.mobile.features.main.features.settings.navigateToSettingsScreen
 import dev.calorai.mobile.features.meal.create.manual.navigateToCreateMealManualScreen
+import dev.calorai.mobile.features.meal.details.navigateToMealDetailsScreen
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
@@ -46,7 +47,7 @@ class MainViewModel constructor(
 
     private fun navigateToCreateMealScreen(mealType: MealType) {
         viewModelScope.launch {
-            globalRouter.emit { navigateToCreateMealManualScreen(mealType) }
+            globalRouter.emit { navigateToMealDetailsScreen(mealType) }
         }
     }
 

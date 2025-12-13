@@ -10,10 +10,10 @@ import dev.calorai.mobile.features.meal.create.manual.ui.CreateMealManualRoot
 import kotlinx.serialization.Serializable
 
 @Serializable
-data class CreateMealManualRoute(val mealType: MealType) : Destination
+data class CreateMealManualRoute(val mealId: Long) : Destination
 
-fun NavController.navigateToCreateMealManualScreen(mealType: MealType, navOptions: NavOptions? = null) {
-    navigate(route = CreateMealManualRoute(mealType), navOptions = navOptions)
+fun NavController.navigateToCreateMealManualScreen(mealId: Long, navOptions: NavOptions? = null) {
+    navigate(route = CreateMealManualRoute(mealId), navOptions = navOptions)
 }
 
 fun NavGraphBuilder.createMealSection() {
