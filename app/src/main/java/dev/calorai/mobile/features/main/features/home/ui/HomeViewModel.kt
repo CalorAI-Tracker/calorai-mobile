@@ -10,7 +10,7 @@ import dev.calorai.mobile.features.main.features.home.domain.GetCurrentUserNameU
 import dev.calorai.mobile.features.main.features.home.domain.GetWeekByDateUseCase
 import dev.calorai.mobile.features.main.features.home.domain.GetMealsForDayUseCase
 import dev.calorai.mobile.features.main.features.home.domain.GetPieChartsDataForDayUseCase
-import dev.calorai.mobile.features.meal.create.navigateToCreateMealScreen
+import dev.calorai.mobile.features.meal.create.manual.navigateToCreateMealManualScreen
 import dev.calorai.mobile.features.meal.details.navigateToMealDetailsScreen
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -59,8 +59,8 @@ class HomeViewModel constructor(
     fun onEvent(event: HomeUiEvent) {
         when (event) {
             is HomeUiEvent.SelectDate -> handleSelectDate(event.date.date)
-            is HomeUiEvent.MealCardAddButtonClick -> navigateToCreateMeal(event.meal.type)
-            is HomeUiEvent.MealCardClick -> navigateToMealDetails(event.meal.id)
+            is HomeUiEvent.MealCardAddButtonClick -> navigateToCreateMeal(event.meal.id)
+            is HomeUiEvent.MealCardClick -> navigateToMealDetails(event.meal.type)
             HomeUiEvent.SelectNextDate -> selectNextDate()
             HomeUiEvent.SelectPreviousDate -> selectPreviousDate()
         }
@@ -148,11 +148,11 @@ class HomeViewModel constructor(
         }
     }
 
-    private fun navigateToCreateMeal(mealType: MealType) {
-        viewModelScope.launch { globalRouter.emit { navigateToCreateMealScreen(mealType) } }
+    private fun navigateToCreateMeal(mealId: Long) {
+        viewModelScope.launch { globalRouter.emit { navigateToCreateMealManualScreen(mealId) } }
     }
 
-    private fun navigateToMealDetails(mealId: Long) {
-        viewModelScope.launch { globalRouter.emit { navigateToMealDetailsScreen(mealId) } }
+    private fun navigateToMealDetails(mealType: MealType) {
+        viewModelScope.launch { globalRouter.emit { navigateToMealDetailsScreen(mealType) } }
     }
 }

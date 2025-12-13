@@ -124,6 +124,7 @@ private fun SignUpScreen(
                     }
                 )
             }
+            Spacer(Modifier.size(9.dp))
         }
     }
 }
