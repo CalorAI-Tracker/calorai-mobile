@@ -10,7 +10,7 @@ import dev.calorai.mobile.features.main.features.home.domain.GetCurrentUserNameU
 import dev.calorai.mobile.features.main.features.home.domain.GetWeekByDateUseCase
 import dev.calorai.mobile.features.main.features.home.domain.GetMealsForDayUseCase
 import dev.calorai.mobile.features.main.features.home.domain.GetPieChartsDataForDayUseCase
-import dev.calorai.mobile.features.meal.create.manual.navigateToCreateMealScreen
+import dev.calorai.mobile.features.meal.create.manual.navigateToCreateMealManualScreen
 import dev.calorai.mobile.features.meal.details.navigateToMealDetailsScreen
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -149,7 +149,7 @@ class HomeViewModel constructor(
     }
 
     private fun navigateToCreateMeal(mealType: MealType) {
-        viewModelScope.launch { globalRouter.emit { navigateToCreateMealScreen(mealType) } }
+        viewModelScope.launch { globalRouter.emit { navigateToCreateMealManualScreen(mealType) } }
     }
 
     private fun navigateToMealDetails(mealId: Long) {

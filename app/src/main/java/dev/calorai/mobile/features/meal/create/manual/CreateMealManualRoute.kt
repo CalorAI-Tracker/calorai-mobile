@@ -12,7 +12,7 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class CreateMealManualRoute(val mealType: MealType) : Destination
 
-fun NavController.navigateToCreateMealScreen(mealType: MealType, navOptions: NavOptions? = null) {
+fun NavController.navigateToCreateMealManualScreen(mealType: MealType, navOptions: NavOptions? = null) {
     navigate(route = CreateMealManualRoute(mealType), navOptions = navOptions)
 }
 
