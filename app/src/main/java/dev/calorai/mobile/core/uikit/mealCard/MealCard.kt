@@ -34,6 +34,7 @@ import androidx.compose.ui.zIndex
 import coil.compose.rememberAsyncImagePainter
 import dev.calorai.mobile.R
 import dev.calorai.mobile.core.uikit.CalorAiTheme
+import dev.calorai.mobile.core.uikit.blurShadow
 import dev.calorai.mobile.core.uikit.calculateItemOffset
 import dev.calorai.mobile.core.uikit.circleMediumSize
 
@@ -43,21 +44,27 @@ fun MealCard(
     modifier: Modifier = Modifier
         .fillMaxWidth()
         .height(80.dp),
+    onCardClick: () -> Unit = {},
     onAddClick: () -> Unit = {},
 ) {
     Card(
-        modifier = modifier,
+        modifier = modifier.blurShadow(
+            color = Color.Black.copy(alpha = 0.05f),
+            blurRadius = 13.dp,
+            offsetY = 3.dp,
+            shape = RoundedCornerShape(30.dp)
+        ),
         colors = CardDefaults.cardColors().copy(
             containerColor = Color.White,
         ),
         shape = RoundedCornerShape(30.dp),
-        elevation = CardDefaults.cardElevation(defaultElevation = 6.dp),
     ) {
         MealCardContent(
             title = mealData.title,
             formattedSubtitle = mealData.subtitle,
             foodList = mealData.visibleFoodList,
-            onAddClick = onAddClick
+            onAddClick = onAddClick,
+            onCardClick = onCardClick,
         )
     }
 }
@@ -67,10 +74,13 @@ private fun MealCardContent(
     title: String,
     formattedSubtitle: String,
     foodList: List<FoodUiModel>,
-    onAddClick: () -> Unit,
+    onCardClick: () -> Unit = {},
+    onAddClick: () -> Unit = {},
 ) {
     Row(
-        modifier = Modifier.fillMaxSize(),
+        modifier = Modifier
+            .fillMaxSize()
+            .clickable(onClick = onCardClick),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceBetween,
     ) {
@@ -149,6 +159,7 @@ private fun MealCardRightBlock(
                 .size(circleMediumSize)
                 .align(Alignment.CenterEnd)
                 .zIndex((visibleFoodList.size + 1).toFloat())
+                .clip(CircleShape)
                 .clickable(onClick = onAddClick)
         )
     }
@@ -191,10 +202,12 @@ private fun MealCardPreview_EmptyImages() {
         type = MealType.BREAKFAST,
     )
     CalorAiTheme {
-        MealCard(
-            mealData = mealUiModel,
-            onAddClick = {},
-        )
+        Box(modifier = Modifier.padding(32.dp)) {
+            MealCard(
+                mealData = mealUiModel,
+                onAddClick = {},
+            )
+        }
     }
 }
 
@@ -209,9 +222,11 @@ private fun MealCardPreview_NoFoods() {
         type = MealType.DINNER,
     )
     CalorAiTheme {
-        MealCard(
-            mealData = mealUiModel,
-            onAddClick = {},
-        )
+        Box(modifier = Modifier.padding(32.dp)) {
+            MealCard(
+                mealData = mealUiModel,
+                onAddClick = {},
+            )
+        }
     }
 }
