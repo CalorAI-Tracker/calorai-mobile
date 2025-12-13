@@ -1,9 +1,8 @@
 package dev.calorai.mobile.core.network.di
 
 import com.jakewharton.retrofit2.converter.kotlinx.serialization.asConverterFactory
-import dev.calorai.mobile.core.network.token.AuthInterceptor
-import dev.calorai.mobile.core.network.token.TokenAuthenticator
-import dev.calorai.mobile.core.network.token.TokenProvider
+import dev.calorai.mobile.features.auth.data.token.AuthInterceptor
+import dev.calorai.mobile.features.auth.data.token.TokenAuthenticator
 import kotlinx.serialization.json.Json
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
@@ -38,12 +37,10 @@ internal val networkModule = module {
             .build()
     }
 
-    // OkHttp клиент для авторизованных запросов — добавляем Interceptor + Authenticator
     single(named("okHttpAuthorized")) {
-        val tokenProvider: TokenProvider = get() // должен быть предоставлен в другом модуле до этого
         OkHttpClient.Builder()
-            .addInterceptor(AuthInterceptor(tokenProvider))       // добавляет Bearer
-            .authenticator(TokenAuthenticator(tokenProvider))     // обрабатывает 401 и делает refresh
+            .addInterceptor(get<AuthInterceptor>())
+            .authenticator(get<TokenAuthenticator>())
             .build()
     }
 

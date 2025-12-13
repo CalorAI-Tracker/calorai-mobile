@@ -1,29 +1,44 @@
 package dev.calorai.mobile.features.main.data.dto.dailyNutrition.getDailyStats
 
+import kotlinx.serialization.Serializable
+
+@Serializable
 data class GetDailyStatsResponse(
     val date: String,
-"plan": {
-    "kcal": 2300,
-    "proteinG": 160,
-    "fatG": 70,
-    "carbsG": 250
-},
-"actual": {
-    "kcal": 2300,
-    "proteinG": 160,
-    "fatG": 70,
-    "carbsG": 250
-},
-"remaining": {
-    "kcal": 2300,
-    "proteinG": 160,
-    "fatG": 70,
-    "carbsG": 250
-},
-"completionPercent": {
-    // TODO: Узнать что это, и поменять 
-    "additionalProp1": 0,
-    "additionalProp2": 0,
-    "additionalProp3": 0
-}
+    val plan: PlanDto,
+    val actual: ActualDto,
+    val remaining: RemainingDto,
+    val completionPercent: CompletionPercentDto
+)
+
+@Serializable
+data class PlanDto(
+    val kcal: Int,
+    val proteinG: Double,
+    val fatG: Double,
+    val carbsG: Double
+)
+
+@Serializable
+data class ActualDto(
+    val kcal: Int,
+    val proteinG: Double,
+    val fatG: Double,
+    val carbsG: Double
+)
+
+@Serializable
+data class RemainingDto(
+    val kcal: Int,
+    val proteinG: Double,
+    val fatG: Double,
+    val carbsG: Double
+)
+
+@Serializable
+data class CompletionPercentDto(
+    val kcal: Int,
+    val protein: Int,
+    val fat: Int,
+    val carbs: Int
 )

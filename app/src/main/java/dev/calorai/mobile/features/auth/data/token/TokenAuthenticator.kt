@@ -1,4 +1,4 @@
-package dev.calorai.mobile.core.network.token
+package dev.calorai.mobile.features.auth.data.token
 
 import okhttp3.Authenticator
 import okhttp3.Request
