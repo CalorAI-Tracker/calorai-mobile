@@ -5,7 +5,7 @@ import org.koin.core.qualifier.named
 import org.koin.dsl.module
 import retrofit2.Retrofit
 
-internal val signUpModule = module {
+internal val mealModule = module {
 
     single { get<Retrofit>(named("retrofitAuthorized")).create(MealApi::class.java) }
 
