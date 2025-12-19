@@ -2,6 +2,7 @@ package dev.calorai.mobile.core.network.di
 
 import com.jakewharton.retrofit2.converter.kotlinx.serialization.asConverterFactory
 import dev.calorai.mobile.BuildConfig
+import dev.calorai.mobile.core.network.ErrorResponseInterceptor
 import dev.calorai.mobile.features.auth.data.token.AuthInterceptor
 import dev.calorai.mobile.features.auth.data.token.TokenAuthenticator
 import kotlinx.serialization.json.Json
@@ -29,6 +30,7 @@ internal val networkModule = module {
 
     single(named(OKHTTP_AUTH)) {
         OkHttpClient.Builder()
+            .addNetworkInterceptor(ErrorResponseInterceptor(json = get()))
             .build()
     }
 
@@ -38,15 +40,25 @@ internal val networkModule = module {
             .baseUrl(BASE_URL)
             .client(get(named(OKHTTP_AUTH)))
             .addConverterFactory(
-                json.asConverterFactory("application/json".toMediaType())
+                json.asConverterFactory("application/json; charset=utf-8".toMediaType())
             )
             .build()
     }
 
     single(named(OKHTTP_AUTHORIZED)) {
         OkHttpClient.Builder()
-            .addInterceptor(get<AuthInterceptor>())
-            .authenticator(get<TokenAuthenticator>())
+            .addNetworkInterceptor(ErrorResponseInterceptor(json = get()))
+            .addInterceptor(
+                AuthInterceptor(
+                    tokenProvider = get()
+                )
+            )
+            .authenticator(
+                TokenAuthenticator(
+                    tokenProvider = get(),
+                    tokenRefresher = get(),
+                )
+            )
             .build()
     }
 
@@ -56,9 +68,8 @@ internal val networkModule = module {
             .baseUrl(BASE_URL)
             .client(get(named(OKHTTP_AUTHORIZED)))
             .addConverterFactory(
-                json.asConverterFactory("application/json".toMediaType())
+                json.asConverterFactory("application/json; charset=utf-8".toMediaType())
             )
             .build()
     }
-
 }

@@ -1,6 +1,7 @@
 package dev.calorai.mobile.features.auth.data.token
 
 import android.util.Log
+import dev.calorai.mobile.features.auth.data.token.tokenProvider.TokenProvider
 import okhttp3.Interceptor
 import okhttp3.Response
 

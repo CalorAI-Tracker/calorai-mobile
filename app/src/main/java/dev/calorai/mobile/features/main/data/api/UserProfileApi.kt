@@ -4,6 +4,7 @@ import dev.calorai.mobile.features.main.data.dto.userProfile.createUser.CreateUs
 import dev.calorai.mobile.features.main.data.dto.userProfile.getUser.GetUserProfileResponse
 import dev.calorai.mobile.features.main.data.dto.userProfile.updateUser.UpdateUserProfileRequest
 import dev.calorai.mobile.features.main.data.dto.userProfile.updateUser.UpdateUserProfileResponse
+import retrofit2.Response
 import retrofit2.http.Body
 import retrofit2.http.GET
 import retrofit2.http.POST
@@ -14,16 +15,16 @@ interface UserProfileApi {
     @GET("user-profile/user/{userId}")
     suspend fun getUserProfile(
         @Path("userId") userId: Int,
-    ): GetUserProfileResponse
+    ): Response<GetUserProfileResponse>
 
     @PUT("user-profile/user/{userId}")
     suspend fun updateUserProfile(
         @Path("userId") userId: Int,
         @Body body: UpdateUserProfileRequest,
-    ): UpdateUserProfileResponse
+    ): Response<UpdateUserProfileResponse>
 
     @POST("user-profile")
     suspend fun createUserProfile(
         @Body body: CreateUserProfileRequest,
-    ): Unit
+    ): Response<Unit>
 }

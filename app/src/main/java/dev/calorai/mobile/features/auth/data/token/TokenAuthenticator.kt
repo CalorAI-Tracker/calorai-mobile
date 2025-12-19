@@ -1,17 +1,20 @@
 package dev.calorai.mobile.features.auth.data.token
 
+import dev.calorai.mobile.features.auth.data.token.tokenProvider.TokenProvider
 import okhttp3.Authenticator
 import okhttp3.Request
 import okhttp3.Response
 import okhttp3.Route
 
 class TokenAuthenticator(
-    private val tokenProvider: TokenProvider
+    private val tokenProvider: TokenProvider,
+    private val tokenRefresher: TokenRefresher
 ) : Authenticator {
+
     override fun authenticate(route: Route?, response: Response): Request? {
         if (responseCount(response) >= 2) return null
 
-        val refreshed = tokenProvider.refreshTokenBlocking()
+        val refreshed = tokenRefresher.refreshTokenBlocking()
         if (!refreshed) {
             return null
         }

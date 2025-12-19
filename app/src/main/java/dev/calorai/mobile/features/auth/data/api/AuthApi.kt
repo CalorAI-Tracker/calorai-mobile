@@ -7,27 +7,29 @@ import dev.calorai.mobile.features.auth.data.dto.refresh.RefreshRequest
 import dev.calorai.mobile.features.auth.data.dto.refresh.RefreshResponse
 import dev.calorai.mobile.features.auth.data.dto.signup.SignupRequest
 import dev.calorai.mobile.features.auth.data.dto.signup.SignupResponse
+import retrofit2.Response
 import retrofit2.http.Body
 import retrofit2.http.POST
 
 interface AuthApi {
+
     @POST("auth/signup")
     suspend fun signUp(
         @Body body: SignupRequest
-    ): SignupResponse
+    ): Response<SignupResponse>
 
     @POST("auth/refresh")
     suspend fun refresh(
         @Body body: RefreshRequest
-    ): RefreshResponse
+    ): Response<RefreshResponse>
 
     @POST("auth/logout")
     suspend fun logout(
         @Body body: LogoutRequest
-    ): Unit
+    ): Response<Unit>
 
     @POST("auth/login")
     suspend fun login(
         @Body body: LoginRequest
-    ): LoginResponse
+    ): Response<LoginResponse>
 }
