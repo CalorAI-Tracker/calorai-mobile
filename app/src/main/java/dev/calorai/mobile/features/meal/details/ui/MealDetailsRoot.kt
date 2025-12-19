@@ -44,16 +44,7 @@ fun MealDetailsRoot(
     viewModel: MealDetailsViewModel = koinViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsState()
-
-    val title = when (uiState.mealType) {
-        MealType.BREAKFAST -> stringResource(R.string.details_meal_type_breakfast)
-        MealType.LUNCH -> stringResource(R.string.details_meal_type_lunch)
-        MealType.DINNER -> stringResource(R.string.details_meal_type_dinner)
-        MealType.SNACK -> stringResource(R.string.details_meal_type_snack)
-    }
-
     MealDetailsScreen(
-        title = title,
         uiState = uiState,
         onEvent = viewModel::onEvent
     )
@@ -62,11 +53,18 @@ fun MealDetailsRoot(
 
 @Composable
 private fun MealDetailsScreen(
-    title: String,
     uiState: MealDetailsUiState,
     onEvent: (MealDetailsUiEvent) -> Unit
 ) {
     val system = WindowInsets.systemBars.asPaddingValues()
+
+    val title = when (uiState.mealType) {
+        MealType.BREAKFAST -> stringResource(R.string.details_meal_type_breakfast)
+        MealType.LUNCH -> stringResource(R.string.details_meal_type_lunch)
+        MealType.DINNER -> stringResource(R.string.details_meal_type_dinner)
+        MealType.SNACK -> stringResource(R.string.details_meal_type_snack)
+    }
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -221,7 +219,6 @@ private fun IngredientItem(
 private fun MealDetailsScreenPreview() {
     CalorAiTheme {
         MealDetailsScreen(
-            title = "Ужин",
             uiState = MealDetailsUiState(
                 mealType = MealType.DINNER,
                 macros = listOf(

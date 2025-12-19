@@ -71,4 +71,7 @@
     <string name="create_meal_manual_portion">Порция</string>
     <string name="create_meal_manual_add">Добавить</string>
     <string name="create_meal_manual_textfield_placeholder">0.0</string>
+
+    <string name="add_ingredient_dialog_title">Добавить ингредиент</string>
+    <string name="add_ingredient_dialog_message">Выберите способ добавления ингредиента</string>
 </resources>

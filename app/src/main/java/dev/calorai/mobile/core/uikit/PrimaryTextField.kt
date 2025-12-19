@@ -47,7 +47,7 @@ fun PrimaryTextField(
         },
         singleLine = true,
         keyboardOptions = keyboardOptions,
-        keyboardActions =keyboardActions,
+        keyboardActions = keyboardActions,
         visualTransformation = visualTransformation,
         modifier = modifier
             .fillMaxWidth()
