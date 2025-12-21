@@ -2,6 +2,7 @@ package dev.calorai.mobile.features.auth.di
 
 import dev.calorai.mobile.core.navigation.GlobalRouterContext
 import dev.calorai.mobile.core.navigation.RouterController
+import dev.calorai.mobile.core.network.di.RETROFIT_AUTH
 import dev.calorai.mobile.features.auth.data.token.tokenProvider.InMemoryTokenProvider
 import dev.calorai.mobile.features.auth.data.token.tokenProvider.TokenProvider
 import dev.calorai.mobile.features.auth.data.api.AuthApi
@@ -22,7 +23,7 @@ internal val authModule = module {
         )
     }
 
-    single { get<Retrofit>(named("retrofitAuth")).create(AuthApi::class.java) }
+    single { get<Retrofit>(named(RETROFIT_AUTH)).create(AuthApi::class.java) }
     single { TokenStorage(get()) }
     single {
         TokenRefresher(

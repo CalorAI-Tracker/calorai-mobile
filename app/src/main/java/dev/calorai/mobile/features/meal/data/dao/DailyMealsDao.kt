@@ -14,18 +14,18 @@ interface DailyMealsDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertAll(meals: List<DailyMealsEntity>)
 
-    @Query("SELECT * FROM daily_meals WHERE date = :date ORDER BY meal ASC")
+    @Query("SELECT * FROM ${DailyMealsEntity.TABLE} WHERE date = :date ORDER BY meal ASC")
     fun getMealsByDate(date: String): Flow<List<DailyMealsEntity>>
 
-    @Query("SELECT * FROM daily_meals WHERE date = :date AND meal = :mealType LIMIT 1")
+    @Query("SELECT * FROM ${DailyMealsEntity.TABLE} WHERE date = :date AND meal = :mealType LIMIT 1")
     fun getMealByDateAndType(date: String, mealType: String): Flow<DailyMealsEntity?>
 
-    @Query("DELETE FROM daily_meals WHERE id = :id")
+    @Query("DELETE FROM ${DailyMealsEntity.TABLE} WHERE id = :id")
     suspend fun deleteById(id: Long)
 
-    @Query("DELETE FROM daily_meals WHERE date = :date")
+    @Query("DELETE FROM ${DailyMealsEntity.TABLE} WHERE date = :date")
     suspend fun deleteByDate(date: String)
 
-    @Query("DELETE FROM daily_meals")
+    @Query("DELETE FROM ${DailyMealsEntity.TABLE}")
     suspend fun clearAllMeals()
 }

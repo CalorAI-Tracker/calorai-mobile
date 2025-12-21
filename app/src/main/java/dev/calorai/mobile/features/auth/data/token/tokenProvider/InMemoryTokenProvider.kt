@@ -10,7 +10,7 @@ class InMemoryTokenProvider(
 
     override fun getAccessToken(): String? {
         synchronized(lock) {
-            return tokenStorage.getAccessToken()
+            return tokenStorage.getInMemoryAccessToken()
         }
     }
 }

@@ -1,5 +1,6 @@
 package dev.calorai.mobile.features.main.features.plan.di
 
+import dev.calorai.mobile.core.network.di.RETROFIT_AUTHORIZED
 import dev.calorai.mobile.features.main.features.plan.data.api.PlanApi
 import dev.calorai.mobile.features.main.features.plan.ui.PlanViewModel
 import org.koin.core.module.dsl.viewModelOf
@@ -11,5 +12,5 @@ internal val planModule = module {
 
     viewModelOf(::PlanViewModel)
 
-    single { get<Retrofit>(named("retrofitAuthorized")).create(PlanApi::class.java) }
+    single { get<Retrofit>(named(RETROFIT_AUTHORIZED)).create(PlanApi::class.java) }
 }

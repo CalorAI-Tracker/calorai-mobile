@@ -14,6 +14,6 @@ val localDbModule = module {
         ).build()
     }
 
-    single { get< CalorAiDatabase>().userDao() }
-    single { get< CalorAiDatabase>().dailyMealDao() }
+    single { get<CalorAiDatabase>().userDao() }
+    single { get<CalorAiDatabase>().dailyMealDao() }
 }

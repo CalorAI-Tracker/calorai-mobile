@@ -16,8 +16,8 @@ private const val BASE_URL = BuildConfig.BASE_URL
 
 private const val OKHTTP_AUTH = "okHttpAuth"
 private const val OKHTTP_AUTHORIZED = "okHttpAuthorized"
-private const val RETROFIT_AUTH = "retrofitAuth"
-private const val RETROFIT_AUTHORIZED = "retrofitAuthorized"
+const val RETROFIT_AUTH = "retrofitAuth"
+const val RETROFIT_AUTHORIZED = "retrofitAuthorized"
 
 
 internal val networkModule = module {
