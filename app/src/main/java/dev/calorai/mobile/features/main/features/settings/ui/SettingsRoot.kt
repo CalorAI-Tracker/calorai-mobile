@@ -36,21 +36,24 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberUpdatedState
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import dev.calorai.mobile.R
 import dev.calorai.mobile.core.uikit.CalorAiTheme
+import dev.calorai.mobile.core.utils.ObserveAsEvents
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import kotlinx.coroutines.launch
 import org.koin.androidx.compose.koinViewModel
 import java.time.Instant
 import java.time.ZoneId
@@ -60,21 +63,46 @@ import java.time.format.DateTimeFormatter
 fun SettingsRoot(
     viewModel: SettingsViewModel = koinViewModel(),
 ) {
-    val viewState by viewModel.state.collectAsStateWithLifecycleSafe()
+    val viewState by viewModel.state.collectAsStateWithLifecycle()
     val snackbarHostState = remember { SnackbarHostState() }
+    val context = LocalContext.current
+    val coroutineScope = rememberCoroutineScope()
 
-    val currentError by rememberUpdatedState(viewState.errorMessage)
-    val currentSaved by rememberUpdatedState(viewState.saved)
 
-    LaunchedEffect(currentError) {
-        currentError?.let { snackbarHostState.showSnackbar(it) }
-    }
+    ObserveAsEvents(viewModel.uiActions) { action ->
+        coroutineScope.launch {
+            when (action) {
+                is SettingsUiAction.ShowErrorMessage -> {
+                    val message = when (action.errorType) {
+                        SavingErrorType.NUMBER_PARSE -> context.getString(
+                            R.string.settings_number_parse_error,
+                            action.value ?: ""
+                        )
 
-    val savedMessage = stringResource(R.string.settings_profile_saved)
+                        SavingErrorType.UNKNOWN_GENDER -> context.getString(
+                            R.string.settings_unknown_gender,
+                            action.value ?: ""
+                        )
 
-    LaunchedEffect(currentSaved) {
-        if (currentSaved) {
-            snackbarHostState.showSnackbar(message = savedMessage)
+                        SavingErrorType.UNKNOWN_ACTIVITY -> context.getString(
+                            R.string.settings_unknown_activity,
+                            action.value ?: ""
+                        )
+
+                        SavingErrorType.UNKNOWN_GOAL -> context.getString(
+                            R.string.settings_unknown_goal,
+                            action.value ?: ""
+                        )
+
+                        SavingErrorType.SAVE_ERROR -> context.getString(R.string.settings_save_error)
+                    }
+                    snackbarHostState.showSnackbar(message)
+                }
+
+                SettingsUiAction.ShowSavingMessage -> {
+                    snackbarHostState.showSnackbar(context.getString(R.string.settings_profile_saved))
+                }
+            }
         }
     }
 
@@ -82,8 +110,7 @@ fun SettingsRoot(
         formState = viewState.form,
         isSaving = viewState.isSaving,
         snackbarHostState = snackbarHostState,
-        onStateChange = viewModel::onFormChange,
-        onSave = viewModel::onSave,
+        onEvent = viewModel::onEvent,
     )
 }
 
@@ -93,10 +120,8 @@ private fun SettingsScreen(
     formState: UserSettingsUiState,
     isSaving: Boolean,
     snackbarHostState: SnackbarHostState,
-    onStateChange: (UserSettingsUiState) -> Unit,
-    onSave: () -> Unit,
+    onEvent: (SettingsUiEvent) -> Unit,
 ) {
-
     Scaffold(
         topBar = {
             TopAppBar(
@@ -117,8 +142,7 @@ private fun SettingsScreen(
         ) {
             SettingsContent(
                 state = formState,
-                onStateChange = onStateChange,
-                onSaveClick = onSave,
+                onEvent = onEvent,
                 isSaving = isSaving,
             )
         }
@@ -128,8 +152,7 @@ private fun SettingsScreen(
 @Composable
 private fun SettingsContent(
     state: UserSettingsUiState,
-    onStateChange: (UserSettingsUiState) -> Unit,
-    onSaveClick: () -> Unit,
+    onEvent: (SettingsUiEvent) -> Unit,
     isSaving: Boolean,
 ) {
     val scroll = rememberScrollState()
@@ -145,13 +168,13 @@ private fun SettingsContent(
     ) {
         LabeledTextField(
             value = state.name,
-            onValueChange = { onStateChange(state.copy(name = it)) },
+            onValueChange = { onEvent(SettingsUiEvent.FormChange(state.copy(name = it))) },
             label = stringResource(R.string.settings_name),
             modifier = Modifier.fillMaxWidth(),
         )
         LabeledTextField(
             value = state.email,
-            onValueChange = { onStateChange(state.copy(email = it)) },
+            onValueChange = { onEvent(SettingsUiEvent.FormChange(state.copy(email = it))) },
             label = stringResource(R.string.settings_email),
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
             modifier = Modifier.fillMaxWidth(),
@@ -175,7 +198,7 @@ private fun SettingsContent(
                     stringResource(R.string.settings_sex_man)
                 ),
                 selected = state.gender,
-                onSelected = { onStateChange(state.copy(gender = it)) },
+                onSelected = { onEvent(SettingsUiEvent.FormChange(state.copy(gender = it))) },
                 modifier = Modifier.weight(1f)
             )
         }
@@ -190,7 +213,7 @@ private fun SettingsContent(
                     stringResource(R.string.settings_height_val_type, it)
                 },
                 selected = state.height,
-                onSelected = { onStateChange(state.copy(height = it)) },
+                onSelected = { onEvent(SettingsUiEvent.FormChange(state.copy(height = it))) },
                 modifier = Modifier.weight(1f)
             )
             SimpleDropdown(
@@ -200,7 +223,7 @@ private fun SettingsContent(
                     stringResource(R.string.settings_weight_val_type, it)
                 },
                 selected = state.weight,
-                onSelected = { onStateChange(state.copy(weight = it)) },
+                onSelected = { onEvent(SettingsUiEvent.FormChange(state.copy(weight = it))) },
                 modifier = Modifier.weight(1f)
             )
         }
@@ -214,7 +237,7 @@ private fun SettingsContent(
                 stringResource(R.string.settings_activity_7),
             ),
             selected = state.activity,
-            onSelected = { onStateChange(state.copy(activity = it)) }
+            onSelected = { onEvent(SettingsUiEvent.FormChange(state.copy(activity = it))) }
         )
         SimpleDropdown(
             label = stringResource(R.string.settings_activity_goal),
@@ -225,13 +248,13 @@ private fun SettingsContent(
                 stringResource(R.string.settings_goal_get_weight),
             ),
             selected = state.goal,
-            onSelected = { onStateChange(state.copy(goal = it)) }
+            onSelected = { onEvent(SettingsUiEvent.FormChange(state.copy(goal = it))) }
         )
 
         Spacer(modifier = Modifier.height(8.dp))
 
         Button(
-            onClick = onSaveClick,
+            onClick = { onEvent(SettingsUiEvent.Save) },
             modifier = Modifier
                 .fillMaxWidth()
                 .height(52.dp),
@@ -260,11 +283,13 @@ private fun SettingsContent(
                         datePickerState.selectedDateMillis?.let {
                             val instant = Instant.ofEpochMilli(it)
                             val localDate = instant.atZone(ZoneId.systemDefault()).toLocalDate()
-                            onStateChange(
-                                state.copy(
-                                    birthDate = localDate.format(
-                                        DateTimeFormatter.ofPattern(
-                                            "dd MMMM yyyy"
+                            onEvent(
+                                SettingsUiEvent.FormChange(
+                                    state.copy(
+                                        birthDate = localDate.format(
+                                            DateTimeFormatter.ofPattern(
+                                                "dd MMMM yyyy"
+                                            )
                                         )
                                     )
                                 )
@@ -279,10 +304,6 @@ private fun SettingsContent(
         }
     }
 }
-
-@Composable
-private fun <T> kotlinx.coroutines.flow.StateFlow<T>.collectAsStateWithLifecycleSafe() =
-    this.collectAsState()
 
 @Composable
 private fun LabeledTextField(
@@ -394,13 +415,11 @@ private fun SimpleDropdown(
 @Composable
 private fun SettingScreenPreview() {
     CalorAiTheme {
-        // TODO заглушка
         SettingsScreen(
             formState = UserSettingsUiState(),
             isSaving = false,
             snackbarHostState = remember { SnackbarHostState() },
-            onStateChange = {},
-            onSave = {}
+            onEvent = {}
         )
     }
 }
