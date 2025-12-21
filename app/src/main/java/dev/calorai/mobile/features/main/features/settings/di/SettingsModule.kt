@@ -1,8 +1,12 @@
 package dev.calorai.mobile.features.main.features.settings.di
 
 import dev.calorai.mobile.features.main.features.settings.data.FakeSettingsRepository
+import dev.calorai.mobile.features.main.features.settings.data.SettingsMapper
+import dev.calorai.mobile.features.main.features.settings.domain.GetUserHealthProfileUseCase
+import dev.calorai.mobile.features.main.features.settings.domain.GetUserHealthProfileUseCaseImpl
 import dev.calorai.mobile.features.main.features.settings.domain.SettingsRepository
 import dev.calorai.mobile.features.main.features.settings.domain.UpdateUserHealthProfileUseCase
+import dev.calorai.mobile.features.main.features.settings.domain.UpdateUserHealthProfileUseCaseImpl
 import dev.calorai.mobile.features.main.features.settings.ui.SettingsViewModel
 import org.koin.android.ext.koin.androidContext
 import org.koin.core.module.dsl.viewModelOf
@@ -10,11 +14,12 @@ import org.koin.dsl.module
 
 internal val settingsModule = module {
     single<SettingsRepository> { FakeSettingsRepository() }
-    factory {
-        UpdateUserHealthProfileUseCase(
-            repository = get(),
-            context = androidContext(),
-        )
+    factory { SettingsMapper(androidContext()) }
+    factory<UpdateUserHealthProfileUseCase> {
+        UpdateUserHealthProfileUseCaseImpl(get())
+    }
+    factory<GetUserHealthProfileUseCase> {
+        GetUserHealthProfileUseCaseImpl(get())
     }
     viewModelOf(::SettingsViewModel)
 }

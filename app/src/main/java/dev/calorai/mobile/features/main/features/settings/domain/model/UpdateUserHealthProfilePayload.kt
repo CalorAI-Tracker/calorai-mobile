@@ -10,6 +10,3 @@ data class UpdateUserHealthProfilePayload(
     val targetWeightKg: Long? = null,
     val weeklyRateKg: Long? = null,
 )
-
-
-
