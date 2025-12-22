@@ -1,11 +1,13 @@
 package dev.calorai.mobile.features.meal.data.dao
 
+import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import dev.calorai.mobile.features.meal.data.entity.DailyMealsEntity
 import kotlinx.coroutines.flow.Flow
 
+@Dao
 interface DailyMealsDao {
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
