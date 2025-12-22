@@ -7,10 +7,10 @@ import retrofit2.http.Path
 import retrofit2.http.Query
 
 interface DailyNutritionApi {
+
     @GET("daily-nutrition/{userId}")
     suspend fun getDailyStats(
         @Path("userId") userId: Int,
         @Query("date") date: String? = null
     ): Response<GetDailyStatsResponse>
-
 }

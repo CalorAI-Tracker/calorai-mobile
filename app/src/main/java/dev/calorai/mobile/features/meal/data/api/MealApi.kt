@@ -11,6 +11,7 @@ import retrofit2.http.Query
 
 
 interface MealApi {
+
     @GET("daily-meal/{userId}")
     suspend fun getDailyMeal(
         @Path("userId") userId: Int,
