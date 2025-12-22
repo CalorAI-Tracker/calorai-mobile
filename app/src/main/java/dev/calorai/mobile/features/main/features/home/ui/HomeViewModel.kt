@@ -52,6 +52,8 @@ class HomeViewModel constructor(
         initialValue = HomeDataUiState.Loading,
     )
 
+    private var selectedMealId: Long? = null
+
     init {
         handleSelectDate(selectedDate = LocalDate.now())
     }
@@ -163,22 +165,22 @@ class HomeViewModel constructor(
         _state.update {
             it.copy(
                 showAddIngredientDialog = true,
-                selectedMealId = mealId
             )
         }
+        selectedMealId = mealId
     }
 
     private fun handleHideAddIngredientDialog() {
         _state.update {
             it.copy(
                 showAddIngredientDialog = false,
-                selectedMealId = null
             )
         }
+        selectedMealId = null
     }
 
     private fun handleAddManualClick() {
-        val mealId = _state.value.selectedMealId
+        val mealId = selectedMealId
         if (mealId != null) {
             viewModelScope.launch {
                 globalRouter.emit {
