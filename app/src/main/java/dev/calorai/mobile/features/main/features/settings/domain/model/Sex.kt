@@ -1,0 +1,7 @@
+package dev.calorai.mobile.features.main.features.settings.domain.model
+
+enum class Sex {
+    FEMALE,
+    MALE,
+}
+
