@@ -2,8 +2,8 @@ package dev.calorai.mobile.features.main.features.settings.di
 
 import dev.calorai.mobile.features.main.features.settings.data.FakeSettingsRepository
 import dev.calorai.mobile.features.main.features.settings.data.SettingsMapper
-import dev.calorai.mobile.features.main.features.settings.domain.GetUserHealthProfileUseCase
-import dev.calorai.mobile.features.main.features.settings.domain.GetUserHealthProfileUseCaseImpl
+import dev.calorai.mobile.features.main.features.settings.domain.GetUserProfileUseCase
+import dev.calorai.mobile.features.main.features.settings.domain.GetUserProfileUseCaseImpl
 import dev.calorai.mobile.features.main.features.settings.domain.SettingsRepository
 import dev.calorai.mobile.features.main.features.settings.domain.UpdateUserHealthProfileUseCase
 import dev.calorai.mobile.features.main.features.settings.domain.UpdateUserHealthProfileUseCaseImpl
@@ -18,8 +18,8 @@ internal val settingsModule = module {
     factory<UpdateUserHealthProfileUseCase> {
         UpdateUserHealthProfileUseCaseImpl(get())
     }
-    factory<GetUserHealthProfileUseCase> {
-        GetUserHealthProfileUseCaseImpl(get())
+    factory<GetUserProfileUseCase> {
+        GetUserProfileUseCaseImpl(get())
     }
     viewModelOf(::SettingsViewModel)
 }

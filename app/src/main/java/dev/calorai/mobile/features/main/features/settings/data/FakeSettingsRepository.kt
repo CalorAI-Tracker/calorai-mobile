@@ -1,8 +1,8 @@
 package dev.calorai.mobile.features.main.features.settings.data
 
 import dev.calorai.mobile.features.main.features.settings.domain.SettingsRepository
-import dev.calorai.mobile.features.main.features.settings.domain.model.UpdateUserHealthProfilePayload
-import dev.calorai.mobile.features.main.features.settings.domain.model.UserHealthProfile
+import dev.calorai.mobile.features.main.features.settings.domain.model.UpdateUserProfilePayload
+import dev.calorai.mobile.features.main.features.settings.domain.model.UserProfile
 import kotlinx.coroutines.delay
 
 /**
@@ -11,21 +11,23 @@ import kotlinx.coroutines.delay
  */
 class FakeSettingsRepository : SettingsRepository {
 
-    private val storage = mutableMapOf<Long, UserHealthProfile>()
+    private val storage = mutableMapOf<Long, UserProfile>()
 
-    override suspend fun getUserHealthProfile(userId: Long): UserHealthProfile? {
+    override suspend fun getUserProfile(userId: Long): UserProfile? {
         delay(100)
         return storage[userId]
     }
 
-    override suspend fun updateUserHealthProfile(
+    override suspend fun updateUserProfile(
         userId: Long,
-        payload: UpdateUserHealthProfilePayload,
+        payload: UpdateUserProfilePayload,
     ) {
         delay(300)
-        storage[userId] = UserHealthProfile(
+        storage[userId] = UserProfile(
             userId = userId,
-            sex = payload.sex,
+            name = payload.name,
+            email = payload.email,
+            gender = payload.gender,
             height = payload.height,
             weight = payload.weight,
             birthDay = payload.birthDay,

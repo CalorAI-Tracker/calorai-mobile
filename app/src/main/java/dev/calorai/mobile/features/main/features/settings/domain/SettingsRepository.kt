@@ -1,12 +1,13 @@
 package dev.calorai.mobile.features.main.features.settings.domain
 
-import dev.calorai.mobile.features.main.features.settings.domain.model.UpdateUserHealthProfilePayload
-import dev.calorai.mobile.features.main.features.settings.domain.model.UserHealthProfile
+import dev.calorai.mobile.features.main.features.settings.domain.model.UpdateUserProfilePayload
+import dev.calorai.mobile.features.main.features.settings.domain.model.UserProfile
 
 interface SettingsRepository {
-    suspend fun getUserHealthProfile(userId: Long): UserHealthProfile?
-    suspend fun updateUserHealthProfile(
+
+    suspend fun getUserProfile(userId: Long): UserProfile?
+    suspend fun updateUserProfile(
         userId: Long,
-        payload: UpdateUserHealthProfilePayload,
+        payload: UpdateUserProfilePayload,
     )
 }

@@ -5,13 +5,13 @@ import androidx.core.os.ConfigurationCompat
 import dev.calorai.mobile.features.main.features.settings.domain.SettingsException
 import dev.calorai.mobile.features.main.features.settings.domain.model.Activity
 import dev.calorai.mobile.features.main.features.settings.domain.model.Goal
-import dev.calorai.mobile.features.main.features.settings.domain.model.Sex
-import dev.calorai.mobile.features.main.features.settings.domain.model.UpdateUserHealthProfilePayload
-import dev.calorai.mobile.features.main.features.settings.domain.model.UserHealthProfile
-import dev.calorai.mobile.features.main.features.settings.ui.UserSettingsUiState
+import dev.calorai.mobile.features.main.features.settings.domain.model.Gender
+import dev.calorai.mobile.features.main.features.settings.domain.model.UpdateUserProfilePayload
+import dev.calorai.mobile.features.main.features.settings.domain.model.UserProfile
 import dev.calorai.mobile.features.main.features.settings.ui.model.ActivityUi
 import dev.calorai.mobile.features.main.features.settings.ui.model.GoalUi
-import dev.calorai.mobile.features.main.features.settings.ui.model.SexUi
+import dev.calorai.mobile.features.main.features.settings.ui.model.GenderUi
+import dev.calorai.mobile.features.main.features.settings.ui.model.UserProfileUi
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.util.Locale
@@ -25,92 +25,93 @@ class SettingsMapper(
             return locales[0] ?: Locale.getDefault()
         }
 
-    private val displayDateFormatter: DateTimeFormatter
-        get() = DateTimeFormatter.ofPattern("dd MMMM yyyy", locale)
+    private val uiDateFormatter by lazy {
+        DateTimeFormatter.ofPattern("dd MMMM yyyy", locale)
+    }
 
-    private val backendDateFormatter = DateTimeFormatter.ofPattern("dd.MM.yyyy")
+    private val domainDateFormatter by lazy {
+        DateTimeFormatter.ofPattern("dd.MM.yyyy", locale)
+    }
 
-    fun mapToDomainPayload(uiState: UserSettingsUiState): UpdateUserHealthProfilePayload {
-        return UpdateUserHealthProfilePayload(
-            sex = uiState.gender.toSexCode(),
+    private fun mapBirthdayToUi(date: String): String {
+        val localDate = LocalDate.parse(date, domainDateFormatter)
+        return localDate.format(uiDateFormatter)
+    }
+
+    fun mapLocalDateToUi(localDate: LocalDate): String = localDate.format(uiDateFormatter)
+
+    fun mapBirthdayToDomain(date: String): String {
+        val localDate = LocalDate.parse(date, uiDateFormatter)
+        return localDate.format(domainDateFormatter)
+    }
+
+    fun mapToUi(user: UserProfile): UserProfileUi = UserProfileUi(
+        name = user.name,
+        email = user.email,
+        birthDate = mapBirthdayToUi(user.birthDay),
+        gender = mapToUi(user.gender),
+        height = user.height,
+        weight = user.weight,
+        activity = mapToUi(user.activityCode),
+        goal = mapToUi(user.healthGoalCode),
+    )
+
+    fun mapToDomainPayload(uiState: UserProfileUi): UpdateUserProfilePayload =
+        UpdateUserProfilePayload(
+            name = uiState.name.ifEmpty { throw SettingsException.EmptyField() },
+            email = uiState.email.ifEmpty { throw SettingsException.EmptyField() },
+            gender = mapToDomain(uiState.gender),
             height = uiState.height.extractNumberOrThrow(),
             weight = uiState.weight.extractNumberOrThrow(),
-            birthDay = uiState.birthDate.toBackendDate(),
-            activityCode = uiState.activity.toActivityCode(),
-            healthGoalCode = uiState.goal.toGoalCode(),
+            birthDay = mapBirthdayToDomain(
+                date = uiState.birthDate.ifEmpty { throw SettingsException.BirthDateParseError() },
+            ),
+            activityCode = mapToDomain(uiState.activity),
+            healthGoalCode = mapToDomain(uiState.goal),
             targetWeightKg = null,
             weeklyRateKg = null,
         )
+
+    private fun mapToUi(activity: Activity): ActivityUi = when (activity) {
+        Activity.LIGHT -> ActivityUi.LIGHT
+        Activity.MODERATE -> ActivityUi.MODERATE
+        Activity.ACTIVE -> ActivityUi.ACTIVE
+        Activity.VERY_ACTIVE -> ActivityUi.VERY_ACTIVE
     }
 
-    fun mapToUiState(profile: UserHealthProfile): UserSettingsUiState {
-        return UserSettingsUiState(
-            name = "",
-            email = "",
-            birthDate = profile.birthDay.fromBackendDate(),
-            gender = profile.sex.toSexUiString(),
-            height = profile.height.toString(),
-            weight = profile.weight.toString(),
-            activity = profile.activityCode.toActivityUiString(),
-            goal = profile.healthGoalCode.toGoalUiString(),
-        )
+    private fun mapToUi(gender: Gender): GenderUi = when (gender) {
+        Gender.FEMALE -> GenderUi.FEMALE
+        Gender.MALE -> GenderUi.MALE
     }
 
-    private fun String.toBackendDate(): String {
-        val localDate = LocalDate.parse(this, displayDateFormatter)
-        return localDate.format(backendDateFormatter)
+    private fun mapToUi(goal: Goal): GoalUi = when (goal) {
+        Goal.LOSE_WEIGHT -> GoalUi.LOSE_WEIGHT
+        Goal.KEEP_WEIGHT -> GoalUi.KEEP_WEIGHT
+        Goal.GAIN_WEIGHT -> GoalUi.GAIN_WEIGHT
     }
 
-    private fun String.extractNumberOrThrow(): Long {
-        val digits = this.takeWhile { it.isDigit() }
-        return digits.toLongOrNull()
-            ?: throw SettingsException.NumberParseError(this)
+    private fun mapToDomain(activity: ActivityUi?): Activity = when (activity) {
+        ActivityUi.LIGHT -> Activity.LIGHT
+        ActivityUi.MODERATE -> Activity.MODERATE
+        ActivityUi.ACTIVE -> Activity.ACTIVE
+        ActivityUi.VERY_ACTIVE -> Activity.VERY_ACTIVE
+        else -> throw SettingsException.UnknownActivity(activity.toString())
     }
 
-    private fun String.toSexCode(): String = SexUi.entries.firstOrNull { sex ->
-        context.getString(sex.labelResId) == this
-    }?.let { sexUi ->
-        Sex.entries.firstOrNull { it.name == sexUi.name }?.name
-    } ?: throw SettingsException.UnknownGender(this)
-
-    private fun String.toActivityCode(): String = ActivityUi.entries.firstOrNull { activity ->
-        context.getString(activity.labelResId) == this
-    }?.let { activityUi ->
-        Activity.entries.firstOrNull { it.name == activityUi.name }?.name
-    } ?: throw SettingsException.UnknownActivity(this)
-
-    private fun String.toGoalCode(): String = GoalUi.entries.firstOrNull { goal ->
-        context.getString(goal.labelResId) == this
-    }?.let { goalUi ->
-        Goal.entries.firstOrNull { it.name == goalUi.name }?.name
-    } ?: throw SettingsException.UnknownGoal(this)
-
-    private fun String.fromBackendDate(): String {
-        val localDate = LocalDate.parse(this, backendDateFormatter)
-        return localDate.format(displayDateFormatter)
+    private fun mapToDomain(sex: GenderUi?): Gender = when (sex) {
+        GenderUi.FEMALE -> Gender.FEMALE
+        GenderUi.MALE -> Gender.MALE
+        else -> throw SettingsException.UnknownGender(sex.toString())
     }
 
-    private fun String.toSexUiString(): String {
-        val sex = Sex.entries.firstOrNull { it.name == this }
-            ?: return ""
-        val sexUi = SexUi.entries.firstOrNull { it.name == sex.name }
-            ?: return ""
-        return context.getString(sexUi.labelResId)
+    private fun mapToDomain(goal: GoalUi?): Goal = when (goal) {
+        GoalUi.LOSE_WEIGHT -> Goal.LOSE_WEIGHT
+        GoalUi.KEEP_WEIGHT -> Goal.KEEP_WEIGHT
+        GoalUi.GAIN_WEIGHT -> Goal.GAIN_WEIGHT
+        else -> throw SettingsException.UnknownGoal(goal.toString())
     }
 
-    private fun String.toActivityUiString(): String {
-        val activity = Activity.entries.firstOrNull { it.name == this }
-            ?: return ""
-        val activityUi = ActivityUi.entries.firstOrNull { it.name == activity.name }
-            ?: return ""
-        return context.getString(activityUi.labelResId)
-    }
-
-    private fun String.toGoalUiString(): String {
-        val goal = Goal.entries.firstOrNull { it.name == this }
-            ?: return ""
-        val goalUi = GoalUi.entries.firstOrNull { it.name == goal.name }
-            ?: return ""
-        return context.getString(goalUi.labelResId)
+    private fun Int?.extractNumberOrThrow(): Int {
+        return this ?: throw SettingsException.NumberParseError()
     }
 }
