@@ -1,10 +1,7 @@
 package dev.calorai.mobile.features.meal.details.ui
 
-import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -21,22 +18,22 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import dev.calorai.mobile.R
+import dev.calorai.mobile.core.uikit.AddIngredientBottomPanel
 import dev.calorai.mobile.core.uikit.CalorAiTheme
 import dev.calorai.mobile.core.uikit.PrimaryButton
 import dev.calorai.mobile.core.uikit.commonGradientBackground
+import dev.calorai.mobile.core.uikit.mealCard.MealType
 import dev.calorai.mobile.core.uikit.pieChart.PieChart
 import dev.calorai.mobile.core.uikit.pieChart.PieChartStyle
 import dev.calorai.mobile.core.uikit.pieChart.PieChartUiModel
@@ -47,7 +44,6 @@ fun MealDetailsRoot(
     viewModel: MealDetailsViewModel = koinViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsState()
-
     MealDetailsScreen(
         uiState = uiState,
         onEvent = viewModel::onEvent
@@ -60,18 +56,32 @@ private fun MealDetailsScreen(
     uiState: MealDetailsUiState,
     onEvent: (MealDetailsUiEvent) -> Unit
 ) {
+    val system = WindowInsets.systemBars.asPaddingValues()
+
+    val title = when (uiState.mealType) {
+        MealType.BREAKFAST -> stringResource(R.string.details_meal_type_breakfast)
+        MealType.LUNCH -> stringResource(R.string.details_meal_type_lunch)
+        MealType.DINNER -> stringResource(R.string.details_meal_type_dinner)
+        MealType.SNACK -> stringResource(R.string.details_meal_type_snack)
+    }
+
     Column(
         modifier = Modifier
             .fillMaxSize()
             .commonGradientBackground()
-            .padding(16.dp),
+            .padding(
+                top = system.calculateTopPadding(),
+                bottom = system.calculateBottomPadding(),
+                start = 16.dp,
+                end = 16.dp,
+            ),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
 
         Spacer(modifier = Modifier.height(16.dp))
 
         Text(
-            text = uiState.title,
+            text = title,
             style = MaterialTheme.typography.headlineLarge,
             color = MaterialTheme.colorScheme.onPrimary,
             modifier = Modifier.align(Alignment.Start)
@@ -204,73 +214,13 @@ private fun IngredientItem(
     }
 }
 
-@Composable
-private fun AddIngredientBottomPanel(
-    onDismiss: () -> Unit,
-    onAddManualClick: () -> Unit,
-    onChooseReadyClick: () -> Unit
-) {
-    val system = WindowInsets.systemBars.asPaddingValues()
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .clickable { onDismiss() }
-    ) {
-        Row(
-            modifier = Modifier
-                .align(Alignment.BottomCenter)
-                .fillMaxWidth()
-                .shadow(16.dp, RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp))
-                .background(
-                    color = MaterialTheme.colorScheme.surface,
-                    shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp)
-                )
-                .padding(
-                    top = system.calculateTopPadding(),
-                    bottom = system.calculateBottomPadding(),
-                    start = 16.dp,
-                    end = 16.dp,
-                ),
-            horizontalArrangement = Arrangement.spacedBy(12.dp)
-        ) {
-            OutlinedButton(
-                onClick = onAddManualClick,
-                modifier = Modifier
-                    .weight(1f)
-                    .height(56.dp),
-                shape = RoundedCornerShape(28.dp),
-                border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary)
-            ) {
-                Text(
-                    text = stringResource(R.string.details_add_manual),
-                    style = MaterialTheme.typography.bodyMedium
-                )
-            }
-
-            OutlinedButton(
-                onClick = onChooseReadyClick,
-                modifier = Modifier
-                    .weight(1f)
-                    .height(56.dp),
-                shape = RoundedCornerShape(28.dp),
-                border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary)
-            ) {
-                Text(
-                    text = stringResource(R.string.details_choose_ready),
-                    style = MaterialTheme.typography.bodyMedium
-                )
-            }
-        }
-    }
-}
-
 @Preview(showBackground = true)
 @Composable
 private fun MealDetailsScreenPreview() {
     CalorAiTheme {
         MealDetailsScreen(
             uiState = MealDetailsUiState(
-                title = "Завтрак",
+                mealType = MealType.DINNER,
                 macros = listOf(
                     MacroUi("16 г", "Белок", listOf(70f, 30f)),
                     MacroUi("24 г", "Углеводы", listOf(85f, 15f)),

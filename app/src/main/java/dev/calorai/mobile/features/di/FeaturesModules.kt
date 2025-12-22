@@ -3,7 +3,8 @@ package dev.calorai.mobile.features.di
 import dev.calorai.mobile.features.auth.di.authModule
 import dev.calorai.mobile.features.signUp.di.signUpModule
 import dev.calorai.mobile.features.main.di.mainModule
-import dev.calorai.mobile.features.meal.di.mealModule
+import dev.calorai.mobile.features.meal.create.manual.di.createMealManualModule
+import dev.calorai.mobile.features.meal.details.di.mealDetailsModule
 import org.koin.dsl.module
 
 internal val featureModules = module {
@@ -12,6 +13,7 @@ internal val featureModules = module {
         authModule,
         signUpModule,
         mainModule,
-        mealModule,
+        createMealManualModule,
+        mealDetailsModule,
     )
 }

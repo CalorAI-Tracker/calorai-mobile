@@ -14,6 +14,9 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Button
+import androidx.compose.material3.Card
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -26,6 +29,8 @@ import androidx.compose.ui.input.pointer.positionChange
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dev.calorai.mobile.R
 import dev.calorai.mobile.core.uikit.CalorAiTheme
@@ -117,6 +122,81 @@ private fun HomeScreen(
                         Spacer(modifier = Modifier.height(6.dp))
                     }
                     item { Spacer(modifier = Modifier.height(30.dp)) }
+                }
+            }
+        }
+    }
+
+    if (state.showAddIngredientDialog) {
+        AddIngredientDialog(
+            onDismissRequest = { onEvent(HomeUiEvent.HideAddIngredientDialog) },
+            onAddManualClick = { onEvent(HomeUiEvent.AddManualClick) },
+            onChooseReadyClick = { onEvent(HomeUiEvent.ChooseReadyClick) }
+        )
+    }
+}
+
+@Composable
+private fun AddIngredientDialog(
+    onDismissRequest: () -> Unit,
+    onAddManualClick: () -> Unit,
+    onChooseReadyClick: () -> Unit,
+) {
+    Dialog(
+        onDismissRequest = onDismissRequest,
+        properties = DialogProperties(
+            dismissOnBackPress = true,
+            dismissOnClickOutside = true
+        )
+    ) {
+        Card(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            shape = RoundedCornerShape(16.dp),
+        ) {
+            Column(
+                modifier = Modifier.padding(16.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Text(
+                    text = stringResource(R.string.add_ingredient_dialog_title),
+                    style = MaterialTheme.typography.bodyLarge,
+                    modifier = Modifier.padding(bottom = 16.dp)
+                )
+
+                Button(
+                    onClick = {
+                        onAddManualClick()
+                        onDismissRequest()
+                    },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(56.dp)
+                        .padding(vertical = 4.dp),
+                    shape = RoundedCornerShape(12.dp)
+                ) {
+                    Text(
+                        text = stringResource(R.string.details_add_manual),
+                        style = MaterialTheme.typography.bodyMedium
+                    )
+                }
+
+                Button(
+                    onClick = {
+                        onChooseReadyClick()
+                        onDismissRequest()
+                    },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(56.dp)
+                        .padding(vertical = 4.dp),
+                    shape = RoundedCornerShape(12.dp)
+                ) {
+                    Text(
+                        text = stringResource(R.string.details_choose_ready),
+                        style = MaterialTheme.typography.bodyMedium
+                    )
                 }
             }
         }

@@ -2,21 +2,30 @@ package dev.calorai.mobile.features.meal.details.ui
 
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import androidx.navigation.toRoute
+import dev.calorai.mobile.core.navigation.Router
+import dev.calorai.mobile.features.meal.create.manual.navigateToCreateMealManualScreen
 import dev.calorai.mobile.features.meal.details.MealDetailsRoute
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
 
 class MealDetailsViewModel constructor(
     savedStateHandle: SavedStateHandle,
+    private val globalRouter: Router,
 ) : ViewModel() {
 
     private val mealRoute = savedStateHandle.toRoute<MealDetailsRoute>()
-    val mealId = mealRoute.mealId
 
-    private val _uiState = MutableStateFlow(MealDetailsUiState())
+    private val _uiState = MutableStateFlow(
+        MealDetailsUiState(
+            mealType = mealRoute.mealType
+        )
+    )
     val uiState = _uiState.asStateFlow()
+
 
     fun onEvent(event: MealDetailsUiEvent) {
         when (event) {
@@ -47,7 +56,13 @@ class MealDetailsViewModel constructor(
     }
 
     private fun addIngredientManual() {
-        // здесь будет навигация на экран ручного добавления
+        viewModelScope.launch {
+            globalRouter.emit {
+                // TODO: mealId - возможно нужно получить из какого-то источника, хз что с ним делать и как передавать
+                // Пока используем временное значение -1 или 0
+                navigateToCreateMealManualScreen(mealId = -1L)
+            }
+        }
         _uiState.update {
             it.copy(showAddIngredientSheet = false)
         }

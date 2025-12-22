@@ -11,7 +11,7 @@ import dev.calorai.mobile.core.navigation.setupWith
 import dev.calorai.mobile.features.auth.AuthRoute
 import dev.calorai.mobile.features.auth.authSection
 import dev.calorai.mobile.features.main.mainSection
-import dev.calorai.mobile.features.meal.create.createMealSection
+import dev.calorai.mobile.features.meal.create.manual.createMealSection
 import dev.calorai.mobile.features.meal.details.mealDetailsSection
 import dev.calorai.mobile.features.signUp.signUpSection
 import org.koin.compose.koinInject
