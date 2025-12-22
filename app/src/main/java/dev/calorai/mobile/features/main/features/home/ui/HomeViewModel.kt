@@ -180,11 +180,10 @@ class HomeViewModel constructor(
     }
 
     private fun handleAddManualClick() {
-        val mealId = selectedMealId
-        if (mealId != null) {
+        selectedMealId?.let {
             viewModelScope.launch {
                 globalRouter.emit {
-                    navigateToCreateMealManualScreen(mealId)
+                    navigateToCreateMealManualScreen(selectedMealId!!)
                 }
             }
         }
