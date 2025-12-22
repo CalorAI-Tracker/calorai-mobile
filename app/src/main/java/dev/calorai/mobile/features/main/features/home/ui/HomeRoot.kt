@@ -94,7 +94,7 @@ private fun HomeScreen(
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize(),
-            contentPadding = PaddingValues(horizontal = 12.dp, vertical = 24.dp),
+            contentPadding = PaddingValues(horizontal = 16.dp, vertical = 24.dp),
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
@@ -243,8 +243,8 @@ private fun MealsListItem(
         mealData = meal,
         modifier = Modifier
             .fillMaxWidth()
-            .height(80.dp)
-            .clickable { onEvent(HomeUiEvent.MealCardClick(meal)) },
+            .height(80.dp),
+        onCardClick = { onEvent(HomeUiEvent.MealCardClick(meal)) },
         onAddClick = { onEvent(HomeUiEvent.MealCardAddButtonClick(meal)) },
     )
 }

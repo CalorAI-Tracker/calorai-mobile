@@ -8,6 +8,7 @@ import dev.calorai.mobile.features.meal.details.di.mealDetailsModule
 import org.koin.dsl.module
 
 internal val featureModules = module {
+
     includes(
         authModule,
         signUpModule,
