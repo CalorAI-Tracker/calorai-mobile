@@ -1,8 +1,8 @@
 package dev.calorai.mobile.features.main.features.home.ui
 
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.awaitHorizontalDragOrCancellation
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -66,6 +66,23 @@ fun HomeRoot(
 @Composable
 private fun HomeScreen(
     state: HomeUiState,
+    data: HomeDataUiState,
+    onEvent: (HomeUiEvent) -> Unit = {},
+) {
+    when (state) {
+        HomeUiState.Loading -> Box(
+            modifier = Modifier.fillMaxSize(),
+        ) {
+            CircularProgressIndicator()
+        }
+
+        is HomeUiState.Ready -> HomeScreenReady(state, data, onEvent)
+    }
+}
+
+@Composable
+private fun HomeScreenReady(
+    state: HomeUiState.Ready,
     data: HomeDataUiState,
     onEvent: (HomeUiEvent) -> Unit = {},
 ) {
@@ -269,7 +286,7 @@ fun HomeScreenPreview() {
     }
     CalorAiTheme {
         HomeScreen(
-            state = HomeUiState(
+            state = HomeUiState.Ready(
                 weekBar = WeekBarUiModel(daysList = days, selectedDate = today),
                 userName = "Олег",
             ),

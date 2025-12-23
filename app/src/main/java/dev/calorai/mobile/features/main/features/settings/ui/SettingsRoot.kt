@@ -19,6 +19,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDialog
+import androidx.compose.material3.DatePickerState
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuAnchorType
@@ -33,6 +34,7 @@ import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -45,6 +47,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
@@ -53,17 +56,18 @@ import dev.calorai.mobile.R
 import dev.calorai.mobile.core.uikit.CalorAiTheme
 import dev.calorai.mobile.core.utils.ObserveAsEvents
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import dev.calorai.mobile.features.main.features.settings.ui.model.ActivityUi
+import dev.calorai.mobile.features.main.features.settings.ui.model.GenderUi
+import dev.calorai.mobile.features.main.features.settings.ui.model.GoalUi
+import dev.calorai.mobile.features.main.features.settings.ui.model.SavingErrorType
 import kotlinx.coroutines.launch
 import org.koin.androidx.compose.koinViewModel
-import java.time.Instant
-import java.time.ZoneId
-import java.time.format.DateTimeFormatter
 
 @Composable
 fun SettingsRoot(
     viewModel: SettingsViewModel = koinViewModel(),
 ) {
-    val viewState by viewModel.state.collectAsStateWithLifecycle()
+    val uiState by viewModel.state.collectAsStateWithLifecycle()
     val snackbarHostState = remember { SnackbarHostState() }
     val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
@@ -102,14 +106,19 @@ fun SettingsRoot(
                 SettingsUiAction.ShowSavingMessage -> {
                     snackbarHostState.showSnackbar(context.getString(R.string.settings_profile_saved))
                 }
+
+                SettingsUiAction.ShowNetworkError -> snackbarHostState.showSnackbar(
+                    context.getString(
+                        R.string.settings_load_error
+                    )
+                )
             }
         }
     }
 
     SettingsScreen(
-        formState = viewState.form,
-        isSaving = viewState.isSaving,
-        snackbarHostState = snackbarHostState,
+        state = uiState,
+        hostState = snackbarHostState,
         onEvent = viewModel::onEvent,
     )
 }
@@ -117,11 +126,11 @@ fun SettingsRoot(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun SettingsScreen(
-    formState: UserSettingsUiState,
-    isSaving: Boolean,
-    snackbarHostState: SnackbarHostState,
+    state: SettingsUiState,
+    hostState: SnackbarHostState,
     onEvent: (SettingsUiEvent) -> Unit,
 ) {
+    var isRefreshing by remember { mutableStateOf(false) }
     Scaffold(
         topBar = {
             TopAppBar(
@@ -132,32 +141,45 @@ private fun SettingsScreen(
                 title = { Text(text = stringResource(R.string.settings_title)) }
             )
         },
-        snackbarHost = { SnackbarHost(snackbarHostState) },
+        snackbarHost = {
+            SnackbarHost(
+                hostState = hostState,
+                modifier = Modifier.padding(bottom = 32.dp),
+            )
+        },
         containerColor = Color.Transparent,
     ) { paddingValues ->
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(top = paddingValues.calculateTopPadding())
+        PullToRefreshBox(
+            isRefreshing = isRefreshing,
+            onRefresh = { onEvent(SettingsUiEvent.OnRefresh) },
         ) {
-            SettingsContent(
-                state = formState,
-                onEvent = onEvent,
-                isSaving = isSaving,
-            )
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(top = paddingValues.calculateTopPadding())
+            ) {
+                SettingsContent(
+                    state = state,
+                    onEvent = onEvent,
+                    isSaving = state.isSaving,
+                )
+            }
         }
     }
 }
 
 @Composable
 private fun SettingsContent(
-    state: UserSettingsUiState,
+    state: SettingsUiState,
     onEvent: (SettingsUiEvent) -> Unit,
     isSaving: Boolean,
 ) {
     val scroll = rememberScrollState()
     var showDatePicker by remember { mutableStateOf(false) }
     val datePickerState = rememberDatePickerState()
+    val resources = LocalResources.current
+    var heightOptions by remember { mutableStateOf((140..210 step 5).toList()) }
+    var weightOptions by remember { mutableStateOf((40..140 step 5).toList()) }
 
     Column(
         modifier = Modifier
@@ -167,14 +189,14 @@ private fun SettingsContent(
         verticalArrangement = Arrangement.spacedBy(14.dp)
     ) {
         LabeledTextField(
-            value = state.name,
-            onValueChange = { onEvent(SettingsUiEvent.FormChange(state.copy(name = it))) },
+            value = state.user.name,
+            onValueChange = { onEvent(SettingsUiEvent.NameChange(it)) },
             label = stringResource(R.string.settings_name),
             modifier = Modifier.fillMaxWidth(),
         )
         LabeledTextField(
-            value = state.email,
-            onValueChange = { onEvent(SettingsUiEvent.FormChange(state.copy(email = it))) },
+            value = state.user.email,
+            onValueChange = { onEvent(SettingsUiEvent.EmailChange(it)) },
             label = stringResource(R.string.settings_email),
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
             modifier = Modifier.fillMaxWidth(),
@@ -184,7 +206,7 @@ private fun SettingsContent(
             modifier = Modifier.fillMaxWidth()
         ) {
             LabeledTextField(
-                value = state.birthDate,
+                value = state.user.birthDate,
                 label = stringResource(R.string.settings_birthday),
                 readOnly = true,
                 onClick = { showDatePicker = true },
@@ -193,12 +215,10 @@ private fun SettingsContent(
             SimpleDropdown(
                 label = stringResource(R.string.settings_sex),
                 placeholder = stringResource(R.string.settings_sex),
-                options = listOf(
-                    stringResource(R.string.settings_sex_women),
-                    stringResource(R.string.settings_sex_man)
-                ),
-                selected = state.gender,
-                onSelected = { onEvent(SettingsUiEvent.FormChange(state.copy(gender = it))) },
+                options = GenderUi.entries,
+                selected = state.user.gender,
+                mapToString = { resources.getString(it.labelResId) },
+                onSelected = { onEvent(SettingsUiEvent.GenderChange(it)) },
                 modifier = Modifier.weight(1f)
             )
         }
@@ -209,52 +229,43 @@ private fun SettingsContent(
             SimpleDropdown(
                 label = stringResource(R.string.settings_height),
                 placeholder = stringResource(R.string.settings_height_val),
-                options = (140..210 step 5).map {
-                    stringResource(R.string.settings_height_val_type, it)
-                },
-                selected = state.height,
-                onSelected = { onEvent(SettingsUiEvent.FormChange(state.copy(height = it))) },
+                options = heightOptions,
+                selected = state.user.height,
+                mapToString = { resources.getString(R.string.settings_height_val_type, it) },
+                onSelected = { onEvent(SettingsUiEvent.HeightChange(it)) },
                 modifier = Modifier.weight(1f)
             )
             SimpleDropdown(
                 label = stringResource(R.string.settings_weight),
                 placeholder = stringResource(R.string.settings_weight_val),
-                options = (40..140 step 5).map {
-                    stringResource(R.string.settings_weight_val_type, it)
-                },
-                selected = state.weight,
-                onSelected = { onEvent(SettingsUiEvent.FormChange(state.copy(weight = it))) },
+                options = weightOptions,
+                selected = state.user.weight,
+                mapToString = { resources.getString(R.string.settings_weight_val_type, it) },
+                onSelected = { onEvent(SettingsUiEvent.WeightChange(it)) },
                 modifier = Modifier.weight(1f)
             )
         }
         SimpleDropdown(
             label = stringResource(R.string.settings_activity),
             placeholder = stringResource(R.string.settings_activity),
-            options = listOf(
-                stringResource(R.string.settings_activity_2),
-                stringResource(R.string.settings_activity_4),
-                stringResource(R.string.settings_activity_6),
-                stringResource(R.string.settings_activity_7),
-            ),
-            selected = state.activity,
-            onSelected = { onEvent(SettingsUiEvent.FormChange(state.copy(activity = it))) }
+            options = ActivityUi.entries,
+            selected = state.user.activity,
+            mapToString = { resources.getString(it.labelResId) },
+            onSelected = { onEvent(SettingsUiEvent.ActivityChange(it)) }
         )
         SimpleDropdown(
             label = stringResource(R.string.settings_activity_goal),
             placeholder = stringResource(R.string.settings_activity_goal),
-            options = listOf(
-                stringResource(R.string.settings_goal_weight_loss),
-                stringResource(R.string.settings_goal_weight_stability),
-                stringResource(R.string.settings_goal_get_weight),
-            ),
-            selected = state.goal,
-            onSelected = { onEvent(SettingsUiEvent.FormChange(state.copy(goal = it))) }
+            options = GoalUi.entries,
+            selected = state.user.goal,
+            mapToString = { resources.getString(it.labelResId) },
+            onSelected = { onEvent(SettingsUiEvent.GoalChange(it)) }
         )
 
         Spacer(modifier = Modifier.height(8.dp))
 
         Button(
-            onClick = { onEvent(SettingsUiEvent.Save) },
+            onClick = { onEvent(SettingsUiEvent.SaveButtonClick) },
             modifier = Modifier
                 .fillMaxWidth()
                 .height(52.dp),
@@ -263,11 +274,13 @@ private fun SettingsContent(
             enabled = !isSaving,
         ) {
             Text(
-                text = if (isSaving) {
-                    stringResource(R.string.settings_saving)
-                } else {
-                    stringResource(R.string.settings_save_btn)
-                },
+                text = stringResource(
+                    if (state.isSaving) {
+                        R.string.settings_saving
+                    } else {
+                        R.string.settings_save_btn
+                    }
+                ),
                 color = MaterialTheme.colorScheme.surface
             )
         }
@@ -275,33 +288,38 @@ private fun SettingsContent(
         Spacer(modifier = Modifier.height(24.dp))
     }
     if (showDatePicker) {
-        DatePickerDialog(
-            onDismissRequest = { showDatePicker = false },
-            confirmButton = {
-                Button(
-                    onClick = {
-                        datePickerState.selectedDateMillis?.let {
-                            val instant = Instant.ofEpochMilli(it)
-                            val localDate = instant.atZone(ZoneId.systemDefault()).toLocalDate()
-                            onEvent(
-                                SettingsUiEvent.FormChange(
-                                    state.copy(
-                                        birthDate = localDate.format(
-                                            DateTimeFormatter.ofPattern(
-                                                "dd MMMM yyyy"
-                                            )
-                                        )
-                                    )
-                                )
+        BirthDayPicker(
+            setShowState = { showDatePicker = it },
+            datePickerState = datePickerState,
+            onEvent = onEvent,
+        )
+    }
+}
+
+@Composable
+private fun BirthDayPicker(
+    setShowState: (Boolean) -> Unit,
+    datePickerState: DatePickerState,
+    onEvent: (SettingsUiEvent) -> Unit,
+) {
+    DatePickerDialog(
+        onDismissRequest = { setShowState(false) },
+        confirmButton = {
+            Button(
+                onClick = {
+                    datePickerState.selectedDateMillis?.let {
+                        onEvent(
+                            SettingsUiEvent.BirthDateChange(
+                                it
                             )
-                        }
-                        showDatePicker = false
+                        )
                     }
-                ) { Text(stringResource(R.string.settings_date_picker_apply)) }
-            }
-        ) {
-            DatePicker(state = datePickerState)
+                    setShowState(false)
+                }
+            ) { Text(stringResource(R.string.settings_date_picker_apply)) }
         }
+    ) {
+        DatePicker(state = datePickerState)
     }
 }
 
@@ -353,15 +371,18 @@ private fun LabeledTextField(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun SimpleDropdown(
+private fun <T> SimpleDropdown(
     label: String,
     placeholder: String,
-    options: List<String>,
-    selected: String,
-    onSelected: (String) -> Unit,
+    options: List<T>,
+    selected: T?,
+    mapToString: (T) -> String,
+    onSelected: (T) -> Unit,
     modifier: Modifier = Modifier
 ) {
     var expanded by remember { mutableStateOf(false) }
+    var stringOptions by remember { mutableStateOf(options.map { it to mapToString(it) }) }
+
     ExposedDropdownMenuBox(
         expanded = expanded,
         onExpandedChange = { expanded = !expanded },
@@ -371,7 +392,7 @@ private fun SimpleDropdown(
             Text(text = label)
             Spacer(modifier = Modifier.height(8.dp))
             TextField(
-                value = selected,
+                value = selected?.let { mapToString(it) } ?: "",
                 onValueChange = { /* readOnly */ },
                 readOnly = true,
                 placeholder = { Text(placeholder) },
@@ -398,11 +419,11 @@ private fun SimpleDropdown(
             expanded = expanded,
             onDismissRequest = { expanded = false }
         ) {
-            options.forEach { opt ->
+            stringOptions.forEach { (option, stringOpt) ->
                 DropdownMenuItem(
-                    text = { Text(opt) },
+                    text = { Text(stringOpt) },
                     onClick = {
-                        onSelected(opt)
+                        onSelected(option)
                         expanded = false
                     }
                 )
@@ -416,9 +437,8 @@ private fun SimpleDropdown(
 private fun SettingScreenPreview() {
     CalorAiTheme {
         SettingsScreen(
-            formState = UserSettingsUiState(),
-            isSaving = false,
-            snackbarHostState = remember { SnackbarHostState() },
+            state = SettingsUiState(),
+            hostState = remember { SnackbarHostState() },
             onEvent = {}
         )
     }

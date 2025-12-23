@@ -26,7 +26,7 @@ internal val homeModule = module {
         CheckIsFirstDayOfWeekUseCaseImpl(androidContext())
     }
     factory<GetCurrentUserNameUseCase> {
-        GetCurrentUserNameUseCaseImpl()
+        GetCurrentUserNameUseCaseImpl(userDao = get())
     }
     factory<GetMealsForDayUseCase> {
         GetMealsForDayUseCaseImpl()

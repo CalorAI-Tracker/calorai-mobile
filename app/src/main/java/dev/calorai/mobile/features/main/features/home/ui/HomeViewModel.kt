@@ -15,6 +15,7 @@ import dev.calorai.mobile.features.meal.details.navigateToMealDetailsScreen
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -29,19 +30,30 @@ class HomeViewModel constructor(
     private val globalRouter: Router,
 ) : ViewModel() {
 
-    private val _state: MutableStateFlow<HomeUiState> = MutableStateFlow(
-        HomeUiState(
-            weekBar = LocalDate.now().let { today ->
-                WeekBarUiModel(
-                    daysList = getWeekByDateUseCase.invoke(today),
-                    selectedDate = today,
-                )
-            },
-            userName = getCurrentUserNameUseCase.invoke(),
+    private val _weekBarState = MutableStateFlow(LocalDate.now().let { today ->
+        WeekBarUiModel(
+            daysList = getWeekByDateUseCase.invoke(today),
+            selectedDate = today,
         )
-    )
+    })
+    private val showAddIngredientDialogState = MutableStateFlow(false)
 
-    val state: StateFlow<HomeUiState> = _state
+    val state: StateFlow<HomeUiState> =
+        combine(
+            _weekBarState,
+            showAddIngredientDialogState,
+            getCurrentUserNameUseCase.invoke()
+        ) { week, showAddIngredientDialog, name ->
+            HomeUiState.Ready(
+                weekBar = week,
+                userName = name,
+                showAddIngredientDialog = showAddIngredientDialog,
+            )
+        }.stateIn(
+            viewModelScope,
+            SharingStarted.WhileSubscribed(500L),
+            HomeUiState.Loading,
+        )
 
     private val _dataState: MutableStateFlow<HomeDataUiState> =
         MutableStateFlow(HomeDataUiState.Loading)
@@ -73,11 +85,7 @@ class HomeViewModel constructor(
 
     private fun handleSelectDate(selectedDate: LocalDate) {
         viewModelScope.launch {
-            _state.update { previousState ->
-                previousState.copy(
-                    weekBar = previousState.weekBar.copy(selectedDate = selectedDate)
-                )
-            }
+            _weekBarState.update { it.copy(selectedDate = selectedDate) }
         }
         viewModelScope.launch {
             _dataState.update { HomeDataUiState.Loading }
@@ -85,25 +93,23 @@ class HomeViewModel constructor(
             val pieChartsData = getPieChartsDataForDayUseCase.invoke(selectedDate)
             _dataState.update {
                 HomeDataUiState.HomeData(
-                mealsData = meals,
-                pieChartsData = pieChartsData
+                    mealsData = meals,
+                    pieChartsData = pieChartsData
                 )
             }
         }
     }
 
     private fun selectNextDate() {
-        val currentDate = _state.value.weekBar.selectedDate
+        val currentDate = _weekBarState.value.selectedDate
         if (currentDate == LocalDate.now()) return
         val nextDate = currentDate.plusDays(1)
         if (checkIsFirstDayOfWeekUseCase(nextDate)) {
             viewModelScope.launch {
-                _state.update { previousState ->
-                    previousState.copy(
-                        weekBar = WeekBarUiModel(
-                            daysList = getWeekByDateUseCase.invoke(nextDate),
-                            selectedDate = nextDate,
-                        )
+                _weekBarState.update {
+                    WeekBarUiModel(
+                        daysList = getWeekByDateUseCase.invoke(nextDate),
+                        selectedDate = nextDate,
                     )
                 }
             }
@@ -124,16 +130,14 @@ class HomeViewModel constructor(
     }
 
     private fun selectPreviousDate() {
-        val currentDate = _state.value.weekBar.selectedDate
+        val currentDate = _weekBarState.value.selectedDate
         val previousDate = currentDate.minusDays(1)
         if (checkIsFirstDayOfWeekUseCase(currentDate)) {
             viewModelScope.launch {
-                _state.update { previousState ->
-                    previousState.copy(
-                        weekBar = WeekBarUiModel(
-                            daysList = getWeekByDateUseCase.invoke(previousDate),
-                            selectedDate = previousDate,
-                        )
+                _weekBarState.update {
+                    WeekBarUiModel(
+                        daysList = getWeekByDateUseCase.invoke(previousDate),
+                        selectedDate = previousDate,
                     )
                 }
             }
@@ -162,20 +166,12 @@ class HomeViewModel constructor(
     }
 
     private fun handleMealCardAddButtonClick(mealId: Long) {
-        _state.update {
-            it.copy(
-                showAddIngredientDialog = true,
-            )
-        }
+        showAddIngredientDialogState.update { true }
         selectedMealId = mealId
     }
 
     private fun handleHideAddIngredientDialog() {
-        _state.update {
-            it.copy(
-                showAddIngredientDialog = false,
-            )
-        }
+        showAddIngredientDialogState.update { false }
         selectedMealId = null
     }
 

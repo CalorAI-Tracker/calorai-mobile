@@ -5,7 +5,6 @@ import androidx.core.os.ConfigurationCompat
 import dev.calorai.mobile.core.uikit.weekBar.DateUiModel
 import dev.calorai.mobile.core.uikit.weekBar.shortDayName
 import dev.calorai.mobile.core.uikit.weekBar.toTimePeriod
-import java.time.Clock
 import java.time.LocalDate
 import java.time.temporal.TemporalAdjusters
 import java.time.temporal.WeekFields
