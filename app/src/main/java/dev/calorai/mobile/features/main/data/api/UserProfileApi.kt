@@ -14,12 +14,12 @@ import retrofit2.http.Path
 interface UserProfileApi {
     @GET("user-profile/user/{userId}")
     suspend fun getUserProfile(
-        @Path("userId") userId: Int,
+        @Path("userId") userId: Long,
     ): Response<GetUserProfileResponse>
 
     @PUT("user-profile/user/{userId}")
     suspend fun updateUserProfile(
-        @Path("userId") userId: Int,
+        @Path("userId") userId: Long,
         @Body body: UpdateUserProfileRequest,
     ): Response<UpdateUserProfileResponse>
 

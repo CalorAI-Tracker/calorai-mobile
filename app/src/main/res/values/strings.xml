@@ -76,6 +76,7 @@
     <string name="add_ingredient_dialog_message">Выберите способ добавления ингредиента</string>
 
     <string name="settings_saving">Сохранение...</string>
+    <string name="settings_load_error">Не удалось загрузить профиль</string>
     <string name="settings_profile_saved">Профиль сохранён</string>
     <string name="settings_save_error">Не удалось сохранить профиль</string>
     <string name="settings_unknown_activity">Неизвестная активность: %s</string>

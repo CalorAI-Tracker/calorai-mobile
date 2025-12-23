@@ -34,6 +34,7 @@ import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -105,6 +106,12 @@ fun SettingsRoot(
                 SettingsUiAction.ShowSavingMessage -> {
                     snackbarHostState.showSnackbar(context.getString(R.string.settings_profile_saved))
                 }
+
+                SettingsUiAction.ShowNetworkError -> snackbarHostState.showSnackbar(
+                    context.getString(
+                        R.string.settings_load_error
+                    )
+                )
             }
         }
     }
@@ -123,6 +130,7 @@ private fun SettingsScreen(
     hostState: SnackbarHostState,
     onEvent: (SettingsUiEvent) -> Unit,
 ) {
+    var isRefreshing by remember { mutableStateOf(false) }
     Scaffold(
         topBar = {
             TopAppBar(
@@ -141,16 +149,21 @@ private fun SettingsScreen(
         },
         containerColor = Color.Transparent,
     ) { paddingValues ->
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(top = paddingValues.calculateTopPadding())
+        PullToRefreshBox(
+            isRefreshing = isRefreshing,
+            onRefresh = { onEvent(SettingsUiEvent.OnRefresh) },
         ) {
-            SettingsContent(
-                state = state,
-                onEvent = onEvent,
-                isSaving = state.isSaving,
-            )
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(top = paddingValues.calculateTopPadding())
+            ) {
+                SettingsContent(
+                    state = state,
+                    onEvent = onEvent,
+                    isSaving = state.isSaving,
+                )
+            }
         }
     }
 }

@@ -48,6 +48,7 @@ class SettingsViewModel(
             is SettingsUiEvent.HeightChange -> launchUpdateUser { copy(height = event.value) }
             is SettingsUiEvent.NameChange -> launchUpdateUser { copy(name = event.value) }
             is SettingsUiEvent.WeightChange -> launchUpdateUser { copy(weight = event.value) }
+            is SettingsUiEvent.OnRefresh -> loadUserProfile()
         }
     }
 
@@ -61,8 +62,12 @@ class SettingsViewModel(
 
     private fun loadUserProfile() {
         viewModelScope.launch {
-            getUserHealthProfileUseCase(DEFAULT_USER_ID)?.let { user ->
-                _state.update { it.copy(user = mapper.mapToUi(user)) }
+            runCatching {
+                getUserHealthProfileUseCase(DEFAULT_USER_ID)?.let { user ->
+                    _state.update { it.copy(user = mapper.mapToUi(user)) }
+                }
+            }.onFailure {
+                _uiActions.emit(SettingsUiAction.ShowNetworkError)
             }
         }
     }

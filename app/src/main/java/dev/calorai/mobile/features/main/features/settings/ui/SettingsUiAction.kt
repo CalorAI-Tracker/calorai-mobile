@@ -4,6 +4,8 @@ import dev.calorai.mobile.features.main.features.settings.ui.model.SavingErrorTy
 
 sealed interface SettingsUiAction {
 
+    data object ShowNetworkError : SettingsUiAction
+
     data class ShowErrorMessage(
         val errorType: SavingErrorType,
         val value: String? = null,

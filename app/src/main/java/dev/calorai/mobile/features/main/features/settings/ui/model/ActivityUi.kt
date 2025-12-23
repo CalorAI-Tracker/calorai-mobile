@@ -7,5 +7,5 @@ enum class ActivityUi(@StringRes val labelResId: Int) {
     LIGHT(R.string.settings_activity_2),
     MODERATE(R.string.settings_activity_4),
     ACTIVE(R.string.settings_activity_6),
-    VERY_ACTIVE(R.string.settings_activity_7),
+//    VERY_ACTIVE(R.string.settings_activity_7),
 }

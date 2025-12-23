@@ -15,4 +15,5 @@ sealed interface SettingsUiEvent {
     data class GoalChange(val value: GoalUi) : SettingsUiEvent
 
     data object SaveButtonClick : SettingsUiEvent
+    data object OnRefresh : SettingsUiEvent
 }

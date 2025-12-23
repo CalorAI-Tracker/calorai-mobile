@@ -4,5 +4,4 @@ enum class Activity {
     LIGHT,
     MODERATE,
     ACTIVE,
-    VERY_ACTIVE,
 }

@@ -1,5 +1,8 @@
 package dev.calorai.mobile.features.main.data.dto.userProfile.updateUser
 
+import dev.calorai.mobile.features.main.data.dto.userProfile.enums.ActivityCode
+import dev.calorai.mobile.features.main.data.dto.userProfile.enums.HealthGoalCode
+import dev.calorai.mobile.features.main.data.dto.userProfile.enums.Sex
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
@@ -13,7 +16,7 @@ data class UpdateUserProfileRequest(
     val name: String,
 
     @SerialName("sex")
-    val sex: String,
+    val sex: Sex,
 
     @SerialName("height")
     val height: Int,
@@ -25,8 +28,8 @@ data class UpdateUserProfileRequest(
     val birthDay: String,
 
     @SerialName("activityCode")
-    val activityCode: String,
+    val activityCode: ActivityCode,
 
     @SerialName("healthGoalCode")
-    val healthGoalCode: String,
+    val healthGoalCode: HealthGoalCode,
 )

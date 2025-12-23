@@ -10,7 +10,7 @@ import kotlinx.serialization.Serializable
 data class GetUserProfileResponse(
 
     @SerialName("userId")
-    val userId: Int,
+    val userId: Long,
 
     @SerialName("name")
     val name: String,
