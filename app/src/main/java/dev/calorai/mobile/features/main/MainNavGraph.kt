@@ -7,11 +7,11 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.rememberNavController
 import dev.calorai.mobile.core.navigation.RouterController
 import dev.calorai.mobile.core.navigation.setupWith
-import dev.calorai.mobile.features.main.features.home.HomeRoute
-import dev.calorai.mobile.features.main.features.home.homeSection
-import dev.calorai.mobile.features.main.features.plan.planSection
-import dev.calorai.mobile.features.main.features.progress.progressSection
-import dev.calorai.mobile.features.main.features.settings.settingsSection
+import dev.calorai.mobile.features.home.HomeRoute
+import dev.calorai.mobile.features.home.homeSection
+import dev.calorai.mobile.features.plan.planSection
+import dev.calorai.mobile.features.progress.progressSection
+import dev.calorai.mobile.features.profile.profileSection
 import org.koin.compose.koinInject
 import org.koin.core.qualifier.qualifier
 
@@ -30,6 +30,6 @@ internal fun MainNavGraph(
         homeSection()
         planSection()
         progressSection()
-        settingsSection()
+        profileSection()
     }
 }

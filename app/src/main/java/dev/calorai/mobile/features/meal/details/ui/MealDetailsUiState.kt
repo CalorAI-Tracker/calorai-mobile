@@ -1,7 +1,9 @@
 package dev.calorai.mobile.features.meal.details.ui
 
+import dev.calorai.mobile.core.uikit.mealCard.MealType
+
 data class MealDetailsUiState(
-    val title: String = "",
+    val mealType: MealType = MealType.BREAKFAST,
     val macros: List<MacroUi> = emptyList(),
     val ingredients: List<IngredientUi> = emptyList(),
     val showAddIngredientSheet: Boolean = false

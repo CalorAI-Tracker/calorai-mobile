@@ -1,0 +1,14 @@
+package dev.calorai.mobile.features.profile.domain.model
+
+data class UpdateUserProfilePayload(
+    val name: String,
+    val email: String,
+    val gender: Gender,
+    val height: Int,
+    val weight: Int,
+    val birthDay: String,
+    val activityCode: Activity,
+    val healthGoalCode: Goal,
+    val targetWeightKg: Int? = null,
+    val weeklyRateKg: Int? = null,
+)
