@@ -18,7 +18,7 @@ interface UserDao {
     suspend fun getUser(): UserEntity?
 
     @Query("SELECT user_id FROM ${UserEntity.TABLE} LIMIT 1")
-    suspend fun getUserId(): Int?
+    suspend fun getUserId(): Long?
 
     @Query("SELECT * FROM ${UserEntity.TABLE} LIMIT 1")
     fun observeUser(): Flow<UserEntity>
