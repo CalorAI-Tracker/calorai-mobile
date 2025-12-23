@@ -8,12 +8,13 @@ import androidx.navigation.compose.rememberNavController
 import dev.calorai.mobile.core.navigation.GlobalRouterContext
 import dev.calorai.mobile.core.navigation.RouterController
 import dev.calorai.mobile.core.navigation.setupWith
-import dev.calorai.mobile.features.auth.AuthRoute
-import dev.calorai.mobile.features.auth.authSection
+import dev.calorai.mobile.features.auth.login.loginSection
+import dev.calorai.mobile.features.auth.signUp.signUpSection
 import dev.calorai.mobile.features.main.mainSection
 import dev.calorai.mobile.features.meal.create.manual.createMealSection
 import dev.calorai.mobile.features.meal.details.mealDetailsSection
-import dev.calorai.mobile.features.signUp.signUpSection
+import dev.calorai.mobile.features.splash.SplashRoute
+import dev.calorai.mobile.features.splash.splashSection
 import org.koin.compose.koinInject
 import org.koin.core.qualifier.qualifier
 
@@ -26,10 +27,11 @@ fun CalorAiNavGraph(
     globalRouterController.setupWith(navController, GlobalRouterContext)
     NavHost(
         navController = navController,
-        startDestination = AuthRoute,
+        startDestination = SplashRoute,
         modifier = modifier,
     ) {
-        authSection()
+        splashSection()
+        loginSection()
         signUpSection()
         mainSection()
         createMealSection()

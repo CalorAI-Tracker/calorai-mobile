@@ -8,11 +8,10 @@ import dev.calorai.mobile.core.navigation.Router
 import dev.calorai.mobile.core.uikit.bottomNavBar.BottomNavItem
 import dev.calorai.mobile.core.uikit.bottomNavBar.BottomNavItem.Companion.ITEMS
 import dev.calorai.mobile.core.uikit.mealCard.MealType
-import dev.calorai.mobile.features.main.features.home.navigateToHomeScreen
-import dev.calorai.mobile.features.main.features.plan.navigateToPlanScreen
-import dev.calorai.mobile.features.main.features.progress.navigateToProgressScreen
-import dev.calorai.mobile.features.main.features.settings.navigateToSettingsScreen
-import dev.calorai.mobile.features.meal.create.manual.navigateToCreateMealManualScreen
+import dev.calorai.mobile.features.home.navigateToHomeScreen
+import dev.calorai.mobile.features.plan.navigateToPlanScreen
+import dev.calorai.mobile.features.progress.navigateToProgressScreen
+import dev.calorai.mobile.features.profile.navigateToProfileScreen
 import dev.calorai.mobile.features.meal.details.navigateToMealDetailsScreen
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -67,7 +66,7 @@ class MainViewModel constructor(
                     BottomNavItem.Home -> navigateToHomeScreen(options)
                     BottomNavItem.Plan -> navigateToPlanScreen(options)
                     BottomNavItem.Progress -> navigateToProgressScreen(options)
-                    BottomNavItem.Settings -> navigateToSettingsScreen(options)
+                    BottomNavItem.Profile -> navigateToProfileScreen(options)
                 }
             }
         }
