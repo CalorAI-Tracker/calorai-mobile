@@ -3,10 +3,10 @@ package dev.calorai.mobile.core.uikit.bottomNavBar
 import androidx.annotation.DrawableRes
 import androidx.annotation.StringRes
 import dev.calorai.mobile.R
-import dev.calorai.mobile.features.main.features.home.HomeRoute
-import dev.calorai.mobile.features.main.features.plan.PlanRoute
-import dev.calorai.mobile.features.main.features.progress.ProgressRoute
-import dev.calorai.mobile.features.main.features.settings.SettingsRoute
+import dev.calorai.mobile.features.home.HomeRoute
+import dev.calorai.mobile.features.plan.PlanRoute
+import dev.calorai.mobile.features.progress.ProgressRoute
+import dev.calorai.mobile.features.profile.ProfileRoute
 import kotlin.reflect.KClass
 
 sealed class BottomNavItem(
@@ -33,10 +33,10 @@ sealed class BottomNavItem(
         route = ProgressRoute::class,
     )
 
-    data object Settings : BottomNavItem(
-        labelId = R.string.navbar_label_settings,
+    data object Profile : BottomNavItem(
+        labelId = R.string.navbar_label_profile,
         iconId = R.drawable.settings_button,
-        route = SettingsRoute::class,
+        route = ProfileRoute::class,
     )
 
     companion object {
@@ -44,7 +44,7 @@ sealed class BottomNavItem(
             Home,
             Plan,
             Progress,
-            Settings,
+            Profile,
         )
     }
 }

@@ -138,7 +138,7 @@ private fun BottomNavButtons(
             horizontalArrangement = Arrangement.SpaceEvenly,
             modifier = Modifier.weight(1f),
         ) {
-            listOf(BottomNavItem.Progress, BottomNavItem.Settings).forEach { item ->
+            listOf(BottomNavItem.Progress, BottomNavItem.Profile).forEach { item ->
                 BottomNavItem(
                     item = item,
                     isSelected = selectedItem == item,
