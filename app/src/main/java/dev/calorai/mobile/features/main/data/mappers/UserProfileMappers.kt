@@ -1,12 +1,11 @@
 package dev.calorai.mobile.features.main.data.mappers
 
 import dev.calorai.mobile.features.main.data.dto.userProfile.createUser.CreateUserProfileRequest
-import dev.calorai.mobile.features.main.data.dto.userProfile.enums.ActivityCode
-import dev.calorai.mobile.features.main.data.dto.userProfile.enums.HealthGoalCode
-import dev.calorai.mobile.features.main.data.dto.userProfile.enums.Sex
 import dev.calorai.mobile.features.main.data.dto.userProfile.getUser.GetUserProfileResponse
 import dev.calorai.mobile.features.main.data.dto.userProfile.updateUser.UpdateUserProfileResponse
 import dev.calorai.mobile.features.main.data.entity.UserEntity
+import dev.calorai.mobile.features.main.domain.model.User
+import java.time.LocalDate
 
 fun GetUserProfileResponse.toEntity(): UserEntity =
     UserEntity(
@@ -44,15 +43,14 @@ fun CreateUserProfileRequest.toEntity(): UserEntity =
         healthGoalCode = this.healthGoalCode.name
     )
 
-fun UserEntity.toGetUserProfileResponse(): GetUserProfileResponse =
-    GetUserProfileResponse(
+fun UserEntity.toDomain(): User =
+    User(
         userId = this.userId,
         name = this.name,
-        email = "",
-        sex = Sex.valueOf(sex),
+        sex = this.sex,
         height = this.height,
         weight = this.weight,
-        birthDay = this.birthDay,
-        activityCode = ActivityCode.valueOf(activityCode),
-        healthGoalCode = HealthGoalCode.valueOf(healthGoalCode),
+        birthDay = LocalDate.parse(this.birthDay),
+        activityCode = this.activityCode,
+        healthGoalCode = this.healthGoalCode,
     )

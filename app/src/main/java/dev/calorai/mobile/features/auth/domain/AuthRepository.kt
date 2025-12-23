@@ -2,25 +2,22 @@ package dev.calorai.mobile.features.auth.domain
 
 import dev.calorai.mobile.features.auth.data.api.AuthApi
 import dev.calorai.mobile.features.auth.data.dto.login.LoginRequest
-import dev.calorai.mobile.features.auth.data.dto.login.LoginResponse
 import dev.calorai.mobile.features.auth.data.dto.logout.LogoutRequest
 import dev.calorai.mobile.features.auth.data.dto.refresh.RefreshRequest
-import dev.calorai.mobile.features.auth.data.dto.refresh.RefreshResponse
 import dev.calorai.mobile.features.auth.data.dto.signup.SignupRequest
-import dev.calorai.mobile.features.auth.data.dto.signup.SignupResponse
 import dev.calorai.mobile.features.auth.data.token.TokenStorage
 import dev.calorai.mobile.features.main.data.dao.UserDao
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import retrofit2.Response
+import retrofit2.HttpException
 
 interface AuthRepository {
 
-    suspend fun signUp(request: SignupRequest): Response<SignupResponse>
-    suspend fun login(request: LoginRequest): Response<LoginResponse>
-    suspend fun refreshToken(request: RefreshRequest): Response<RefreshResponse>
-    suspend fun logout(): Response<Unit>
+    suspend fun signUp(request: SignupRequest): Int
+    suspend fun login(request: LoginRequest)
+    suspend fun refreshToken(request: RefreshRequest)
+    suspend fun logout()
 }
 
 class AuthRepositoryImpl(
@@ -30,42 +27,47 @@ class AuthRepositoryImpl(
     private val dispatcher: CoroutineDispatcher = Dispatchers.IO,
 ) : AuthRepository {
 
-    override suspend fun signUp(request: SignupRequest): Response<SignupResponse> =
+    override suspend fun signUp(request: SignupRequest): Int =
         withContext(dispatcher) {
-            api.signUp(request)
+            val response = api.signUp(request)
+            if (!response.isSuccessful) {
+                throw HttpException(response)
+            }
+            response.body()?.id
+                ?: throw IllegalStateException("SignUp response body is null")
         }
 
-    override suspend fun login(request: LoginRequest): Response<LoginResponse> =
+    override suspend fun login(request: LoginRequest) =
         withContext(dispatcher) {
             val response = api.login(request)
-            if (response.isSuccessful) {
-                val body = response.body()
-                    ?: throw IllegalStateException("Login response is successful but body is null")
-                tokenStorage.setTokens(body.accessToken, body.refreshToken)
+            if (!response.isSuccessful) {
+                throw HttpException(response)
             }
-            response
+            val body = response.body()
+                ?: throw IllegalStateException("Login response is successful but body is null")
+            tokenStorage.setTokens(body.accessToken, body.refreshToken)
         }
 
-    override suspend fun refreshToken(request: RefreshRequest): Response<RefreshResponse> =
+    override suspend fun refreshToken(request: RefreshRequest) =
         withContext(dispatcher) {
             val response = api.refresh(request)
-            if (response.isSuccessful) {
-                val body = response.body()
-                    ?: throw IllegalStateException("Refresh response is successful but body is null")
-                tokenStorage.setTokens(body.accessToken, body.refreshToken)
+            if (!response.isSuccessful) {
+                throw HttpException(response)
             }
-            response
+            val body = response.body()
+                ?: throw IllegalStateException("Refresh response is successful but body is null")
+            tokenStorage.setTokens(body.accessToken, body.refreshToken)
         }
 
-    override suspend fun logout(): Response<Unit> =
+    override suspend fun logout() =
         withContext(dispatcher) {
             val refresh = tokenStorage.getRefreshToken()
                 ?: throw IllegalStateException("No refresh token available for logout")
             val response = api.logout(LogoutRequest(refresh))
-            if (response.isSuccessful) {
-                tokenStorage.clearTokens()
-                userDao.clear()
+            if (!response.isSuccessful) {
+                throw HttpException(response)
             }
-            response
+            tokenStorage.clearTokens()
+            userDao.clear()
         }
 }
