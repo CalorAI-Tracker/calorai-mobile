@@ -27,7 +27,6 @@ class MealMapper {
 
     fun mapToEntity(dto: MealDto, date: String): DailyMealsEntity =
         DailyMealsEntity(
-            id = 0L,
             date = date,
             meal = dto.meal,
             kcal = dto.kcal,
@@ -40,7 +39,6 @@ class MealMapper {
     fun mapToEntity(dailyMeals: List<DailyMeal>): List<DailyMealsEntity> {
         return dailyMeals.map { dailyMeal ->
             DailyMealsEntity(
-                id = 0L,
                 date = dailyMeal.date.toString(),
                 meal = dailyMeal.meal,
                 kcal = dailyMeal.kcal,
