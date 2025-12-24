@@ -8,6 +8,7 @@ import dev.calorai.mobile.features.auth.domain.AuthRepository
 import dev.calorai.mobile.features.auth.domain.model.LoginPayload
 import dev.calorai.mobile.features.auth.domain.model.SignupPayload
 import dev.calorai.mobile.features.profile.data.dao.UserDao
+import dev.calorai.mobile.features.profile.domain.model.UserId
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -21,17 +22,18 @@ class AuthRepositoryImpl(
     private val dispatcher: CoroutineDispatcher = Dispatchers.IO,
 ) : AuthRepository {
 
-    override suspend fun signUp(payload: SignupPayload): Int =
+    override suspend fun signUp(payload: SignupPayload): UserId =
         withContext(dispatcher) {
             val response = api.signUp(mapper.mapToRequest(payload))
             if (!response.isSuccessful) {
                 throw HttpException(response)
             }
-            response.body()?.id
+            val id = response.body()?.id
                 ?: throw IllegalStateException("SignUp response body is null")
+            UserId(id)
         }
 
-    override suspend fun login(payload: LoginPayload) =
+    override suspend fun login(payload: LoginPayload): UserId =
         withContext(dispatcher) {
             val response = api.login(mapper.mapToRequest(payload))
             if (!response.isSuccessful) {
@@ -40,6 +42,7 @@ class AuthRepositoryImpl(
             val body = response.body()
                 ?: throw IllegalStateException("Login response is successful but body is null")
             tokenStorage.setTokens(body.accessToken, body.refreshToken)
+            UserId(body.id)
         }
 
     override suspend fun refreshToken(refreshToken: String) =

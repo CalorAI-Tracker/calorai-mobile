@@ -6,6 +6,9 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class LoginResponse(
 
+    @SerialName("id")
+    val id: Long,
+
     @SerialName("accessToken")
     val accessToken: String,
 

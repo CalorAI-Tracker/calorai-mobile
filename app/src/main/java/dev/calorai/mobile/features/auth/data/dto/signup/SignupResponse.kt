@@ -10,5 +10,5 @@ data class SignupResponse(
     val email: String,
 
     @SerialName("id")
-    val id: Int
+    val id: Long
 )
