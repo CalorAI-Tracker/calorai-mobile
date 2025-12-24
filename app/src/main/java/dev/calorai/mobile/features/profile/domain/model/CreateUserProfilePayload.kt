@@ -1,15 +1,12 @@
 package dev.calorai.mobile.features.profile.domain.model
 
-data class UserProfile(
+data class CreateUserProfilePayload(
     val userId: UserId,
-    val name: String,
-    val email: String,
     val gender: Gender,
     val height: Int,
     val weight: Int,
     val birthDay: String,
+    val name: String,
     val activityCode: Activity,
     val healthGoalCode: Goal,
-    val targetWeightKg: Int? = null,
-    val weeklyRateKg: Int? = null,
 )

@@ -17,10 +17,9 @@ class AuthRepositoryImpl(
     private val api: AuthApi,
     private val tokenStorage: TokenStorage,
     private val userDao: UserDao,
+    private val mapper: AuthMapper,
     private val dispatcher: CoroutineDispatcher = Dispatchers.IO,
 ) : AuthRepository {
-
-    private val mapper = AuthMapper()
 
     override suspend fun signUp(payload: SignupPayload): Int =
         withContext(dispatcher) {

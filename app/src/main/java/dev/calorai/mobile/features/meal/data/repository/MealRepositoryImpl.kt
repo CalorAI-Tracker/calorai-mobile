@@ -8,6 +8,7 @@ import dev.calorai.mobile.features.meal.domain.MealRepository
 import dev.calorai.mobile.features.meal.domain.model.CreateMealEntryPayload
 import dev.calorai.mobile.features.meal.domain.model.DailyMeal
 import dev.calorai.mobile.features.profile.data.dao.UserDao
+import dev.calorai.mobile.features.profile.domain.model.UserId
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
@@ -19,12 +20,11 @@ class MealRepositoryImpl(
     private val api: MealApi,
     private val dailyMealsDao: DailyMealsDao,
     private val userDao: UserDao,
+    private val mapper: MealMapper,
     private val dispatcher: CoroutineDispatcher = Dispatchers.IO,
 ) : MealRepository {
 
-    private val mapper = MealMapper()
-
-    override suspend fun syncDailyMeals(date: String) {
+    private suspend fun syncDailyMeals(date: String) {
         val userId = userDao.getUserId()
             ?: throw IllegalStateException("No userId found in DB")
         val response = api.getDailyMeal(userId = userId, date = date)
@@ -41,15 +41,23 @@ class MealRepositoryImpl(
         }
     }
 
-    override suspend fun getDailyMealsRemote(date: String): List<DailyMeal> =
-        withContext(dispatcher) {
-            syncDailyMeals(date)
-            dailyMealsDao
-                .getMealsByDateOnce(date)
-                .map { mapper.mapToDomain(it) }
+    override suspend fun getDailyMeals(date: String): List<DailyMeal> = withContext(dispatcher) {
+        try {
+            val userId = UserId(userDao.getUserId() ?: throw IllegalStateException("User not found"))
+            val response = api.getDailyMeal(userId = userId.value, date = date)
+            if(!response.isSuccessful) {
+                return@withContext getDailyMealsLocal(date)
+            }
+            val dailyMealsResponse = response.body() ?: throw IllegalStateException()
+            val dailyMeals = mapper.mapToDomain(dailyMealsResponse)
+            dailyMealsDao.insertAll(mapper.mapToEntity(dailyMeals))
+            return@withContext dailyMeals
+        } catch (_: Exception) {
+            return@withContext getDailyMealsLocal(date)
         }
+    }
 
-    override suspend fun getDailyMealsLocal(date: String): List<DailyMeal> =
+    private suspend fun getDailyMealsLocal(date: String): List<DailyMeal> =
         withContext(dispatcher) {
             dailyMealsDao
                 .getMealsByDateOnce(date)
@@ -70,16 +78,6 @@ class MealRepositoryImpl(
             .getMealsByDate(date)
             .map { entities ->
                 entities.map { mapper.mapToDomain(it) }
-            }
-
-    override fun observeMealByDateAndType(
-        date: String,
-        mealType: String
-    ): Flow<DailyMeal?> =
-        dailyMealsDao
-            .getMealByDateAndType(date, mealType)
-            .map { entity ->
-                entity?.let { mapper.mapToDomain(it) }
             }
 
     override suspend fun deleteMealById(id: Long) =

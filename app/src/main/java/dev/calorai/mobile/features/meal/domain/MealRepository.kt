@@ -6,12 +6,9 @@ import kotlinx.coroutines.flow.Flow
 
 interface MealRepository {
 
-    suspend fun syncDailyMeals(date: String)
-    suspend fun getDailyMealsRemote(date: String): List<DailyMeal>
-    suspend fun getDailyMealsLocal(date: String): List<DailyMeal>
+    suspend fun getDailyMeals(date: String): List<DailyMeal>
     suspend fun createMealEntryAndSync(payload: CreateMealEntryPayload)
     fun observeMealsByDate(date: String): Flow<List<DailyMeal>>
-    fun observeMealByDateAndType(date: String, mealType: String): Flow<DailyMeal?>
     suspend fun deleteMealById(id: Long)
     suspend fun deleteMealsByDate(date: String)
     suspend fun clearAllMeals()

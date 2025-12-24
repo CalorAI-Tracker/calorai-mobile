@@ -3,6 +3,7 @@ package dev.calorai.mobile.features.meal.di
 import dev.calorai.mobile.core.network.di.RETROFIT_AUTHORIZED
 import dev.calorai.mobile.features.meal.create.manual.di.createMealManualModule
 import dev.calorai.mobile.features.meal.data.api.MealApi
+import dev.calorai.mobile.features.meal.data.mappers.MealMapper
 import dev.calorai.mobile.features.meal.data.repository.MealRepositoryImpl
 import dev.calorai.mobile.features.meal.details.di.mealDetailsModule
 import dev.calorai.mobile.features.meal.domain.MealRepository
@@ -14,11 +15,14 @@ internal val mealModule = module {
 
     single { get<Retrofit>(named(RETROFIT_AUTHORIZED)).create(MealApi::class.java) }
 
+    factory { MealMapper() }
+
     single<MealRepository> {
         MealRepositoryImpl(
             api = get(),
             dailyMealsDao = get(),
-            userDao = get()
+            userDao = get(),
+            mapper = get(),
         )
     }
 

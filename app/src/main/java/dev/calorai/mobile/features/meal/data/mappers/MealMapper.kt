@@ -1,6 +1,7 @@
 package dev.calorai.mobile.features.meal.data.mappers
 
 import dev.calorai.mobile.features.meal.data.dto.createMealEntry.CreateMealEntryRequest
+import dev.calorai.mobile.features.meal.data.dto.getDailyMeal.GetDailyMealResponse
 import dev.calorai.mobile.features.meal.data.dto.getDailyMeal.MealDto
 import dev.calorai.mobile.features.meal.data.entity.DailyMealsEntity
 import dev.calorai.mobile.features.meal.domain.model.CreateMealEntryPayload
@@ -36,6 +37,21 @@ class MealMapper {
             entriesCnt = dto.entriesCnt
         )
 
+    fun mapToEntity(dailyMeals: List<DailyMeal>): List<DailyMealsEntity> {
+        return dailyMeals.map { dailyMeal ->
+            DailyMealsEntity(
+                id = 0L,
+                date = dailyMeal.date.toString(),
+                meal = dailyMeal.meal,
+                kcal = dailyMeal.kcal,
+                proteinG = dailyMeal.proteinG,
+                fatG = dailyMeal.fatG,
+                carbsG = dailyMeal.carbsG,
+                entriesCnt = dailyMeal.entriesCnt
+            )
+        }
+    }
+
     fun mapToDomain(entity: DailyMealsEntity): DailyMeal =
         DailyMeal(
             id = entity.id,
@@ -47,4 +63,20 @@ class MealMapper {
             carbsG = entity.carbsG,
             entriesCnt = entity.entriesCnt,
         )
+
+    fun mapToDomain(response: GetDailyMealResponse): List<DailyMeal> {
+        val date = LocalDate.parse(response.date)
+        return response.meals.map { mealDto ->
+            DailyMeal(
+                id = 0L,
+                date = date,
+                meal = mealDto.meal,
+                kcal = mealDto.kcal,
+                proteinG = mealDto.proteinG,
+                fatG = mealDto.fatG,
+                carbsG = mealDto.carbsG,
+                entriesCnt = mealDto.entriesCnt
+            )
+        }
+    }
 }

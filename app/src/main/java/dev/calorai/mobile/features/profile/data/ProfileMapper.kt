@@ -2,6 +2,7 @@ package dev.calorai.mobile.features.profile.data
 
 import android.content.Context
 import dev.calorai.mobile.core.utils.locale
+import dev.calorai.mobile.features.profile.data.dto.createUser.CreateUserProfileRequest
 import dev.calorai.mobile.features.profile.data.dto.enums.ActivityCode
 import dev.calorai.mobile.features.profile.data.dto.enums.HealthGoalCode
 import dev.calorai.mobile.features.profile.data.dto.enums.Sex
@@ -10,9 +11,11 @@ import dev.calorai.mobile.features.profile.data.dto.updateUser.UpdateUserProfile
 import dev.calorai.mobile.features.profile.data.entity.UserEntity
 import dev.calorai.mobile.features.profile.domain.error.ProfileException
 import dev.calorai.mobile.features.profile.domain.model.Activity
+import dev.calorai.mobile.features.profile.domain.model.CreateUserProfilePayload
 import dev.calorai.mobile.features.profile.domain.model.Gender
 import dev.calorai.mobile.features.profile.domain.model.Goal
 import dev.calorai.mobile.features.profile.domain.model.UpdateUserProfilePayload
+import dev.calorai.mobile.features.profile.domain.model.UserId
 import dev.calorai.mobile.features.profile.domain.model.UserProfile
 import dev.calorai.mobile.features.profile.ui.model.ActivityUi
 import dev.calorai.mobile.features.profile.ui.model.GenderUi
@@ -73,7 +76,7 @@ class ProfileMapper(
         )
 
     fun mapToEntity(profile: UserProfile): UserEntity = UserEntity(
-        userId = profile.userId,
+        userId = profile.userId.value,
         sex = mapToData(profile.gender),
         height = profile.height,
         weight = profile.weight,
@@ -84,8 +87,8 @@ class ProfileMapper(
         healthGoalCode = mapToData(profile.healthGoalCode),
     )
 
-    fun mapToEntity(userId: Long, payload: UpdateUserProfilePayload): UserEntity = UserEntity(
-        userId = userId,
+    fun mapToEntity(userId: UserId, payload: UpdateUserProfilePayload): UserEntity = UserEntity(
+        userId = userId.value,
         sex = mapToData(payload.gender),
         height = payload.height,
         weight = payload.weight,
@@ -96,8 +99,20 @@ class ProfileMapper(
         healthGoalCode = mapToData(payload.healthGoalCode),
     )
 
+    fun mapToEntity(payload: CreateUserProfilePayload): UserEntity = UserEntity(
+        userId = payload.userId.value,
+        sex = mapToData(payload.gender),
+        height = payload.height,
+        weight = payload.weight,
+        birthDay = payload.birthDay,
+        name = payload.name,
+        email = "",
+        activityCode = mapToData(payload.activityCode),
+        healthGoalCode = mapToData(payload.healthGoalCode),
+    )
+
     fun mapToDomain(userProfileResponse: GetUserProfileResponse): UserProfile = UserProfile(
-        userId = userProfileResponse.userId,
+        userId = UserId(userProfileResponse.userId),
         name = userProfileResponse.name,
         email = userProfileResponse.email,
         gender = mapToDomain(userProfileResponse.sex),
@@ -111,7 +126,7 @@ class ProfileMapper(
     )
 
     fun mapToDomain(entity: UserEntity): UserProfile = UserProfile(
-        userId = entity.userId,
+        userId = UserId(entity.userId),
         name = entity.name,
         email = entity.email,
         gender = mapToDomain(entity.sex),
@@ -132,6 +147,18 @@ class ProfileMapper(
             height = payload.height,
             weight = payload.weight,
             birthDay = payload.birthDay,
+            activityCode = mapToData(payload.activityCode),
+            healthGoalCode = mapToData(payload.healthGoalCode),
+        )
+
+    fun mapToRequest(payload: CreateUserProfilePayload): CreateUserProfileRequest =
+        CreateUserProfileRequest(
+            userId = payload.userId.value,
+            sex = mapToData(payload.gender),
+            height = payload.height,
+            weight = payload.weight,
+            birthDay = payload.birthDay,
+            name = payload.name,
             activityCode = mapToData(payload.activityCode),
             healthGoalCode = mapToData(payload.healthGoalCode),
         )
