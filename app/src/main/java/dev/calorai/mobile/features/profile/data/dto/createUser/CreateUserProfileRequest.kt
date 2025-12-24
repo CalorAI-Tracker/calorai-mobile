@@ -10,7 +10,7 @@ import kotlinx.serialization.Serializable
 data class CreateUserProfileRequest(
 
     @SerialName("userId")
-    val userId: Int,
+    val userId: Long,
 
     @SerialName("sex")
     val sex: Sex,

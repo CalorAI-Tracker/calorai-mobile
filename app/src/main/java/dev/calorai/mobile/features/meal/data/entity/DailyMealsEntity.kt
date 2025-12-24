@@ -9,7 +9,7 @@ data class DailyMealsEntity(
 
     @PrimaryKey(autoGenerate = true)
     @ColumnInfo("id")
-    val id: Long,
+    val id: Long = 0L,
 
     @ColumnInfo("date")
     val date: String,

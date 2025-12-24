@@ -19,8 +19,8 @@ interface DailyMealsDao {
     @Query("SELECT * FROM ${DailyMealsEntity.TABLE} WHERE date = :date ORDER BY meal ASC")
     fun getMealsByDate(date: String): Flow<List<DailyMealsEntity>>
 
-    @Query("SELECT * FROM ${DailyMealsEntity.TABLE} WHERE date = :date AND meal = :mealType LIMIT 1")
-    fun getMealByDateAndType(date: String, mealType: String): Flow<DailyMealsEntity?>
+    @Query("SELECT * FROM ${DailyMealsEntity.TABLE} WHERE date = :date ORDER BY meal ASC")
+    suspend fun getMealsByDateOnce(date: String): List<DailyMealsEntity>
 
     @Query("DELETE FROM ${DailyMealsEntity.TABLE} WHERE id = :id")
     suspend fun deleteById(id: Long)

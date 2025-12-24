@@ -6,6 +6,7 @@ import dev.calorai.mobile.features.profile.domain.GetUserProfileUseCase
 import dev.calorai.mobile.features.profile.domain.error.ProfileException
 import dev.calorai.mobile.features.profile.domain.UpdateUserProfileUseCase
 import dev.calorai.mobile.features.profile.data.ProfileMapper
+import dev.calorai.mobile.features.profile.domain.model.UserId
 import dev.calorai.mobile.features.profile.ui.model.SavingErrorType
 import dev.calorai.mobile.features.profile.ui.model.UserProfileUi
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -63,7 +64,7 @@ class ProfileViewModel(
     private fun loadUserProfile() {
         viewModelScope.launch {
             runCatching {
-                getUserHealthProfileUseCase(DEFAULT_USER_ID)?.let { user ->
+                getUserHealthProfileUseCase(UserId(DEFAULT_USER_ID))?.let { user ->
                     _state.update { it.copy(user = mapper.mapToUi(user)) }
                 }
             }.onFailure {
@@ -78,7 +79,7 @@ class ProfileViewModel(
             _state.update { it.copy(isSaving = true) }
             runCatching {
                 updateUserProfileUseCase.invoke(
-                    userId = DEFAULT_USER_ID,
+                    userId = UserId(DEFAULT_USER_ID),
                     payload = mapper.mapToDomainPayload(currentState.user),
                 )
             }

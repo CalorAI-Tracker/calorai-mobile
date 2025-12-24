@@ -15,6 +15,12 @@ interface UserDao {
     suspend fun insert(user: UserEntity)
 
     @Query("SELECT * FROM ${UserEntity.TABLE} LIMIT 1")
+    suspend fun getUser(): UserEntity?
+
+    @Query("SELECT user_id FROM ${UserEntity.TABLE} LIMIT 1")
+    suspend fun getUserId(): Long?
+
+    @Query("SELECT * FROM ${UserEntity.TABLE} LIMIT 1")
     fun observeUser(): Flow<UserEntity>
 
     @Update

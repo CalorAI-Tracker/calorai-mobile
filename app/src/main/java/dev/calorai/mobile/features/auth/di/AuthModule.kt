@@ -4,10 +4,13 @@ import dev.calorai.mobile.core.navigation.GlobalRouterContext
 import dev.calorai.mobile.core.navigation.RouterController
 import dev.calorai.mobile.core.network.di.RETROFIT_AUTH
 import dev.calorai.mobile.features.auth.data.api.AuthApi
+import dev.calorai.mobile.features.auth.data.mapper.AuthMapper
+import dev.calorai.mobile.features.auth.data.repository.AuthRepositoryImpl
 import dev.calorai.mobile.features.auth.data.token.TokenRefresher
 import dev.calorai.mobile.features.auth.data.token.TokenStorage
 import dev.calorai.mobile.features.auth.data.token.tokenProvider.InMemoryTokenProvider
 import dev.calorai.mobile.features.auth.data.token.tokenProvider.TokenProvider
+import dev.calorai.mobile.features.auth.domain.AuthRepository
 import dev.calorai.mobile.features.auth.domain.UserHasAuthorizedUseCase
 import dev.calorai.mobile.features.auth.domain.UserHasAuthorizedUseCaseImpl
 import dev.calorai.mobile.features.auth.login.ui.LoginViewModel
@@ -46,6 +49,15 @@ internal val authModule = module {
     single<TokenProvider> {
         InMemoryTokenProvider(
             tokenStorage = get()
+        )
+    }
+    factory { AuthMapper() }
+    single<AuthRepository> {
+        AuthRepositoryImpl(
+            api = get(),
+            tokenStorage = get(),
+            userDao = get(),
+            mapper = get(),
         )
     }
     factory<UserHasAuthorizedUseCase> {
