@@ -10,10 +10,12 @@ import dev.calorai.mobile.features.home.domain.GetCurrentUserNameUseCase
 import dev.calorai.mobile.features.home.domain.GetCurrentUserNameUseCaseImpl
 import dev.calorai.mobile.features.home.domain.GetMealsForDayUseCase
 import dev.calorai.mobile.features.home.domain.GetMealsForDayUseCaseImpl
-import dev.calorai.mobile.features.home.domain.GetPieChartsDataForDayUseCase
-import dev.calorai.mobile.features.home.domain.GetPieChartsDataForDayUseCaseImpl
+import dev.calorai.mobile.features.home.domain.usecases.GetPieChartsDataForDayUseCase
+import dev.calorai.mobile.features.home.domain.usecases.GetPieChartsDataForDayUseCaseImpl
 import dev.calorai.mobile.features.home.domain.GetWeekByDateUseCase
 import dev.calorai.mobile.features.home.domain.GetWeekByDateUseCaseImpl
+import dev.calorai.mobile.features.home.domain.usecases.GetDailyMealsUseCase
+import dev.calorai.mobile.features.home.domain.usecases.GetDailyMealsUseCaseImpl
 import dev.calorai.mobile.features.home.ui.HomeViewModel
 import org.koin.android.ext.koin.androidContext
 import org.koin.core.module.dsl.viewModel
@@ -38,7 +40,10 @@ internal val homeModule = module {
         GetMealsForDayUseCaseImpl()
     }
     factory<GetPieChartsDataForDayUseCase> {
-        GetPieChartsDataForDayUseCaseImpl()
+        GetPieChartsDataForDayUseCaseImpl(repository = get())
+    }
+    factory<GetDailyMealsUseCase> {
+        GetDailyMealsUseCaseImpl(repository = get())
     }
     viewModel {
         HomeViewModel(

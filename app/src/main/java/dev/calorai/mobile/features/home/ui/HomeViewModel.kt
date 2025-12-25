@@ -8,10 +8,11 @@ import dev.calorai.mobile.core.uikit.weekBar.WeekBarUiModel
 import dev.calorai.mobile.features.home.domain.CheckIsFirstDayOfWeekUseCase
 import dev.calorai.mobile.features.home.domain.GetCurrentUserNameUseCase
 import dev.calorai.mobile.features.home.domain.GetMealsForDayUseCase
-import dev.calorai.mobile.features.home.domain.GetPieChartsDataForDayUseCase
+import dev.calorai.mobile.features.home.domain.usecases.GetPieChartsDataForDayUseCase
 import dev.calorai.mobile.features.home.domain.GetWeekByDateUseCase
 import dev.calorai.mobile.features.meal.create.manual.navigateToCreateMealManualScreen
 import dev.calorai.mobile.features.meal.details.navigateToMealDetailsScreen
+import dev.calorai.mobile.features.home.domain.usecases.GetDailyMealsUseCase
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
