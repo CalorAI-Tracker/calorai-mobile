@@ -10,36 +10,39 @@ import dev.calorai.mobile.features.auth.data.dto.login.LoginResponse
 import dev.calorai.mobile.features.auth.data.dto.signup.SignupRequest
 import dev.calorai.mobile.features.auth.data.dto.signup.SignupResponse
 import dev.calorai.mobile.features.auth.data.token.AuthInterceptor
-import dev.calorai.mobile.features.auth.data.token.tokenProvider.InMemoryTokenProvider
+import dev.calorai.mobile.features.auth.data.token.CredentialsStore
+import dev.calorai.mobile.features.auth.data.token.CredentialsStoreImpl
+import dev.calorai.mobile.features.auth.data.token.InMemoryTokenProvider
 import dev.calorai.mobile.features.auth.data.token.TokenAuthenticator
-import dev.calorai.mobile.features.auth.data.token.TokenRefresher
-import dev.calorai.mobile.features.auth.data.token.TokenStorage
+import dev.calorai.mobile.features.auth.data.token.TokenProvider
+import dev.calorai.mobile.features.auth.domain.RefreshTokensUseCase
+import dev.calorai.mobile.features.auth.domain.RefreshTokensUseCaseImpl
 import dev.calorai.mobile.features.meal.data.api.MealApi
 import dev.calorai.mobile.features.meal.data.dto.getDailyMeal.GetDailyMealResponse
 import kotlinx.coroutines.runBlocking
+import kotlinx.serialization.json.Json
+import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
 import org.junit.After
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
-import retrofit2.Retrofit
-import kotlinx.serialization.json.Json
-import okhttp3.MediaType.Companion.toMediaType
-import org.junit.Assert.assertTrue
 import retrofit2.Response
+import retrofit2.Retrofit
 
 class AuthAndTokenTests {
 
     private lateinit var authApi: AuthApi
-    private lateinit var tokenStorage: TokenStorage
-    private lateinit var tokenRefresher: TokenRefresher
-    private lateinit var tokenProvider: InMemoryTokenProvider
+    private lateinit var credentialsStore: CredentialsStore
+    private lateinit var refreshTokensUseCase: RefreshTokensUseCase
+    private lateinit var tokenProvider: TokenProvider
     private lateinit var mealApi: MealApi
 
     @Before
     fun setup() {
         val context = ApplicationProvider.getApplicationContext<Context>()
-        tokenStorage = TokenStorage(context)
+        credentialsStore = CredentialsStoreImpl(context)
         val json = Json { ignoreUnknownKeys = true; isLenient = true }
         val okHttpAuth = OkHttpClient.Builder()
             .addNetworkInterceptor(ErrorResponseInterceptor(json))
@@ -55,19 +58,19 @@ class AuthAndTokenTests {
             .build()
         authApi = retrofitAuth.create(AuthApi::class.java)
         tokenProvider = InMemoryTokenProvider(
-            tokenStorage
+            credentialsStore = credentialsStore
         )
-        tokenRefresher = TokenRefresher(
-            authApi,
-            tokenStorage,
+        refreshTokensUseCase = RefreshTokensUseCaseImpl(
+            authApi = authApi,
+            credentialsStore = credentialsStore,
         )
         val okHttpAuthorized = OkHttpClient.Builder()
             .addNetworkInterceptor(ErrorResponseInterceptor(json))
             .addInterceptor(AuthInterceptor(tokenProvider))
             .authenticator(
                 TokenAuthenticator(
-                    tokenProvider,
-                    tokenRefresher,
+                    tokenProvider = tokenProvider,
+                    refreshTokensUseCase = refreshTokensUseCase,
                 )
             )
             .build()
@@ -75,7 +78,8 @@ class AuthAndTokenTests {
             .baseUrl("http://10.0.2.2:8080/api/") // для эмулятора Android
             .client(okHttpAuthorized)
             .addConverterFactory(
-                json.asConverterFactory("application/json; charset=utf-8".toMediaType()
+                json.asConverterFactory(
+                    "application/json; charset=utf-8".toMediaType()
                 )
             )
             .build()
@@ -84,7 +88,7 @@ class AuthAndTokenTests {
 
     @After
     fun teardown() {
-        tokenStorage.clearTokens()
+        credentialsStore.clearCredentials()
     }
 
     @Test
@@ -108,17 +112,17 @@ class AuthAndTokenTests {
             deviceId = "test-device-1"
         )
         val response: Response<LoginResponse> = authApi.login(request)
-        assertTrue(response.isSuccessful)
-        val body = response.body()
-        requireNotNull(body)
-        tokenStorage.setTokens(
+        val body = requireNotNull(response.body())
+        credentialsStore.setCredentials(
             accessToken = body.accessToken,
-            refreshToken = body.refreshToken
+            refreshToken = body.refreshToken,
         )
+
         val storedAccessToken = tokenProvider.getAccessToken()
         assertEquals(body.accessToken, storedAccessToken)
-        val refreshSuccess = tokenRefresher.refreshTokenBlocking()
-        assertTrue(refreshSuccess)
+
+        val refreshSuccess = runCatching { refreshTokensUseCase.invoke() }
+        assertTrue(refreshSuccess.isSuccess)
     }
 
     @Test
@@ -129,21 +133,19 @@ class AuthAndTokenTests {
             deviceId = "test-device-1"
         )
         val loginResponse: Response<LoginResponse> = authApi.login(loginRequest)
-        assertTrue(loginResponse.isSuccessful)
-        val loginBody = loginResponse.body()
-        requireNotNull(loginBody)
-        tokenStorage.setTokens(
-            loginBody.accessToken,
-            loginBody.refreshToken)
+        val loginBody = requireNotNull(loginResponse.body())
+        credentialsStore.setCredentials(
+            accessToken = loginBody.accessToken,
+            refreshToken = loginBody.refreshToken
+        )
 
         // Делаем запрос к MealApi с прокидыванием токена
         val getDailyMealResponse: Response<GetDailyMealResponse> = mealApi.getDailyMeal(
             userId = 2,
             date = "2025-12-09"
         )
-        assertTrue(getDailyMealResponse.isSuccessful)
-        val getDailyMealBody = getDailyMealResponse.body()!!
-        requireNotNull(loginBody)
+        val getDailyMealBody = requireNotNull(getDailyMealResponse.body())
+
         assertEquals("2025-12-09", getDailyMealBody.date)
     }
 }

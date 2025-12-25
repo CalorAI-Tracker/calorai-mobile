@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.NavOptions
 import dev.calorai.mobile.core.navigation.Router
+import dev.calorai.mobile.features.auth.domain.LoginUseCase
 import dev.calorai.mobile.features.auth.login.LoginRoute
 import dev.calorai.mobile.features.auth.signUp.navigateToSignUpScreen
 import dev.calorai.mobile.features.main.navigateToMainScreen
@@ -14,6 +15,7 @@ import kotlinx.coroutines.launch
 
 class LoginViewModel constructor(
     private val globalRouter: Router,
+    private val loginUseCase: LoginUseCase,
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(LoginUiState())
@@ -38,13 +40,31 @@ class LoginViewModel constructor(
     }
 
     private fun login() {
-        // Здесь должна быть логика аутентификации
-        navigateToLoginorizedZone()
+        viewModelScope.launch {
+            val currentState = _state.value
+            runCatching {
+                loginUseCase.invoke(
+                    email = currentState.email,
+                    password = currentState.password,
+                )
+            }
+                .onSuccess {
+                    globalRouter.emit {
+                        navigateToMainScreen(
+                            navOptions = NavOptions.Builder()
+                                .setPopUpTo<LoginRoute>(inclusive = true)
+                                .build()
+                        )
+                    }
+                }
+                .onFailure {
+                    // TODO
+                }
+        }
     }
 
     private fun loginWithGoogle() {
         // Логика входа через Google
-        navigateToLoginorizedZone()
     }
 
     private fun navigateToRegister() {
@@ -52,18 +72,6 @@ class LoginViewModel constructor(
         viewModelScope.launch {
             globalRouter.emit {
                 navigateToSignUpScreen(
-                    navOptions = NavOptions.Builder()
-                        .setPopUpTo<LoginRoute>(inclusive = true)
-                        .build()
-                )
-            }
-        }
-    }
-
-    private fun navigateToLoginorizedZone() {
-        viewModelScope.launch {
-            globalRouter.emit {
-                navigateToMainScreen(
                     navOptions = NavOptions.Builder()
                         .setPopUpTo<LoginRoute>(inclusive = true)
                         .build()
