@@ -18,7 +18,7 @@ class AuthMapper {
         LoginRequest(
             email = payload.email,
             password = payload.password,
-            deviceId = payload.deviceId
+            deviceId = payload.deviceId.value,
         )
 
     fun mapToRequest(refreshToken: String): RefreshRequest =

@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.NavOptions
 import dev.calorai.mobile.core.navigation.Router
+import dev.calorai.mobile.features.auth.domain.SignUpUseCase
 import dev.calorai.mobile.features.auth.login.navigateToLoginScreen
 import dev.calorai.mobile.features.auth.signUp.SignUpRoute
 import dev.calorai.mobile.features.main.navigateToMainScreen
@@ -14,6 +15,7 @@ import kotlinx.coroutines.launch
 
 class SignUpViewModel constructor(
     private val globalRouter: Router,
+    private val signUpUseCase: SignUpUseCase,
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(SignUpUiState())
@@ -41,26 +43,33 @@ class SignUpViewModel constructor(
     }
 
     private fun register() {
-        navigateToRegisteredZone()
+        viewModelScope.launch {
+            val currentState = _state.value
+            runCatching {
+                signUpUseCase.invoke(
+                    email = currentState.email,
+                    password = currentState.password,
+                )
+            }
+                .onSuccess {
+                    globalRouter.emit {
+                        navigateToMainScreen(
+                            navOptions = NavOptions.Builder()
+                                .setPopUpTo<SignUpRoute>(inclusive = true)
+                                .build()
+                        )
+                    }
+                }
+                .onFailure {
+                    // TODO
+                }
+        }
     }
-
 
     private fun navigateToLogin() {
         viewModelScope.launch {
             globalRouter.emit {
                 navigateToLoginScreen(
-                    navOptions = NavOptions.Builder()
-                        .setPopUpTo<SignUpRoute>(inclusive = true)
-                        .build()
-                )
-            }
-        }
-    }
-
-    private fun navigateToRegisteredZone() {
-        viewModelScope.launch {
-            globalRouter.emit {
-                navigateToMainScreen(
                     navOptions = NavOptions.Builder()
                         .setPopUpTo<SignUpRoute>(inclusive = true)
                         .build()
