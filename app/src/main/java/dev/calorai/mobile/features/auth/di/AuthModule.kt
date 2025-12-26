@@ -39,6 +39,7 @@ internal val authModule = module {
         SignUpViewModel(
             globalRouter = get<RouterController>(qualifier<GlobalRouterContext>()),
             signUpUseCase = get(),
+            loginUseCase = get(),
         )
     }
     single<AuthApi> { get<Retrofit>(qualifier<NetworkContext.Base>()).create(AuthApi::class.java) }
