@@ -18,7 +18,7 @@ class ErrorResponseInterceptor(
     override fun intercept(chain: Interceptor.Chain): Response {
         val request = chain.request()
         val response = chain.proceed(request)
-        val responseBody = response.body ?: return response
+        val responseBody = response.body
         val mediaType = responseBody.contentType() ?: "application/json; charset=utf-8".toMediaType()
         val responseJsonString = responseBody.string()
         try {
