@@ -8,7 +8,7 @@ import dev.calorai.mobile.features.auth.domain.AuthRepository
 import dev.calorai.mobile.features.auth.domain.model.LoginPayload
 import dev.calorai.mobile.features.auth.domain.model.SignupPayload
 import dev.calorai.mobile.features.profile.data.dao.UserDao
-import dev.calorai.mobile.features.profile.domain.UserIdStore
+import dev.calorai.mobile.features.profile.data.UserIdStore
 import dev.calorai.mobile.features.profile.domain.model.UserId
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers

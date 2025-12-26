@@ -5,6 +5,7 @@ import kotlinx.serialization.Serializable
 @Serializable
 enum class HealthGoalCode {
     LOSE_WEIGHT,
-    MAINTAIN_WEIGHT,
-    GAIN_WEIGHT
+    GAIN_WEIGHT,
+    GAIN_MUSCLE,
+    MAINTAIN,
 }

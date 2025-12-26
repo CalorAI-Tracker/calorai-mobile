@@ -2,11 +2,15 @@ package dev.calorai.mobile.features.profile.ui
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import dev.calorai.mobile.features.profile.domain.GetUserProfileUseCase
-import dev.calorai.mobile.features.profile.domain.error.ProfileException
-import dev.calorai.mobile.features.profile.domain.UpdateUserProfileUseCase
+import androidx.navigation.NavOptions
+import dev.calorai.mobile.core.navigation.Router
+import dev.calorai.mobile.features.auth.domain.LogoutUseCase
+import dev.calorai.mobile.features.auth.login.navigateToLoginScreen
+import dev.calorai.mobile.features.main.MainRoute
 import dev.calorai.mobile.features.profile.data.ProfileMapper
-import dev.calorai.mobile.features.profile.domain.model.UserId
+import dev.calorai.mobile.features.profile.domain.GetUserProfileUseCase
+import dev.calorai.mobile.features.profile.domain.UpdateUserProfileUseCase
+import dev.calorai.mobile.features.profile.domain.error.ProfileException
 import dev.calorai.mobile.features.profile.ui.model.SavingErrorType
 import dev.calorai.mobile.features.profile.ui.model.UserProfileUi
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -20,12 +24,12 @@ import kotlinx.coroutines.launch
 import java.time.Instant
 import java.time.ZoneId
 
-private const val DEFAULT_USER_ID = 1L // TODO заменить на реальный userId из авторизации
-
-class ProfileViewModel(
+class ProfileViewModel constructor(
     private val updateUserProfileUseCase: UpdateUserProfileUseCase,
-    private val getUserHealthProfileUseCase: GetUserProfileUseCase,
+    private val getUserProfileUseCase: GetUserProfileUseCase,
     private val mapper: ProfileMapper,
+    private val logoutUseCase: LogoutUseCase,
+    private val globalRouter: Router,
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(ProfileUiState())
@@ -41,15 +45,31 @@ class ProfileViewModel(
     fun onEvent(event: ProfileUiEvent) {
         when (event) {
             ProfileUiEvent.SaveButtonClick -> saveUserProfile()
-            is ProfileUiEvent.ActivityChange -> launchUpdateUser { UserProfileUi(activity = event.value) }
+            is ProfileUiEvent.ActivityChange -> launchUpdateUser { copy(activity = event.value) }
             is ProfileUiEvent.BirthDateChange -> updateBirthDate(event.selectedDateMillis)
-            is ProfileUiEvent.EmailChange -> launchUpdateUser { UserProfileUi(email = event.value) }
-            is ProfileUiEvent.GenderChange -> launchUpdateUser { UserProfileUi(gender = event.value) }
-            is ProfileUiEvent.GoalChange -> launchUpdateUser { UserProfileUi(goal = event.value) }
-            is ProfileUiEvent.HeightChange -> launchUpdateUser { UserProfileUi(height = event.value) }
-            is ProfileUiEvent.NameChange -> launchUpdateUser { UserProfileUi(name = event.value) }
-            is ProfileUiEvent.WeightChange -> launchUpdateUser { UserProfileUi(weight = event.value) }
+            is ProfileUiEvent.EmailChange -> launchUpdateUser { copy(email = event.value) }
+            is ProfileUiEvent.GenderChange -> launchUpdateUser { copy(gender = event.value) }
+            is ProfileUiEvent.GoalChange -> launchUpdateUser { copy(goal = event.value) }
+            is ProfileUiEvent.HeightChange -> launchUpdateUser { copy(height = event.value) }
+            is ProfileUiEvent.NameChange -> launchUpdateUser { copy(name = event.value) }
+            is ProfileUiEvent.WeightChange -> launchUpdateUser { copy(weight = event.value) }
             is ProfileUiEvent.OnRefresh -> loadUserProfile()
+            ProfileUiEvent.LogoutClick -> logout()
+        }
+    }
+
+    private fun logout() {
+        viewModelScope.launch {
+            runCatching { logoutUseCase.invoke() }
+                .onSuccess {
+                    globalRouter.emit {
+                        navigateToLoginScreen(
+                            navOptions = NavOptions.Builder()
+                                .setPopUpTo<MainRoute>(inclusive = true)
+                                .build()
+                        )
+                    }
+                }
         }
     }
 
@@ -57,14 +77,14 @@ class ProfileViewModel(
         viewModelScope.launch {
             val instant = Instant.ofEpochMilli(selectedDateMillis)
             val localDate = instant.atZone(ZoneId.systemDefault()).toLocalDate()
-            launchUpdateUser { UserProfileUi(birthDate = mapper.mapLocalDateToUi(localDate)) }
+            launchUpdateUser { copy(birthDate = mapper.mapLocalDateToUi(localDate)) }
         }
     }
 
     private fun loadUserProfile() {
         viewModelScope.launch {
             runCatching {
-                getUserHealthProfileUseCase(UserId(DEFAULT_USER_ID))?.let { user ->
+                getUserProfileUseCase.invoke()?.let { user ->
                     _state.update { it.copy(user = mapper.mapToUi(user)) }
                 }
             }.onFailure {
@@ -78,10 +98,7 @@ class ProfileViewModel(
         viewModelScope.launch {
             _state.update { it.copy(isSaving = true) }
             runCatching {
-                updateUserProfileUseCase.invoke(
-                    userId = UserId(DEFAULT_USER_ID),
-                    payload = mapper.mapToDomainPayload(currentState.user),
-                )
+                updateUserProfileUseCase.invoke(mapper.mapToDomainPayload(currentState.user))
             }
                 .onSuccess {
                     _state.update { it.copy(isSaving = false) }

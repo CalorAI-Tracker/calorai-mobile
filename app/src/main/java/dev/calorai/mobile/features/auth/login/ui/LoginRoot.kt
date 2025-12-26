@@ -26,9 +26,11 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
@@ -36,13 +38,20 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.credentials.CredentialManager
+import androidx.credentials.GetCredentialRequest
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.google.android.libraries.identity.googleid.GetSignInWithGoogleOption
 import dev.calorai.mobile.R
 import dev.calorai.mobile.core.uikit.CalorAiTheme
 import dev.calorai.mobile.core.uikit.PrimaryButton
 import dev.calorai.mobile.core.uikit.PrimaryTextFieldWithTitle
 import dev.calorai.mobile.core.uikit.commonGradientBackground
+import dev.calorai.mobile.core.utils.ObserveAsEvents
+import kotlinx.coroutines.launch
 import org.koin.androidx.compose.koinViewModel
+import java.security.SecureRandom
+import java.util.Base64
 
 
 @Composable
@@ -50,6 +59,33 @@ fun LoginRoot(
     viewModel: LoginViewModel = koinViewModel(),
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
+    val context = LocalContext.current
+    val coroutineScope = rememberCoroutineScope()
+
+    ObserveAsEvents(viewModel.uiActions) { action ->
+        when (action) {
+            LoginUiAction.GoogleAuth -> {
+                val signInWithGoogleOption: GetSignInWithGoogleOption = GetSignInWithGoogleOption
+                    .Builder(serverClientId = context.getString(R.string.web_client_id))
+                    .setNonce(generateSecureRandomNonce())
+                    .build()
+
+                val request: GetCredentialRequest = GetCredentialRequest.Builder()
+                    .addCredentialOption(signInWithGoogleOption)
+                    .build()
+
+                coroutineScope.launch {
+                    val credentialManager = CredentialManager.create(context)
+                    try {
+                        val result = credentialManager.getCredential(context, request)
+                        viewModel.onEvent(LoginUiEvent.GoogleCredentials(result.credential))
+                    } catch (exception: Exception) {
+                        viewModel.onEvent(LoginUiEvent.GoogleError(exception))
+                    }
+                }
+            }
+        }
+    }
 
     LoginScreen(
         state = state,
@@ -155,6 +191,12 @@ private fun LoginScreen(
             Spacer(Modifier.size(9.dp))
         }
     }
+}
+
+private fun generateSecureRandomNonce(byteLength: Int = 32): String {
+    val randomBytes = ByteArray(byteLength)
+    SecureRandom.getInstanceStrong().nextBytes(randomBytes)
+    return Base64.getUrlEncoder().withoutPadding().encodeToString(randomBytes)
 }
 
 @Composable
