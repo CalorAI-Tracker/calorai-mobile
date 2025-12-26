@@ -13,6 +13,8 @@ import dev.calorai.mobile.features.auth.data.token.TokenProvider
 import dev.calorai.mobile.features.auth.domain.AuthRepository
 import dev.calorai.mobile.features.auth.domain.LoginUseCase
 import dev.calorai.mobile.features.auth.domain.LoginUseCaseImpl
+import dev.calorai.mobile.features.auth.domain.LogoutUseCase
+import dev.calorai.mobile.features.auth.domain.LogoutUseCaseImpl
 import dev.calorai.mobile.features.auth.domain.RefreshTokensUseCase
 import dev.calorai.mobile.features.auth.domain.RefreshTokensUseCaseImpl
 import dev.calorai.mobile.features.auth.domain.SignUpUseCase
@@ -33,6 +35,7 @@ internal val authModule = module {
         LoginViewModel(
             globalRouter = get<RouterController>(qualifier<GlobalRouterContext>()),
             loginUseCase = get(),
+            getUserProfileUseCase = get(),
         )
     }
     viewModel {
@@ -40,6 +43,7 @@ internal val authModule = module {
             globalRouter = get<RouterController>(qualifier<GlobalRouterContext>()),
             signUpUseCase = get(),
             loginUseCase = get(),
+            createUserProfileUseCase = get(),
         )
     }
     single<AuthApi> { get<Retrofit>(qualifier<NetworkContext.Base>()).create(AuthApi::class.java) }
@@ -78,6 +82,11 @@ internal val authModule = module {
         LoginUseCaseImpl(
             authRepository = get(),
             deviceIdStore = get(),
+        )
+    }
+    factory<LogoutUseCase> {
+        LogoutUseCaseImpl(
+            authRepository = get(),
         )
     }
     factory<RefreshTokensUseCase> {

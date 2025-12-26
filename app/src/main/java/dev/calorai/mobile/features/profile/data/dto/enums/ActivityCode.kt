@@ -4,7 +4,9 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 enum class ActivityCode {
-    LOW,
+    SEDENTARY,
+    LIGHT,
     MODERATE,
-    HIGH
+    ACTIVE,
+    VERY_ACTIVE,
 }

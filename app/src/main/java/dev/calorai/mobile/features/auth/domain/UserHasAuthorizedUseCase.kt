@@ -1,6 +1,6 @@
 package dev.calorai.mobile.features.auth.domain
 
-import dev.calorai.mobile.features.profile.domain.UserIdStore
+import dev.calorai.mobile.features.profile.data.UserIdStore
 
 interface UserHasAuthorizedUseCase {
     suspend operator fun invoke(): Boolean

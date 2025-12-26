@@ -16,4 +16,5 @@ sealed interface ProfileUiEvent {
 
     data object SaveButtonClick : ProfileUiEvent
     data object OnRefresh : ProfileUiEvent
+    data object LogoutClick : ProfileUiEvent
 }

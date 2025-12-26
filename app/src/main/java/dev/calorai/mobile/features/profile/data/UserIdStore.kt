@@ -1,4 +1,4 @@
-package dev.calorai.mobile.features.profile.domain
+package dev.calorai.mobile.features.profile.data
 
 import android.content.Context
 import dev.calorai.mobile.features.profile.domain.model.UserId
