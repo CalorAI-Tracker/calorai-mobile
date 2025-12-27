@@ -13,6 +13,7 @@ import dev.calorai.mobile.features.auth.signUp.signUpSection
 import dev.calorai.mobile.features.main.mainSection
 import dev.calorai.mobile.features.meal.create.manual.createMealSection
 import dev.calorai.mobile.features.meal.details.mealDetailsSection
+import dev.calorai.mobile.features.onboarding.onboardingSection
 import dev.calorai.mobile.features.splash.SplashRoute
 import dev.calorai.mobile.features.splash.splashSection
 import org.koin.compose.koinInject
@@ -36,5 +37,6 @@ fun CalorAiNavGraph(
         mainSection()
         createMealSection()
         mealDetailsSection()
+        onboardingSection()
     }
 }

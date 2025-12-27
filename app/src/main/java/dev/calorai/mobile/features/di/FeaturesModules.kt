@@ -4,6 +4,7 @@ import dev.calorai.mobile.features.auth.di.authModule
 import dev.calorai.mobile.features.home.di.homeModule
 import dev.calorai.mobile.features.main.di.mainModule
 import dev.calorai.mobile.features.meal.di.mealModule
+import dev.calorai.mobile.features.onboarding.di.onboardingModule
 import dev.calorai.mobile.features.plan.di.planModule
 import dev.calorai.mobile.features.profile.di.profileModule
 import dev.calorai.mobile.features.progress.di.progressModule
@@ -21,5 +22,6 @@ internal val featureModules = module {
         progressModule,
         profileModule,
         mealModule,
+        onboardingModule,
     )
 }

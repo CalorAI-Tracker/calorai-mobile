@@ -1,7 +1,5 @@
 package dev.calorai.mobile.features.profile.ui
 
-import androidx.compose.foundation.interaction.MutableInteractionSource
-import androidx.compose.foundation.interaction.PressInteraction
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -21,24 +19,17 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.DatePickerState
-import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.ExposedDropdownMenuAnchorType
-import androidx.compose.material3.ExposedDropdownMenuBox
-import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextField
-import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -46,7 +37,6 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalResources
@@ -57,7 +47,9 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dev.calorai.mobile.R
 import dev.calorai.mobile.core.uikit.CalorAiTheme
+import dev.calorai.mobile.core.uikit.LabeledTextField
 import dev.calorai.mobile.core.uikit.PrimaryButton
+import dev.calorai.mobile.core.uikit.SimpleDropdown
 import dev.calorai.mobile.core.utils.ObserveAsEvents
 import dev.calorai.mobile.features.profile.ui.model.ActivityUi
 import dev.calorai.mobile.features.profile.ui.model.GenderUi
@@ -338,115 +330,6 @@ private fun BirthDayPicker(
         }
     ) {
         DatePicker(state = datePickerState)
-    }
-}
-
-@Composable
-private fun LabeledTextField(
-    value: String,
-    onValueChange: (String) -> Unit = {},
-    label: String,
-    readOnly: Boolean = false,
-    modifier: Modifier = Modifier,
-    keyboardOptions: KeyboardOptions = KeyboardOptions.Default,
-    onClick: () -> Unit = {},
-) {
-    Column(modifier = modifier) {
-        Text(text = label)
-        Spacer(modifier = Modifier.height(8.dp))
-        TextField(
-            value = value,
-            onValueChange = onValueChange,
-            placeholder = { Text(label) },
-            modifier = Modifier
-                .fillMaxWidth()
-                .shadow(3.dp, RoundedCornerShape(16.dp)),
-            shape = RoundedCornerShape(12.dp),
-            keyboardOptions = keyboardOptions,
-            readOnly = readOnly,
-            colors = TextFieldDefaults.colors().copy(
-                focusedContainerColor = MaterialTheme.colorScheme.surface,
-                unfocusedContainerColor = MaterialTheme.colorScheme.surface,
-                errorContainerColor = MaterialTheme.colorScheme.surface,
-                focusedIndicatorColor = Color.Transparent,
-                unfocusedIndicatorColor = Color.Transparent,
-                errorIndicatorColor = Color.Transparent,
-                disabledIndicatorColor = Color.Transparent,
-            ),
-            interactionSource = remember { MutableInteractionSource() }.also { interactionSource ->
-                LaunchedEffect(interactionSource) {
-                    interactionSource.interactions.collect {
-                        if (it is PressInteraction.Release) {
-                            onClick.invoke()
-                        }
-                    }
-                }
-            },
-            maxLines = 1,
-        )
-    }
-}
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-private fun <T> SimpleDropdown(
-    label: String,
-    placeholder: String,
-    options: List<T>,
-    selected: T?,
-    mapToString: (T) -> String,
-    onSelected: (T) -> Unit,
-    modifier: Modifier = Modifier
-) {
-    var expanded by remember { mutableStateOf(false) }
-    var stringOptions by remember { mutableStateOf(options.map { it to mapToString(it) }) }
-
-    ExposedDropdownMenuBox(
-        expanded = expanded,
-        onExpandedChange = { expanded = !expanded },
-        modifier = modifier,
-    ) {
-        Column(modifier = modifier) {
-            Text(text = label)
-            Spacer(modifier = Modifier.height(8.dp))
-            TextField(
-                value = selected?.let { mapToString(it) } ?: "",
-                onValueChange = { /* readOnly */ },
-                readOnly = true,
-                placeholder = { Text(placeholder) },
-                trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
-                modifier = Modifier
-                    .menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable)
-                    .fillMaxWidth()
-                    .shadow(3.dp, RoundedCornerShape(16.dp)),
-                shape = RoundedCornerShape(12.dp),
-                colors = TextFieldDefaults.colors().copy(
-                    focusedContainerColor = MaterialTheme.colorScheme.surface,
-                    unfocusedContainerColor = MaterialTheme.colorScheme.surface,
-                    errorContainerColor = MaterialTheme.colorScheme.surface,
-                    focusedIndicatorColor = Color.Transparent,
-                    unfocusedIndicatorColor = Color.Transparent,
-                    errorIndicatorColor = Color.Transparent,
-                    disabledIndicatorColor = Color.Transparent,
-                ),
-                maxLines = 1,
-            )
-        }
-
-        ExposedDropdownMenu(
-            expanded = expanded,
-            onDismissRequest = { expanded = false }
-        ) {
-            stringOptions.forEach { (option, stringOpt) ->
-                DropdownMenuItem(
-                    text = { Text(stringOpt) },
-                    onClick = {
-                        onSelected(option)
-                        expanded = false
-                    }
-                )
-            }
-        }
     }
 }
 
