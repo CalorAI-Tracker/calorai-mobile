@@ -32,11 +32,10 @@ fun PieChart(
     modifier: Modifier = Modifier,
     configuration: PieChartStyle
 ) {
-    val target = when (pieChartData.unitOfMeasure){
-        UnitOfMeasure.GRAM ->
-            "${pieChartData.targetValue} ${pieChartData.unitOfMeasure.unit}"
-        UnitOfMeasure.NONE ->
-            "${pieChartData.targetValue.toInt()} ${pieChartData.unitOfMeasure.unit}"
+    val unitText = stringResource(pieChartData.unitOfMeasure.unitResId)
+    val targetText = when (pieChartData.unitOfMeasure) {
+        UnitOfMeasure.GRAM -> "${pieChartData.targetValue.toInt()} $unitText"   // граммы как Int
+        UnitOfMeasure.NONE -> pieChartData.targetValue.toInt().toString()      // калории без единицы
     }
     Box(
         modifier = modifier.size(configuration.chartSize),
@@ -59,7 +58,7 @@ fun PieChart(
             modifier = Modifier.wrapContentSize()
         ) {
             Text(
-                text = target,
+                text = targetText,
                 style = configuration.labelStyle(),
                 color = MaterialTheme.colorScheme.onPrimary,
                 textAlign = TextAlign.Center

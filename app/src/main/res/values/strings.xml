@@ -96,5 +96,8 @@
     <string name="home_piechart_subtext_fat">жиров\nосталось</string>
     <string name="home_piechart_subtext_carbs">углеводов\nосталось</string>
 
+    <string name="pie_chart_unit_of_measure_none" />
+    <string name="pie_chart_unit_of_measure_gram">г</string>
+
     <string name="web_client_id">1034327741385-18ulmdssbq2pc2n21s096oens7g4a665.apps.googleusercontent.com</string>
 </resources>
