@@ -2,7 +2,7 @@ package dev.calorai.mobile.features.home.di
 
 import dev.calorai.mobile.core.navigation.GlobalRouterContext
 import dev.calorai.mobile.core.navigation.RouterController
-import dev.calorai.mobile.core.network.di.RETROFIT_AUTHORIZED
+import dev.calorai.mobile.core.network.di.NetworkContext
 import dev.calorai.mobile.features.home.data.api.DailyNutritionApi
 import dev.calorai.mobile.features.home.domain.CheckIsFirstDayOfWeekUseCase
 import dev.calorai.mobile.features.home.domain.CheckIsFirstDayOfWeekUseCaseImpl
@@ -19,14 +19,13 @@ import dev.calorai.mobile.features.home.domain.usecases.GetDailyMealsUseCaseImpl
 import dev.calorai.mobile.features.home.ui.HomeViewModel
 import org.koin.android.ext.koin.androidContext
 import org.koin.core.module.dsl.viewModel
-import org.koin.core.qualifier.named
 import org.koin.core.qualifier.qualifier
 import org.koin.dsl.module
 import retrofit2.Retrofit
 
 internal val homeModule = module {
 
-    single { get<Retrofit>(named(RETROFIT_AUTHORIZED)).create(DailyNutritionApi::class.java) }
+    single { get<Retrofit>(qualifier<NetworkContext.Authorized>()).create(DailyNutritionApi::class.java) }
     factory<GetWeekByDateUseCase> {
         GetWeekByDateUseCaseImpl(androidContext())
     }

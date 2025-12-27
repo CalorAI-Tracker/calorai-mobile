@@ -99,8 +99,8 @@ class ProfileMapper(
         healthGoalCode = mapToData(payload.healthGoalCode),
     )
 
-    fun mapToEntity(payload: CreateUserProfilePayload): UserEntity = UserEntity(
-        userId = payload.userId.value,
+    fun mapToEntity(userId: UserId, payload: CreateUserProfilePayload): UserEntity = UserEntity(
+        userId = userId.value,
         sex = mapToData(payload.gender),
         height = payload.height,
         weight = payload.weight,
@@ -151,9 +151,9 @@ class ProfileMapper(
             healthGoalCode = mapToData(payload.healthGoalCode),
         )
 
-    fun mapToRequest(payload: CreateUserProfilePayload): CreateUserProfileRequest =
+    fun mapToRequest(userId: UserId, payload: CreateUserProfilePayload): CreateUserProfileRequest =
         CreateUserProfileRequest(
-            userId = payload.userId.value,
+            userId = userId.value,
             sex = mapToData(payload.gender),
             height = payload.height,
             weight = payload.weight,
@@ -165,25 +165,30 @@ class ProfileMapper(
 
     private fun mapToData(goal: Goal): HealthGoalCode = when (goal) {
         Goal.LOSE_WEIGHT -> HealthGoalCode.LOSE_WEIGHT
-        Goal.KEEP_WEIGHT -> HealthGoalCode.MAINTAIN_WEIGHT
+        Goal.MAINTAIN -> HealthGoalCode.MAINTAIN
+        Goal.GAIN_MUSCLE -> HealthGoalCode.GAIN_MUSCLE
         Goal.GAIN_WEIGHT -> HealthGoalCode.GAIN_WEIGHT
     }
 
     private fun mapToData(activityCode: Activity): ActivityCode = when (activityCode) {
-        Activity.LIGHT -> ActivityCode.LOW
+        Activity.SEDENTARY -> ActivityCode.SEDENTARY
+        Activity.LIGHT -> ActivityCode.LIGHT
         Activity.MODERATE -> ActivityCode.MODERATE
-        Activity.ACTIVE -> ActivityCode.HIGH
+        Activity.ACTIVE -> ActivityCode.ACTIVE
+        Activity.VERY_ACTIVE -> ActivityCode.VERY_ACTIVE
     }
 
     private fun mapToData(gender: Gender): Sex = when (gender) {
-        Gender.FEMALE -> Sex.FEMALE
-        Gender.MALE -> Sex.MALE
+        Gender.FEMALE -> Sex.F
+        Gender.MALE -> Sex.M
     }
 
     private fun mapToUi(activity: Activity): ActivityUi = when (activity) {
+        Activity.SEDENTARY -> ActivityUi.SEDENTARY
         Activity.LIGHT -> ActivityUi.LIGHT
         Activity.MODERATE -> ActivityUi.MODERATE
         Activity.ACTIVE -> ActivityUi.ACTIVE
+        Activity.VERY_ACTIVE -> ActivityUi.VERY_ACTIVE
     }
 
     private fun mapToUi(gender: Gender): GenderUi = when (gender) {
@@ -193,14 +198,17 @@ class ProfileMapper(
 
     private fun mapToUi(goal: Goal): GoalUi = when (goal) {
         Goal.LOSE_WEIGHT -> GoalUi.LOSE_WEIGHT
-        Goal.KEEP_WEIGHT -> GoalUi.KEEP_WEIGHT
         Goal.GAIN_WEIGHT -> GoalUi.GAIN_WEIGHT
+        Goal.GAIN_MUSCLE -> GoalUi.GAIN_MUSCLE
+        Goal.MAINTAIN -> GoalUi.MAINTAIN
     }
 
     private fun mapToDomain(activity: ActivityUi?): Activity = when (activity) {
+        ActivityUi.SEDENTARY -> Activity.SEDENTARY
         ActivityUi.LIGHT -> Activity.LIGHT
         ActivityUi.MODERATE -> Activity.MODERATE
         ActivityUi.ACTIVE -> Activity.ACTIVE
+        ActivityUi.VERY_ACTIVE -> Activity.VERY_ACTIVE
         else -> throw ProfileException.UnknownActivity(activity.toString())
     }
 
@@ -212,26 +220,30 @@ class ProfileMapper(
 
     private fun mapToDomain(goal: GoalUi?): Goal = when (goal) {
         GoalUi.LOSE_WEIGHT -> Goal.LOSE_WEIGHT
-        GoalUi.KEEP_WEIGHT -> Goal.KEEP_WEIGHT
+        GoalUi.MAINTAIN -> Goal.MAINTAIN
         GoalUi.GAIN_WEIGHT -> Goal.GAIN_WEIGHT
+        GoalUi.GAIN_MUSCLE -> Goal.GAIN_MUSCLE
         else -> throw ProfileException.UnknownGoal(goal.toString())
     }
 
     private fun mapToDomain(activity: ActivityCode): Activity = when (activity) {
-        ActivityCode.LOW -> Activity.LIGHT
+        ActivityCode.SEDENTARY -> Activity.SEDENTARY
+        ActivityCode.LIGHT -> Activity.LIGHT
         ActivityCode.MODERATE -> Activity.MODERATE
-        ActivityCode.HIGH -> Activity.ACTIVE
+        ActivityCode.ACTIVE -> Activity.ACTIVE
+        ActivityCode.VERY_ACTIVE -> Activity.VERY_ACTIVE
     }
 
     private fun mapToDomain(sex: Sex): Gender = when (sex) {
-        Sex.FEMALE -> Gender.FEMALE
-        Sex.MALE -> Gender.MALE
+        Sex.F -> Gender.FEMALE
+        Sex.M -> Gender.MALE
     }
 
     private fun mapToDomain(goal: HealthGoalCode): Goal = when (goal) {
         HealthGoalCode.LOSE_WEIGHT -> Goal.LOSE_WEIGHT
-        HealthGoalCode.MAINTAIN_WEIGHT -> Goal.KEEP_WEIGHT
-        HealthGoalCode.GAIN_WEIGHT -> Goal.KEEP_WEIGHT
+        HealthGoalCode.MAINTAIN -> Goal.MAINTAIN
+        HealthGoalCode.GAIN_WEIGHT -> Goal.GAIN_WEIGHT
+        HealthGoalCode.GAIN_MUSCLE -> Goal.GAIN_MUSCLE
     }
 
     private fun Int?.extractNumberOrThrow(): Int {

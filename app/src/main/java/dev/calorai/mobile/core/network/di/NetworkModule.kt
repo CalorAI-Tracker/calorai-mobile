@@ -8,46 +8,47 @@ import dev.calorai.mobile.features.auth.data.token.TokenAuthenticator
 import kotlinx.serialization.json.Json
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
-import org.koin.core.qualifier.named
+import okhttp3.logging.HttpLoggingInterceptor
+import org.koin.core.qualifier.qualifier
 import org.koin.dsl.module
 import retrofit2.Retrofit
 
-private const val BASE_URL = BuildConfig.BASE_URL
-
-private const val OKHTTP_AUTH = "okHttpAuth"
-private const val OKHTTP_AUTHORIZED = "okHttpAuthorized"
-const val RETROFIT_AUTH = "retrofitAuth"
-const val RETROFIT_AUTHORIZED = "retrofitAuthorized"
-
+sealed interface NetworkContext {
+    data object Base : NetworkContext
+    data object Authorized : NetworkContext
+}
 
 internal val networkModule = module {
 
-    single {
+    single<Json> {
         Json {
             ignoreUnknownKeys = true
         }
     }
 
-    single(named(OKHTTP_AUTH)) {
+    single<OkHttpClient>(qualifier<NetworkContext.Base>()) {
+        val loggingInterceptor = HttpLoggingInterceptor().apply {
+            level = HttpLoggingInterceptor.Level.BODY
+        }
         OkHttpClient.Builder()
             .addNetworkInterceptor(ErrorResponseInterceptor(json = get()))
+            .addInterceptor(loggingInterceptor)
             .build()
     }
 
-    single(named(RETROFIT_AUTH)) {
-        val json: Json = get()
+    single<Retrofit>(qualifier<NetworkContext.Base>()) {
+        val jsonConverterFactory = get<Json>().asConverterFactory(
+            contentType = "application/json; charset=utf-8".toMediaType()
+        )
         Retrofit.Builder()
-            .baseUrl(BASE_URL)
-            .client(get(named(OKHTTP_AUTH)))
-            .addConverterFactory(
-                json.asConverterFactory("application/json; charset=utf-8".toMediaType())
-            )
+            .baseUrl(BuildConfig.BASE_URL)
+            .client(get<OkHttpClient>(qualifier<NetworkContext.Base>()))
+            .addConverterFactory(jsonConverterFactory)
             .build()
     }
 
-    single(named(OKHTTP_AUTHORIZED)) {
-        OkHttpClient.Builder()
-            .addNetworkInterceptor(ErrorResponseInterceptor(json = get()))
+    single<OkHttpClient>(qualifier<NetworkContext.Authorized>()) {
+        get<OkHttpClient>(qualifier<NetworkContext.Base>()).newBuilder()
             .addInterceptor(
                 AuthInterceptor(
                     tokenProvider = get()
@@ -56,20 +57,15 @@ internal val networkModule = module {
             .authenticator(
                 TokenAuthenticator(
                     tokenProvider = get(),
-                    tokenRefresher = get(),
+                    refreshTokensUseCase = get(),
                 )
             )
             .build()
     }
 
-    single(named(RETROFIT_AUTHORIZED)) {
-        val json: Json = get()
-        Retrofit.Builder()
-            .baseUrl(BASE_URL)
-            .client(get(named(OKHTTP_AUTHORIZED)))
-            .addConverterFactory(
-                json.asConverterFactory("application/json; charset=utf-8".toMediaType())
-            )
+    single<Retrofit>(qualifier<NetworkContext.Authorized>()) {
+        get<Retrofit>(qualifier<NetworkContext.Base>()).newBuilder()
+            .client(get<OkHttpClient>(qualifier<NetworkContext.Authorized>()))
             .build()
     }
 }

@@ -35,14 +35,18 @@
     <string name="settings_height_val_type">%1$d см</string>
     <string name="settings_weight_val_type">%1$d кг</string>
     <string name="settings_activity">Активность</string>
+    <string name="settings_activity_1">Сидячий образ жизни</string>
     <string name="settings_activity_2">0–2 (Иногда тренируюсь)</string>
     <string name="settings_activity_4">3–4 (Умеренная активность)</string>
     <string name="settings_activity_6">5–6 (Высокая активность)</string>
     <string name="settings_activity_7">7+ (Профессионально)</string>
     <string name="settings_activity_goal">Цель</string>
-    <string name="settings_goal_weight_loss">Сбросить вес</string>
-    <string name="settings_goal_weight_stability">Поддерживать вес</string>
-    <string name="settings_goal_get_weight">Набрать массу</string>
+
+    <string name="settings_goal_lose_weight">Похудеть</string>
+    <string name="settings_goal_gain_weight">Набрать вес</string>
+    <string name="settings_goal_gain_muscle">Нарастить мышечную массу</string>
+    <string name="settings_goal_maintain">Поддерживать форму</string>
+
     <string name="settings_save_btn">Сохранить</string>
     <string name="settings_date_picker_apply">Apply</string>
 
@@ -83,4 +87,6 @@
     <string name="settings_unknown_goal">Неизвестная цель: %s</string>
     <string name="settings_unknown_gender">Неизвестный пол: %s</string>
     <string name="settings_number_parse_error">Не удалось прочитать число из "%1$s"</string>
+
+    <string name="web_client_id">1034327741385-18ulmdssbq2pc2n21s096oens7g4a665.apps.googleusercontent.com</string>
 </resources>

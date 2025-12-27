@@ -1,13 +1,12 @@
 package dev.calorai.mobile.features.profile.domain
 
 import dev.calorai.mobile.features.profile.domain.model.CreateUserProfilePayload
-import dev.calorai.mobile.features.profile.domain.model.UserId
 
 interface CreateUserProfileUseCase {
 
     suspend operator fun invoke(
-        payload: CreateUserProfilePayload
-    ) : UserId
+        payload: CreateUserProfilePayload,
+    )
 }
 
 internal class CreateUserProfileUseCaseImpl(
@@ -15,8 +14,8 @@ internal class CreateUserProfileUseCaseImpl(
 ) : CreateUserProfileUseCase {
 
     override suspend fun invoke(
-        payload: CreateUserProfilePayload
-    ) : UserId {
-        return repository.createUserProfile(payload)
+        payload: CreateUserProfilePayload,
+    ) {
+        repository.createUserProfile(payload)
     }
 }

@@ -12,6 +12,7 @@ internal val splashModule = module {
         SplashViewModel(
             globalRouter = get<RouterController>(qualifier<GlobalRouterContext>()),
             userHasAuthorizedUseCase = get(),
+            refreshTokensUseCase = get(),
         )
     }
 }

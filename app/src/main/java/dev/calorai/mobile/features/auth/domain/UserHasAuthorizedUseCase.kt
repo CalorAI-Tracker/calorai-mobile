@@ -1,16 +1,16 @@
 package dev.calorai.mobile.features.auth.domain
 
-import dev.calorai.mobile.features.auth.data.token.tokenProvider.TokenProvider
+import dev.calorai.mobile.features.profile.data.UserIdStore
 
 interface UserHasAuthorizedUseCase {
-    operator fun invoke(): Boolean
+    suspend operator fun invoke(): Boolean
 }
 
 class UserHasAuthorizedUseCaseImpl(
-    private val tokenProvider: TokenProvider
+    private val userIdStore: UserIdStore,
 ) : UserHasAuthorizedUseCase {
 
-    override fun invoke(): Boolean {
-        return tokenProvider.getAccessToken().isNullOrEmpty().not()
+    override suspend fun invoke(): Boolean {
+        return userIdStore.getUserId() != null
     }
 }
