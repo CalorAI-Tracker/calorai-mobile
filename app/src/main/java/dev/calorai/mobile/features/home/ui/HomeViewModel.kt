@@ -3,19 +3,22 @@ package dev.calorai.mobile.features.home.ui
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dev.calorai.mobile.core.navigation.Router
-import dev.calorai.mobile.core.uikit.mealCard.MealType
 import dev.calorai.mobile.core.uikit.weekBar.WeekBarUiModel
-import dev.calorai.mobile.features.home.domain.CheckIsFirstDayOfWeekUseCase
-import dev.calorai.mobile.features.home.domain.GetCurrentUserNameUseCase
-import dev.calorai.mobile.features.home.domain.GetMealsForDayUseCase
-import dev.calorai.mobile.features.home.domain.GetPieChartsDataForDayUseCase
-import dev.calorai.mobile.features.home.domain.GetWeekByDateUseCase
+import dev.calorai.mobile.features.home.domain.model.DayMealProgressInfo
+import dev.calorai.mobile.features.home.domain.usecases.GetCurrentUserNameUseCase
+import dev.calorai.mobile.features.home.domain.usecases.GetDayProgressUseCase
+import dev.calorai.mobile.features.home.domain.usecases.GetWeekByDateUseCase
 import dev.calorai.mobile.features.meal.create.manual.navigateToCreateMealManualScreen
+import dev.calorai.mobile.features.meal.data.mappers.MealMapper
 import dev.calorai.mobile.features.meal.details.navigateToMealDetailsScreen
+import dev.calorai.mobile.features.meal.domain.model.MealType
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -23,42 +26,62 @@ import java.time.LocalDate
 
 class HomeViewModel constructor(
     private val getWeekByDateUseCase: GetWeekByDateUseCase,
-    private val getCurrentUserNameUseCase: GetCurrentUserNameUseCase,
-    private val checkIsFirstDayOfWeekUseCase: CheckIsFirstDayOfWeekUseCase,
-    private val getMealsForDayUseCase: GetMealsForDayUseCase,
-    private val getPieChartsDataForDayUseCase: GetPieChartsDataForDayUseCase,
+    getCurrentUserNameUseCase: GetCurrentUserNameUseCase,
+    private val getDayProgressUseCase: GetDayProgressUseCase,
+    private val mapper: MealMapper,
     private val globalRouter: Router,
 ) : ViewModel() {
 
-    private val _weekBarState = MutableStateFlow(LocalDate.now().let { today ->
+    private val currentDate = MutableStateFlow(LocalDate.now())
+    private val currentWeekProgress: Flow<List<DayMealProgressInfo>> =
+        currentDate.map { getWeekByDateUseCase.invoke(it) }
+            .distinctUntilChanged { old, new -> old.first() == new.first() }
+            .map { days: List<LocalDate> ->
+                days.map { day -> getDayProgressUseCase.invoke(day) }
+            }
+
+    private val weekBar: Flow<WeekBarUiModel> = combine(
+        currentDate,
+        currentWeekProgress,
+    ) { selectedDate: LocalDate, weekProgress: List<DayMealProgressInfo> ->
         WeekBarUiModel(
-            daysList = getWeekByDateUseCase.invoke(today),
-            selectedDate = today,
+            daysList = weekProgress.map(mapper::mapToDateUiModel),
+            selectedDate = selectedDate,
         )
-    })
+    }
+
     private val showAddIngredientDialogState = MutableStateFlow(false)
 
-    val state: StateFlow<HomeUiState> =
-        combine(
-            _weekBarState,
-            showAddIngredientDialogState,
-            getCurrentUserNameUseCase.invoke()
-        ) { week, showAddIngredientDialog, name ->
-            HomeUiState.Ready(
-                weekBar = week,
-                userName = name,
-                showAddIngredientDialog = showAddIngredientDialog,
-            )
-        }.stateIn(
-            viewModelScope,
-            SharingStarted.WhileSubscribed(500L),
-            HomeUiState.Loading,
+    val state: StateFlow<HomeUiState> = combine(
+        weekBar,
+        showAddIngredientDialogState,
+        getCurrentUserNameUseCase.invoke()
+    ) { week, showAddIngredientDialog, name ->
+        HomeUiState.Ready(
+            weekBar = week,
+            userName = name,
+            showAddIngredientDialog = showAddIngredientDialog,
         )
+    }.stateIn(
+        viewModelScope,
+        SharingStarted.WhileSubscribed(500L),
+        HomeUiState.Loading,
+    )
 
-    private val _dataState: MutableStateFlow<HomeDataUiState> =
-        MutableStateFlow(HomeDataUiState.Loading)
-
-    val dataState: StateFlow<HomeDataUiState> = _dataState.stateIn(
+    val dataState: StateFlow<HomeDataUiState> = combine(
+        currentDate,
+        currentWeekProgress,
+    ) { selectedDate: LocalDate, weekProgress: List<DayMealProgressInfo> ->
+        val currentDayInfo = weekProgress.find { it.date == selectedDate }
+        if (currentDayInfo != null) {
+            HomeDataUiState.HomeData(
+                mealsData = currentDayInfo.meals.map(mapper::mapToMealUiModel),
+                pieChartsData = mapper.mapToPieChartUiModel(currentDayInfo),
+            )
+        } else {
+            HomeDataUiState.Loading
+        }
+    }.stateIn(
         scope = viewModelScope,
         started = SharingStarted.Lazily,
         initialValue = HomeDataUiState.Loading,
@@ -67,94 +90,35 @@ class HomeViewModel constructor(
     private var selectedMealId: Long? = null
 
     init {
-        handleSelectDate(selectedDate = LocalDate.now())
+        loadDataForDate(date = LocalDate.now())
     }
 
     fun onEvent(event: HomeUiEvent) {
         when (event) {
-            is HomeUiEvent.SelectDate -> handleSelectDate(event.date.date)
+            is HomeUiEvent.SelectDate -> loadDataForDate(event.date.date)
             is HomeUiEvent.MealCardAddButtonClick -> handleMealCardAddButtonClick(event.meal.id)
             is HomeUiEvent.MealCardClick -> navigateToMealDetails(event.meal.type)
             HomeUiEvent.SelectNextDate -> selectNextDate()
             HomeUiEvent.SelectPreviousDate -> selectPreviousDate()
             HomeUiEvent.AddManualClick -> handleAddManualClick()
             HomeUiEvent.ChooseReadyClick -> handleChooseReadyClick()
-            HomeUiEvent.HideAddIngredientDialog -> handleHideAddIngredientDialog()
+            HomeUiEvent.HideAddIngredientDialog -> hideAddIngredientDialog()
         }
     }
 
-    private fun handleSelectDate(selectedDate: LocalDate) {
-        viewModelScope.launch {
-            _weekBarState.update { it.copy(selectedDate = selectedDate) }
-        }
-        viewModelScope.launch {
-            _dataState.update { HomeDataUiState.Loading }
-            val meals = getMealsForDayUseCase.invoke(selectedDate)
-            val pieChartsData = getPieChartsDataForDayUseCase.invoke(selectedDate)
-            _dataState.update {
-                HomeDataUiState.HomeData(
-                    mealsData = meals,
-                    pieChartsData = pieChartsData
-                )
-            }
-        }
+    private fun loadDataForDate(date: LocalDate) {
+        viewModelScope.launch { currentDate.update { date } }
     }
 
     private fun selectNextDate() {
-        val currentDate = _weekBarState.value.selectedDate
+        val currentDate = currentDate.value
         if (currentDate == LocalDate.now()) return
-        val nextDate = currentDate.plusDays(1)
-        if (checkIsFirstDayOfWeekUseCase(nextDate)) {
-            viewModelScope.launch {
-                _weekBarState.update {
-                    WeekBarUiModel(
-                        daysList = getWeekByDateUseCase.invoke(nextDate),
-                        selectedDate = nextDate,
-                    )
-                }
-            }
-            viewModelScope.launch {
-                _dataState.update { HomeDataUiState.Loading }
-                val meals = getMealsForDayUseCase.invoke(nextDate)
-                val pieChartsData = getPieChartsDataForDayUseCase.invoke(nextDate)
-                _dataState.update {
-                    HomeDataUiState.HomeData(
-                        mealsData = meals,
-                        pieChartsData = pieChartsData
-                    )
-                }
-            }
-        } else {
-            handleSelectDate(nextDate)
-        }
+        loadDataForDate(currentDate.plusDays(1))
     }
 
     private fun selectPreviousDate() {
-        val currentDate = _weekBarState.value.selectedDate
-        val previousDate = currentDate.minusDays(1)
-        if (checkIsFirstDayOfWeekUseCase(currentDate)) {
-            viewModelScope.launch {
-                _weekBarState.update {
-                    WeekBarUiModel(
-                        daysList = getWeekByDateUseCase.invoke(previousDate),
-                        selectedDate = previousDate,
-                    )
-                }
-            }
-            viewModelScope.launch {
-                _dataState.update { HomeDataUiState.Loading }
-                val meals = getMealsForDayUseCase.invoke(previousDate)
-                val pieChartsData = getPieChartsDataForDayUseCase.invoke(previousDate)
-                _dataState.update {
-                    HomeDataUiState.HomeData(
-                        mealsData = meals,
-                        pieChartsData = pieChartsData
-                    )
-                }
-            }
-        } else {
-            handleSelectDate(previousDate)
-        }
+        val currentDate = currentDate.value
+        loadDataForDate(currentDate.minusDays(1))
     }
 
     private fun navigateToCreateMeal(mealId: Long) {
@@ -170,7 +134,7 @@ class HomeViewModel constructor(
         selectedMealId = mealId
     }
 
-    private fun handleHideAddIngredientDialog() {
+    private fun hideAddIngredientDialog() {
         showAddIngredientDialogState.update { false }
         selectedMealId = null
     }
@@ -183,11 +147,11 @@ class HomeViewModel constructor(
                 }
             }
         }
-        handleHideAddIngredientDialog()
+        hideAddIngredientDialog()
     }
 
     private fun handleChooseReadyClick() {
         // TODO: навигация на экран выбора готового ингредиента
-        handleHideAddIngredientDialog()
+        hideAddIngredientDialog()
     }
 }

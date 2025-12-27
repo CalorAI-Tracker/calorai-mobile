@@ -40,15 +40,13 @@ import dev.calorai.mobile.core.uikit.pieChart.PieChart
 import dev.calorai.mobile.core.uikit.pieChart.PieChartStyle
 import dev.calorai.mobile.core.uikit.pieChart.PieChartUiModel
 import dev.calorai.mobile.core.uikit.weekBar.DateUiModel
+import dev.calorai.mobile.core.uikit.weekBar.TimePeriod
 import dev.calorai.mobile.core.uikit.weekBar.WeekBar
 import dev.calorai.mobile.core.uikit.weekBar.WeekBarUiModel
-import dev.calorai.mobile.core.uikit.weekBar.toTimePeriod
 import org.koin.androidx.compose.koinViewModel
 import java.time.DayOfWeek
 import java.time.LocalDate
-import java.time.format.TextStyle
 import java.time.temporal.TemporalAdjusters
-import java.util.Locale
 
 @Composable
 fun HomeRoot(
@@ -271,18 +269,13 @@ private fun MealsListItem(
 @Preview(showBackground = true)
 @Composable
 fun HomeScreenPreview() {
-    val locale = Locale.forLanguageTag("ru")
     val today = LocalDate.of(2025, 9, 13)
     val startOfWeek = today.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY))
     val days = (0L..6L).map { offset ->
         val date = startOfWeek.plusDays(offset)
         DateUiModel(
             date = date,
-            shortDayName = date.dayOfWeek.getDisplayName(TextStyle.SHORT_STANDALONE, locale)
-                .capitalize(
-                    Locale.ROOT
-                ),
-            timePeriod = date.toTimePeriod(),
+            timePeriod = TimePeriod.PRESENT,
             progress = 0.6f,
         )
     }

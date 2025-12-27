@@ -37,6 +37,8 @@ import dev.calorai.mobile.core.uikit.CalorAiTheme
 import dev.calorai.mobile.core.uikit.blurShadow
 import dev.calorai.mobile.core.uikit.calculateItemOffset
 import dev.calorai.mobile.core.uikit.circleMediumSize
+import dev.calorai.mobile.features.home.ui.model.MealTypeUi
+import dev.calorai.mobile.features.meal.domain.model.MealType
 
 @Composable
 fun MealCard(
@@ -60,8 +62,8 @@ fun MealCard(
         shape = RoundedCornerShape(30.dp),
     ) {
         MealCardContent(
-            title = mealData.title,
-            formattedSubtitle = mealData.subtitle,
+            title =  stringResource(mealData.title.labelResId),
+            formattedSubtitle = "${mealData.subtitleValue} ккал",
             foodList = mealData.visibleFoodList,
             onAddClick = onAddClick,
             onCardClick = onCardClick,
@@ -196,10 +198,10 @@ private fun MealCardPreview_EmptyImages() {
     }
     val mealUiModel = MealUiModel(
         id = 1,
-        title = "Завтрак",
+        title =  MealTypeUi.BREAKFAST,
         visibleFoodList = foodList.take(5),
-        subtitle = "345 ккал",
-        type = MealType.BREAKFAST,
+        subtitleValue = 345,
+        type = MealType.BREAKFAST
     )
     CalorAiTheme {
         Box(modifier = Modifier.padding(32.dp)) {
@@ -216,10 +218,10 @@ private fun MealCardPreview_EmptyImages() {
 private fun MealCardPreview_NoFoods() {
     val mealUiModel = MealUiModel(
         id = 2,
-        title = "Ужин",
+        title = MealTypeUi.LUNCH,
         visibleFoodList = emptyList(),
-        subtitle = "0 ккал",
-        type = MealType.DINNER,
+        subtitleValue = 0,
+        type = MealType.LUNCH
     )
     CalorAiTheme {
         Box(modifier = Modifier.padding(32.dp)) {

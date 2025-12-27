@@ -4,9 +4,9 @@ import java.time.LocalDate
 
 data class DailyMeal(
 
-    val id: Long,
+    val id: MealId,
     val date: LocalDate,
-    val meal: String,
+    val meal: MealType,
     val kcal: Int,
     val proteinG: String,
     val fatG: String,

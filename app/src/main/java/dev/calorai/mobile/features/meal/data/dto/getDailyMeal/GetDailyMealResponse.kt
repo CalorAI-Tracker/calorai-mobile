@@ -1,5 +1,6 @@
 package dev.calorai.mobile.features.meal.data.dto.getDailyMeal
 
+import dev.calorai.mobile.features.meal.data.dto.enums.MealTypeDto
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
@@ -17,7 +18,7 @@ data class GetDailyMealResponse(
 data class MealDto(
 
     @SerialName("meal")
-    val meal: String,
+    val meal: MealTypeDto,
 
     @SerialName("kcal")
     val kcal: Int,

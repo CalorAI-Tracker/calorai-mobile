@@ -32,6 +32,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import dev.calorai.mobile.core.uikit.CalorAiTheme
+import dev.calorai.mobile.core.utils.locale
 import java.time.DayOfWeek
 import java.time.LocalDate
 import java.time.format.TextStyle
@@ -68,9 +69,7 @@ private fun DayItem(
     onClick: (DateUiModel) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val timePeriod = dateData.timePeriod
-    val dayShortName = dateData.shortDayName
-    val textColor = when (timePeriod) {
+    val textColor = when (dateData.timePeriod) {
         TimePeriod.FUTURE -> MaterialTheme.colorScheme.onSurface
         TimePeriod.PAST,
         TimePeriod.PRESENT,
@@ -78,7 +77,7 @@ private fun DayItem(
     }
     val progressArcColor = MaterialTheme.colorScheme.onSurface
     val progressArc: Float by animateFloatAsState(
-        if (!(isSelected || timePeriod == TimePeriod.FUTURE)) dateData.progress else 0f
+        if (!(isSelected || dateData.timePeriod == TimePeriod.FUTURE)) dateData.progress else 0f
     )
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -96,14 +95,17 @@ private fun DayItem(
                     )
                 } else Modifier
             )
-            .clickable(enabled = timePeriod != TimePeriod.FUTURE) {
+            .clickable(enabled = dateData.timePeriod != TimePeriod.FUTURE) {
                 onClick(dateData)
             }
             .padding(vertical = 10.dp)
 
     ) {
         Text(
-            text = dayShortName,
+            text = dateData.date.dayOfWeek.getDisplayName(
+                TextStyle.SHORT_STANDALONE,
+                LocalContext.current.locale
+            ),
             textAlign = TextAlign.Center,
             style = MaterialTheme.typography.bodySmall,
             color = textColor,
@@ -161,8 +163,7 @@ private fun SelectedDayItemPreview() {
         DayItem(
             dateData = DateUiModel(
                 date = date,
-                shortDayName = date.shortDayName(context),
-                timePeriod = date.toTimePeriod(),
+                timePeriod = TimePeriod.PRESENT,
                 progress = 0.7f,
             ),
             onClick = {},
@@ -180,8 +181,7 @@ private fun TodayItemPreview() {
         DayItem(
             dateData = DateUiModel(
                 date = date,
-                shortDayName = date.shortDayName(context),
-                timePeriod = date.toTimePeriod(),
+                timePeriod = TimePeriod.PRESENT,
                 progress = 0.7f,
             ),
             onClick = {},
@@ -199,8 +199,7 @@ private fun LastDayItemPreview() {
         DayItem(
             dateData = DateUiModel(
                 date = date,
-                shortDayName = date.shortDayName(context),
-                timePeriod = date.toTimePeriod(),
+                timePeriod = TimePeriod.PRESENT,
                 progress = 0.9f,
             ),
             onClick = {},
@@ -218,8 +217,7 @@ private fun FutureDayItemPreview() {
         DayItem(
             dateData = DateUiModel(
                 date = date,
-                shortDayName = date.shortDayName(context),
-                timePeriod = date.toTimePeriod(),
+                timePeriod = TimePeriod.PRESENT,
                 progress = 0.5f,
             ),
             onClick = {},
@@ -240,8 +238,7 @@ private fun FirstWeekBarPreview() {
         val date = startOfWeek.plusDays(offset)
         DateUiModel(
             date = date,
-            shortDayName = date.shortDayName(context),
-            timePeriod = date.toTimePeriod(),
+            timePeriod = TimePeriod.PRESENT,
             progress = 0.6f,
         )
     }
@@ -270,8 +267,7 @@ private fun SecondWeekBarPreview() {
         val date = startOfWeek.plusDays(offset)
         DateUiModel(
             date = date,
-            shortDayName = date.shortDayName(context),
-            timePeriod = date.toTimePeriod(),
+            timePeriod = TimePeriod.PRESENT,
             progress = 0.6f,
         )
     }
@@ -298,11 +294,7 @@ private fun SecondWeekBarPreviewRu() {
         val date = startOfWeek.plusDays(offset)
         DateUiModel(
             date = date,
-            shortDayName = date.dayOfWeek.getDisplayName(TextStyle.SHORT_STANDALONE, locale)
-                .capitalize(
-                    Locale.ROOT
-                ),
-            timePeriod = date.toTimePeriod(),
+            timePeriod = TimePeriod.PRESENT,
             progress = 0.6f,
         )
     }

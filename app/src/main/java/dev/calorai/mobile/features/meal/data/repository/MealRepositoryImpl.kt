@@ -7,8 +7,10 @@ import dev.calorai.mobile.features.meal.data.mappers.MealMapper
 import dev.calorai.mobile.features.meal.domain.MealRepository
 import dev.calorai.mobile.features.meal.domain.model.CreateMealEntryPayload
 import dev.calorai.mobile.features.meal.domain.model.DailyMeal
+import dev.calorai.mobile.features.meal.domain.model.MealId
+import dev.calorai.mobile.features.profile.data.EmptyUserIdException
+import dev.calorai.mobile.features.profile.data.UserIdStore
 import dev.calorai.mobile.features.profile.data.dao.UserDao
-import dev.calorai.mobile.features.profile.domain.model.UserId
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
@@ -21,6 +23,7 @@ class MealRepositoryImpl(
     private val dailyMealsDao: DailyMealsDao,
     private val userDao: UserDao,
     private val mapper: MealMapper,
+    private val userIdStore: UserIdStore,
     private val dispatcher: CoroutineDispatcher = Dispatchers.IO,
 ) : MealRepository {
 
@@ -43,7 +46,7 @@ class MealRepositoryImpl(
 
     override suspend fun getDailyMeals(date: String): List<DailyMeal> = withContext(dispatcher) {
         try {
-            val userId = UserId(userDao.getUserId() ?: throw IllegalStateException("User not found"))
+            val userId = userIdStore.getUserId() ?: throw EmptyUserIdException()
             val response = api.getDailyMeal(userId = userId.value, date = date)
             if(!response.isSuccessful) {
                 return@withContext getDailyMealsLocal(date)
@@ -80,9 +83,9 @@ class MealRepositoryImpl(
                 entities.map { mapper.mapToDomain(it) }
             }
 
-    override suspend fun deleteMealById(id: Long) =
+    override suspend fun deleteMealById(id: MealId) =
         withContext(dispatcher) {
-            dailyMealsDao.deleteById(id)
+            dailyMealsDao.deleteById(id.value)
         }
 
     override suspend fun deleteMealsByDate(date: String) =

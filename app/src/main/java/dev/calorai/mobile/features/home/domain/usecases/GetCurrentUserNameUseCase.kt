@@ -1,4 +1,4 @@
-package dev.calorai.mobile.features.home.domain
+package dev.calorai.mobile.features.home.domain.usecases
 
 import dev.calorai.mobile.features.profile.data.dao.UserDao
 import kotlinx.coroutines.flow.Flow

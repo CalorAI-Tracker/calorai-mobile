@@ -7,7 +7,7 @@ import androidx.navigation.NavOptions
 import dev.calorai.mobile.core.navigation.Router
 import dev.calorai.mobile.core.uikit.bottomNavBar.BottomNavItem
 import dev.calorai.mobile.core.uikit.bottomNavBar.BottomNavItem.Companion.ITEMS
-import dev.calorai.mobile.core.uikit.mealCard.MealType
+import dev.calorai.mobile.features.meal.domain.model.MealType
 import dev.calorai.mobile.features.home.navigateToHomeScreen
 import dev.calorai.mobile.features.plan.navigateToPlanScreen
 import dev.calorai.mobile.features.progress.navigateToProgressScreen

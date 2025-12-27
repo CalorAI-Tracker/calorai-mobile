@@ -59,6 +59,9 @@
     <string name="details_meal_type_lunch">Обед</string>
     <string name="details_meal_type_dinner">Ужин</string>
     <string name="details_meal_type_snack">Перекус</string>
+    <string name="details_meal_macro_label_protein">белок</string>
+    <string name="details_meal_macro_label_fat">жиры</string>
+    <string name="details_meal_macro_label_carbs">углеводы</string>
 
     <string name="signup_title">Создай свой аккаунт</string>
     <string name="signup_description">Начни питаться лучше</string>
@@ -87,6 +90,14 @@
     <string name="settings_unknown_goal">Неизвестная цель: %s</string>
     <string name="settings_unknown_gender">Неизвестный пол: %s</string>
     <string name="settings_number_parse_error">Не удалось прочитать число из "%1$s"</string>
+
+    <string name="home_piechart_subtext_kcal">ккал осталось</string>
+    <string name="home_piechart_subtext_protein">белка\nосталось</string>
+    <string name="home_piechart_subtext_fat">жиров\nосталось</string>
+    <string name="home_piechart_subtext_carbs">углеводов\nосталось</string>
+
+    <string name="pie_chart_unit_of_measure_none">%d</string>
+    <string name="pie_chart_unit_of_measure_gram">%.1f г</string>
 
     <string name="web_client_id">1034327741385-18ulmdssbq2pc2n21s096oens7g4a665.apps.googleusercontent.com</string>
 </resources>

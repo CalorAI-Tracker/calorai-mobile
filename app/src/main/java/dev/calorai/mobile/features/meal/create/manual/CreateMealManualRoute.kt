@@ -5,7 +5,7 @@ import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavOptions
 import androidx.navigation.compose.composable
 import dev.calorai.mobile.core.navigation.Destination
-import dev.calorai.mobile.core.uikit.mealCard.MealType
+import dev.calorai.mobile.features.meal.domain.model.MealType
 import dev.calorai.mobile.features.meal.create.manual.ui.CreateMealManualRoot
 import kotlinx.serialization.Serializable
 
