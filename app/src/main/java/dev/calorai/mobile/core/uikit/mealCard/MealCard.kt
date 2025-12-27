@@ -63,7 +63,7 @@ fun MealCard(
     ) {
         MealCardContent(
             title =  stringResource(mealData.title.labelResId),
-            formattedSubtitle = mealData.subtitle,
+            formattedSubtitle = "${mealData.subtitleValue} ккал",
             foodList = mealData.visibleFoodList,
             onAddClick = onAddClick,
             onCardClick = onCardClick,
@@ -200,7 +200,7 @@ private fun MealCardPreview_EmptyImages() {
         id = 1,
         title =  MealTypeUi.BREAKFAST,
         visibleFoodList = foodList.take(5),
-        subtitle = "345 ккал",
+        subtitleValue = 345,
         type = MealType.BREAKFAST
     )
     CalorAiTheme {
@@ -220,7 +220,7 @@ private fun MealCardPreview_NoFoods() {
         id = 2,
         title = MealTypeUi.LUNCH,
         visibleFoodList = emptyList(),
-        subtitle = "0 ккал",
+        subtitleValue = 0,
         type = MealType.LUNCH
     )
     CalorAiTheme {

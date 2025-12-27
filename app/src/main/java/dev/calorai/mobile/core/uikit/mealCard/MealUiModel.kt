@@ -6,7 +6,7 @@ import dev.calorai.mobile.features.meal.domain.model.MealType
 data class MealUiModel constructor(
     val id: Long,
     val title: MealTypeUi,
-    val subtitle: String,
+    val subtitleValue: Int,
     val visibleFoodList: List<FoodUiModel>,
     val type: MealType
 )

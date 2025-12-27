@@ -32,6 +32,12 @@ fun PieChart(
     modifier: Modifier = Modifier,
     configuration: PieChartStyle
 ) {
+    val target = when (pieChartData.unitOfMeasure){
+        UnitOfMeasure.GRAM ->
+            "${pieChartData.targetValue} ${pieChartData.unitOfMeasure.unit}"
+        UnitOfMeasure.NONE ->
+            "${pieChartData.targetValue.toInt()} ${pieChartData.unitOfMeasure.unit}"
+    }
     Box(
         modifier = modifier.size(configuration.chartSize),
         contentAlignment = Alignment.Center
@@ -53,7 +59,7 @@ fun PieChart(
             modifier = Modifier.wrapContentSize()
         ) {
             Text(
-                text = pieChartData.targetText,
+                text = target,
                 style = configuration.labelStyle(),
                 color = MaterialTheme.colorScheme.onPrimary,
                 textAlign = TextAlign.Center
@@ -80,6 +86,7 @@ private fun PieChartCircle(
     Canvas(modifier = modifier.size(chartSize)) {
         val canvasSize = size
         val total = values.sum()
+        if (total <= 0f) return@Canvas
         val center = Offset(canvasSize.width / 2f, canvasSize.height / 2f)
         val outerRadius = canvasSize.minDimension / 2f
         val innerRadius = outerRadius * innerRatio
@@ -89,6 +96,11 @@ private fun PieChartCircle(
             top = center.y - outerRadius + strokeWidth / 2,
             right = center.x + outerRadius - strokeWidth / 2,
             bottom = center.y + outerRadius - strokeWidth / 2,
+        )
+        val angleCorrection = angleCorrectionCalc(
+            strokeWidth = strokeWidth,
+            outerRadius = outerRadius,
+            additionalOffsetCoeff = additionalOffsetCoeff
         )
         drawContext.canvas.saveLayer(
             bounds = Rect(
@@ -101,34 +113,41 @@ private fun PieChartCircle(
         )
         var startAngle = -90f
         values.forEachIndexed { index, value ->
+            if (value <= 0f) {
+                val sweepAngle = (value / total) * 360f
+                startAngle += sweepAngle
+                return@forEachIndexed
+            }
             val sweepAngle = (value / total) * 360f
-            val angleCorrection = angleCorrectionCalc(
-                strokeWidth = strokeWidth,
-                outerRadius = outerRadius,
-                additionalOffsetCoeff = additionalOffsetCoeff
-            )
-            drawArc(
-                color = colors[index % colors.size],
-                startAngle = startAngle + angleCorrection,
-                sweepAngle = sweepAngle - 2 * angleCorrection,
-                useCenter = false,
-                style = Stroke(width = strokeWidth, cap = StrokeCap.Round),
-                topLeft = arcRect.topLeft,
-                size = arcRect.size,
-            )
+            val correctedSweep = (sweepAngle - 2 * angleCorrection).coerceAtLeast(0f)
+            if (correctedSweep > 0f) {
+                val drawStart = startAngle + angleCorrection
+                drawArc(
+                    color = colors[index % colors.size],
+                    startAngle = drawStart,
+                    sweepAngle = correctedSweep,
+                    useCenter = false,
+                    style = Stroke(width = strokeWidth, cap = StrokeCap.Round),
+                    topLeft = arcRect.topLeft,
+                    size = arcRect.size,
+                )
+            }
             startAngle += sweepAngle
         }
+
         val clearPaint = ComposePaint().apply { blendMode = BlendMode.Clear }
         drawContext.canvas.drawCircle(center, innerRadius, clearPaint)
         drawContext.canvas.restore()
     }
 }
 
+
 @Preview(showBackground = true)
 @Composable
 fun MediumPieChartPreview() {
     val model = PieChartUiModel(
-        targetText = "59 г",
+        targetValue = 59f,
+        unitOfMeasure = UnitOfMeasure.GRAM,
         targetSubtext =  PieChartSubtextUi.PROTEIN.labelResId,
         leftText = "325 ккал",
         pieData = listOf(50f, 50f)
@@ -146,10 +165,30 @@ fun MediumPieChartPreview() {
 @Composable
 fun LargePieChartPreview() {
     val model = PieChartUiModel(
-        targetText = "1003",
+        targetValue = 1003f,
+        unitOfMeasure = UnitOfMeasure.NONE,
         targetSubtext = PieChartSubtextUi.KCAL.labelResId,
         leftText = "325 ккал",
-        pieData = listOf(40f, 60f)
+        pieData = listOf(30f, 60f)
+    )
+    CalorAiTheme {
+        PieChart(
+            pieChartData = model,
+            modifier = Modifier,
+            configuration = PieChartStyle.LARGE
+        )
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun LargeEmptyProgressPieChartPreview() {
+    val model = PieChartUiModel(
+        targetValue = 1003f,
+        unitOfMeasure = UnitOfMeasure.NONE,
+        targetSubtext = PieChartSubtextUi.KCAL.labelResId,
+        leftText = "325 ккал",
+        pieData = listOf(0f, 60f)
     )
     CalorAiTheme {
         PieChart(

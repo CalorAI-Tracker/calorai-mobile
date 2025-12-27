@@ -8,6 +8,7 @@ import dev.calorai.mobile.features.meal.domain.MealRepository
 import dev.calorai.mobile.features.meal.domain.model.CreateMealEntryPayload
 import dev.calorai.mobile.features.meal.domain.model.DailyMeal
 import dev.calorai.mobile.features.meal.domain.model.MealId
+import dev.calorai.mobile.features.profile.data.EmptyUserIdException
 import dev.calorai.mobile.features.profile.data.UserIdStore
 import dev.calorai.mobile.features.profile.data.dao.UserDao
 import kotlinx.coroutines.CoroutineDispatcher
@@ -45,7 +46,7 @@ class MealRepositoryImpl(
 
     override suspend fun getDailyMeals(date: String): List<DailyMeal> = withContext(dispatcher) {
         try {
-            val userId = userIdStore.getUserId() ?: throw IllegalStateException("User not found")
+            val userId = userIdStore.getUserId() ?: throw EmptyUserIdException()
             val response = api.getDailyMeal(userId = userId.value, date = date)
             if(!response.isSuccessful) {
                 return@withContext getDailyMealsLocal(date)

@@ -2,6 +2,7 @@ package dev.calorai.mobile.features.meal.data.mappers
 
 import dev.calorai.mobile.core.uikit.mealCard.MealUiModel
 import dev.calorai.mobile.core.uikit.pieChart.PieChartUiModel
+import dev.calorai.mobile.core.uikit.pieChart.UnitOfMeasure
 import dev.calorai.mobile.core.uikit.weekBar.DateUiModel
 import dev.calorai.mobile.core.uikit.weekBar.TimePeriod
 import dev.calorai.mobile.features.home.domain.model.DayMealProgressInfo
@@ -92,7 +93,7 @@ class MealMapper {
         MealUiModel(
             id = dailyMeal.id.value,
             title = mapToUi(dailyMeal.meal),
-            subtitle = "${dailyMeal.kcal} ккал",
+            subtitleValue = dailyMeal.kcal,
             visibleFoodList = emptyList(),  // TODO: Потом исправить, когда сделаем составные приема пищи
             type = dailyMeal.meal,
         )
@@ -105,25 +106,29 @@ class MealMapper {
 
     fun mapToPieChartUiModel(dayInfo: DayMealProgressInfo): List<PieChartUiModel> = listOf(
         PieChartUiModel(
-            targetText = dayInfo.remainingAmountKcal.toString(),
+            targetValue = dayInfo.remainingAmountKcal,
+            unitOfMeasure = UnitOfMeasure.NONE,
             targetSubtext = PieChartSubtextUi.KCAL.labelResId,
             leftText = "",
             pieData = dayInfo.ratioKcal,
         ),
         PieChartUiModel(
-            targetText = "${dayInfo.remainingAmountProtein} г", // TODO() move text format to UI
+            targetValue = dayInfo.remainingAmountProtein,
+            unitOfMeasure = UnitOfMeasure.GRAM,
             targetSubtext = PieChartSubtextUi.PROTEIN.labelResId,
             leftText = "",
             pieData = dayInfo.ratioProtein,
         ),
         PieChartUiModel(
-            targetText = "${dayInfo.remainingAmountFat} г", // TODO() move text format to UI
+            targetValue = dayInfo.remainingAmountFat,
+            unitOfMeasure = UnitOfMeasure.GRAM,
             targetSubtext = PieChartSubtextUi.FAT.labelResId,
             leftText = "",
             pieData = dayInfo.ratioFat,
         ),
         PieChartUiModel(
-            targetText = "${dayInfo.remainingAmountCarbs} г", // TODO() move text format to UI
+            targetValue = dayInfo.remainingAmountCarbs,
+            unitOfMeasure = UnitOfMeasure.GRAM,
             targetSubtext = PieChartSubtextUi.CARBS.labelResId,
             leftText = "",
             pieData = dayInfo.ratioCarbs,

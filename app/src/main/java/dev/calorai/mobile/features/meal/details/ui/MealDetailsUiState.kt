@@ -11,7 +11,7 @@ data class MealDetailsUiState(
 )
 
 data class MacroUi(
-    val valueText: String,
+    val value: Float,
     @StringRes val label: Int,
     val values: List<Float>
 )
