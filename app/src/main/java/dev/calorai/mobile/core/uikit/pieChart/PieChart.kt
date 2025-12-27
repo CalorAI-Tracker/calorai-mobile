@@ -17,11 +17,13 @@ import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import dev.calorai.mobile.core.uikit.CalorAiTheme
 import dev.calorai.mobile.core.uikit.angleCorrectionCalc
+import dev.calorai.mobile.features.home.ui.model.PieChartSubtextUi
 import androidx.compose.ui.graphics.Paint as ComposePaint
 
 @Composable
@@ -57,7 +59,7 @@ fun PieChart(
                 textAlign = TextAlign.Center
             )
             Text(
-                text = pieChartData.targetSubtext,
+                text = stringResource(pieChartData.targetSubtext),
                 style = configuration.textStyle(),
                 color = MaterialTheme.colorScheme.onSurface,
                 textAlign = TextAlign.Center
@@ -127,7 +129,7 @@ private fun PieChartCircle(
 fun MediumPieChartPreview() {
     val model = PieChartUiModel(
         targetText = "59 г",
-        targetSubtext = "белка\nосталось",
+        targetSubtext =  PieChartSubtextUi.PROTEIN.labelResId,
         leftText = "325 ккал",
         pieData = listOf(50f, 50f)
     )
@@ -145,7 +147,7 @@ fun MediumPieChartPreview() {
 fun LargePieChartPreview() {
     val model = PieChartUiModel(
         targetText = "1003",
-        targetSubtext = "ккал осталось",
+        targetSubtext = PieChartSubtextUi.KCAL.labelResId,
         leftText = "325 ккал",
         pieData = listOf(40f, 60f)
     )

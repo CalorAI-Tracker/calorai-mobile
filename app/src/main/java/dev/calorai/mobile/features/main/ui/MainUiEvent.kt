@@ -1,7 +1,7 @@
 package dev.calorai.mobile.features.main.ui
 
 import dev.calorai.mobile.core.uikit.bottomNavBar.BottomNavItem
-import dev.calorai.mobile.core.uikit.mealCard.MealType
+import dev.calorai.mobile.features.meal.domain.model.MealType
 
 sealed interface MainUiEvent {
     data object FetchStartDestination : MainUiEvent

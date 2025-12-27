@@ -23,6 +23,7 @@ internal val mealModule = module {
             dailyMealsDao = get(),
             userDao = get(),
             mapper = get(),
+            userIdStore = get(),
         )
     }
 

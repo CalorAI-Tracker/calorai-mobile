@@ -33,10 +33,11 @@ import dev.calorai.mobile.core.uikit.AddIngredientBottomPanel
 import dev.calorai.mobile.core.uikit.CalorAiTheme
 import dev.calorai.mobile.core.uikit.PrimaryButton
 import dev.calorai.mobile.core.uikit.commonGradientBackground
-import dev.calorai.mobile.core.uikit.mealCard.MealType
+import dev.calorai.mobile.features.meal.domain.model.MealType
 import dev.calorai.mobile.core.uikit.pieChart.PieChart
 import dev.calorai.mobile.core.uikit.pieChart.PieChartStyle
 import dev.calorai.mobile.core.uikit.pieChart.PieChartUiModel
+import dev.calorai.mobile.features.meal.details.ui.model.MacroLabelUi
 import org.koin.androidx.compose.koinViewModel
 
 @Composable
@@ -222,9 +223,9 @@ private fun MealDetailsScreenPreview() {
             uiState = MealDetailsUiState(
                 mealType = MealType.DINNER,
                 macros = listOf(
-                    MacroUi("16 г", "Белок", listOf(70f, 30f)),
-                    MacroUi("24 г", "Углеводы", listOf(85f, 15f)),
-                    MacroUi("14 г", "Жиры", listOf(60f, 40f)),
+                    MacroUi("16 г", MacroLabelUi.PROTEIN.labelResId, listOf(70f, 30f)),
+                    MacroUi("24 г", MacroLabelUi.FAT.labelResId, listOf(85f, 15f)),
+                    MacroUi("14 г", MacroLabelUi.CARBS.labelResId, listOf(60f, 40f)),
                 ),
                 ingredients = listOf(
 //                    IngredientUi("Креветки", "99 ккал", "8 шт"),

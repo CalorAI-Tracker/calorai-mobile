@@ -1,11 +1,16 @@
 package dev.calorai.mobile.features.meal.data.mappers
 
+import dev.calorai.mobile.core.uikit.mealCard.MealUiModel
+import dev.calorai.mobile.features.home.ui.model.MealTypeUi
+import dev.calorai.mobile.features.meal.domain.model.MealType
 import dev.calorai.mobile.features.meal.data.dto.createMealEntry.CreateMealEntryRequest
+import dev.calorai.mobile.features.meal.data.dto.enums.MealTypeDto
 import dev.calorai.mobile.features.meal.data.dto.getDailyMeal.GetDailyMealResponse
 import dev.calorai.mobile.features.meal.data.dto.getDailyMeal.MealDto
 import dev.calorai.mobile.features.meal.data.entity.DailyMealsEntity
 import dev.calorai.mobile.features.meal.domain.model.CreateMealEntryPayload
 import dev.calorai.mobile.features.meal.domain.model.DailyMeal
+import dev.calorai.mobile.features.meal.domain.model.MealId
 import java.time.LocalDate
 
 class MealMapper {
@@ -13,7 +18,7 @@ class MealMapper {
     fun mapToRequest(payload: CreateMealEntryPayload): CreateMealEntryRequest =
         CreateMealEntryRequest(
             entryName = payload.entryName,
-            meal = payload.meal,
+            meal = mapToData(payload.meal),
             eatenAt = payload.eatenAt,
             proteinPerBaseG = payload.proteinPerBaseG,
             fatPerBaseG = payload.fatPerBaseG,
@@ -28,7 +33,7 @@ class MealMapper {
     fun mapToEntity(dto: MealDto, date: String): DailyMealsEntity =
         DailyMealsEntity(
             date = date,
-            meal = dto.meal,
+            meal = dto.meal.name,
             kcal = dto.kcal,
             proteinG = dto.proteinG,
             fatG = dto.fatG,
@@ -40,7 +45,7 @@ class MealMapper {
         return dailyMeals.map { dailyMeal ->
             DailyMealsEntity(
                 date = dailyMeal.date.toString(),
-                meal = dailyMeal.meal,
+                meal = dailyMeal.meal.name,
                 kcal = dailyMeal.kcal,
                 proteinG = dailyMeal.proteinG,
                 fatG = dailyMeal.fatG,
@@ -52,9 +57,9 @@ class MealMapper {
 
     fun mapToDomain(entity: DailyMealsEntity): DailyMeal =
         DailyMeal(
-            id = entity.id,
+            id = MealId(entity.id),
             date = LocalDate.parse(entity.date),
-            meal = entity.meal,
+            meal = MealType.valueOf(entity.meal),
             kcal = entity.kcal,
             proteinG = entity.proteinG,
             fatG = entity.fatG,
@@ -66,9 +71,9 @@ class MealMapper {
         val date = LocalDate.parse(response.date)
         return response.meals.map { mealDto ->
             DailyMeal(
-                id = 0L,
+                id = MealId(0L),
                 date = date,
-                meal = mealDto.meal,
+                meal = mapToData(mealDto.meal),
                 kcal = mealDto.kcal,
                 proteinG = mealDto.proteinG,
                 fatG = mealDto.fatG,
@@ -76,5 +81,35 @@ class MealMapper {
                 entriesCnt = mealDto.entriesCnt
             )
         }
+    }
+
+    fun mapToUiModel(dailyMeal: DailyMeal): MealUiModel =
+        MealUiModel(
+            id = dailyMeal.id.value,
+            title = mapToUi(dailyMeal.meal),
+            subtitle = "${dailyMeal.kcal} ккал",
+            visibleFoodList = emptyList(),  // TODO: Потом исправить, когда сделаем составные приема пищи
+            type = dailyMeal.meal,
+        )
+
+    private fun mapToData(mealType: MealType): MealTypeDto = when (mealType) {
+        MealType.BREAKFAST -> MealTypeDto.BREAKFAST
+        MealType.DINNER -> MealTypeDto.DINNER
+        MealType.LUNCH -> MealTypeDto.LUNCH
+        MealType.SNACK -> MealTypeDto.SNACK
+    }
+
+    private fun mapToData(mealType: MealTypeDto): MealType = when (mealType) {
+        MealTypeDto.BREAKFAST -> MealType.BREAKFAST
+        MealTypeDto.DINNER -> MealType.DINNER
+        MealTypeDto.LUNCH -> MealType.LUNCH
+        MealTypeDto.SNACK -> MealType.SNACK
+    }
+
+    private fun mapToUi(mealType: MealType): MealTypeUi = when (mealType) {
+        MealType.BREAKFAST -> MealTypeUi.BREAKFAST
+        MealType.DINNER -> MealTypeUi.DINNER
+        MealType.LUNCH -> MealTypeUi.LUNCH
+        MealType.SNACK -> MealTypeUi.SNACK
     }
 }

@@ -1,11 +1,14 @@
 package dev.calorai.mobile.core.uikit.mealCard
 
+import dev.calorai.mobile.features.home.ui.model.MealTypeUi
+import dev.calorai.mobile.features.meal.domain.model.MealType
+
 data class MealUiModel constructor(
     val id: Long,
-    val title: String,
+    val title: MealTypeUi,
     val subtitle: String,
     val visibleFoodList: List<FoodUiModel>,
-    val type: MealType,
+    val type: MealType
 )
 
 data class FoodUiModel(

@@ -1,6 +1,7 @@
 package dev.calorai.mobile.features.meal.details.ui
 
-import dev.calorai.mobile.core.uikit.mealCard.MealType
+import androidx.annotation.StringRes
+import dev.calorai.mobile.features.meal.domain.model.MealType
 
 data class MealDetailsUiState(
     val mealType: MealType = MealType.BREAKFAST,
@@ -11,7 +12,7 @@ data class MealDetailsUiState(
 
 data class MacroUi(
     val valueText: String,
-    val label: String,
+    @StringRes val label: Int,
     val values: List<Float>
 )
 

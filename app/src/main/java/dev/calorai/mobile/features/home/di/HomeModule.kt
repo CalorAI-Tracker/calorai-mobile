@@ -8,14 +8,10 @@ import dev.calorai.mobile.features.home.domain.CheckIsFirstDayOfWeekUseCase
 import dev.calorai.mobile.features.home.domain.CheckIsFirstDayOfWeekUseCaseImpl
 import dev.calorai.mobile.features.home.domain.GetCurrentUserNameUseCase
 import dev.calorai.mobile.features.home.domain.GetCurrentUserNameUseCaseImpl
-import dev.calorai.mobile.features.home.domain.GetMealsForDayUseCase
-import dev.calorai.mobile.features.home.domain.GetMealsForDayUseCaseImpl
-import dev.calorai.mobile.features.home.domain.usecases.GetPieChartsDataForDayUseCase
-import dev.calorai.mobile.features.home.domain.usecases.GetPieChartsDataForDayUseCaseImpl
 import dev.calorai.mobile.features.home.domain.GetWeekByDateUseCase
 import dev.calorai.mobile.features.home.domain.GetWeekByDateUseCaseImpl
-import dev.calorai.mobile.features.home.domain.usecases.GetDailyMealsUseCase
-import dev.calorai.mobile.features.home.domain.usecases.GetDailyMealsUseCaseImpl
+import dev.calorai.mobile.features.home.domain.usecases.GetMealsForDayUseCase
+import dev.calorai.mobile.features.home.domain.usecases.GetMealsForDayUseCaseImpl
 import dev.calorai.mobile.features.home.ui.HomeViewModel
 import org.koin.android.ext.koin.androidContext
 import org.koin.core.module.dsl.viewModel
@@ -36,21 +32,15 @@ internal val homeModule = module {
         GetCurrentUserNameUseCaseImpl(userDao = get())
     }
     factory<GetMealsForDayUseCase> {
-        GetMealsForDayUseCaseImpl()
-    }
-    factory<GetPieChartsDataForDayUseCase> {
-        GetPieChartsDataForDayUseCaseImpl(repository = get())
-    }
-    factory<GetDailyMealsUseCase> {
-        GetDailyMealsUseCaseImpl(repository = get())
+        GetMealsForDayUseCaseImpl(repository = get())
     }
     viewModel {
         HomeViewModel(
             getWeekByDateUseCase = get<GetWeekByDateUseCase>(),
             getCurrentUserNameUseCase = get<GetCurrentUserNameUseCase>(),
             getMealsForDayUseCase = get<GetMealsForDayUseCase>(),
-            getPieChartsDataForDayUseCase = get<GetPieChartsDataForDayUseCase>(),
             checkIsFirstDayOfWeekUseCase = get<CheckIsFirstDayOfWeekUseCase>(),
+            mapper = get(),
             globalRouter = get<RouterController>(qualifier<GlobalRouterContext>()),
         )
     }

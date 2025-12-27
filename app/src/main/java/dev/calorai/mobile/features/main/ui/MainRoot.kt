@@ -33,7 +33,7 @@ import dev.calorai.mobile.core.uikit.CalorAiTheme
 import dev.calorai.mobile.core.uikit.bottomNavBar.BottomNavBar
 import dev.calorai.mobile.core.uikit.bottomNavBar.BottomNavItem
 import dev.calorai.mobile.core.uikit.commonGradientBackground
-import dev.calorai.mobile.core.uikit.mealCard.MealType
+import dev.calorai.mobile.features.meal.domain.model.MealType
 import dev.calorai.mobile.features.main.MainNavGraph
 import dev.calorai.mobile.features.home.ui.HomeScreenPreview
 import kotlinx.coroutines.launch

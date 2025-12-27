@@ -3,16 +3,17 @@ package dev.calorai.mobile.features.home.ui
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dev.calorai.mobile.core.navigation.Router
-import dev.calorai.mobile.core.uikit.mealCard.MealType
+import dev.calorai.mobile.core.uikit.pieChart.PieChartUiModel
+import dev.calorai.mobile.features.meal.domain.model.MealType
 import dev.calorai.mobile.core.uikit.weekBar.WeekBarUiModel
 import dev.calorai.mobile.features.home.domain.CheckIsFirstDayOfWeekUseCase
 import dev.calorai.mobile.features.home.domain.GetCurrentUserNameUseCase
-import dev.calorai.mobile.features.home.domain.GetMealsForDayUseCase
-import dev.calorai.mobile.features.home.domain.usecases.GetPieChartsDataForDayUseCase
 import dev.calorai.mobile.features.home.domain.GetWeekByDateUseCase
 import dev.calorai.mobile.features.meal.create.manual.navigateToCreateMealManualScreen
 import dev.calorai.mobile.features.meal.details.navigateToMealDetailsScreen
-import dev.calorai.mobile.features.home.domain.usecases.GetDailyMealsUseCase
+import dev.calorai.mobile.features.home.domain.usecases.GetMealsForDayUseCase
+import dev.calorai.mobile.features.home.ui.model.PieChartSubtextUi
+import dev.calorai.mobile.features.meal.data.mappers.MealMapper
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -27,7 +28,7 @@ class HomeViewModel constructor(
     private val getCurrentUserNameUseCase: GetCurrentUserNameUseCase,
     private val checkIsFirstDayOfWeekUseCase: CheckIsFirstDayOfWeekUseCase,
     private val getMealsForDayUseCase: GetMealsForDayUseCase,
-    private val getPieChartsDataForDayUseCase: GetPieChartsDataForDayUseCase,
+    private val mapper: MealMapper,
     private val globalRouter: Router,
 ) : ViewModel() {
 
@@ -90,8 +91,9 @@ class HomeViewModel constructor(
         }
         viewModelScope.launch {
             _dataState.update { HomeDataUiState.Loading }
-            val meals = getMealsForDayUseCase.invoke(selectedDate)
-            val pieChartsData = getPieChartsDataForDayUseCase.invoke(selectedDate)
+            val meals = getMealsForDayUseCase.invoke(selectedDate.toString())
+                .map { dailyMeal -> mapper.mapToUiModel(dailyMeal) }
+            val pieChartsData = CreatePieChartUiModels(selectedDate)
             _dataState.update {
                 HomeDataUiState.HomeData(
                     mealsData = meals,
@@ -116,8 +118,9 @@ class HomeViewModel constructor(
             }
             viewModelScope.launch {
                 _dataState.update { HomeDataUiState.Loading }
-                val meals = getMealsForDayUseCase.invoke(nextDate)
-                val pieChartsData = getPieChartsDataForDayUseCase.invoke(nextDate)
+                val meals = getMealsForDayUseCase.invoke(nextDate.toString())
+                    .map { dailyMeal -> mapper.mapToUiModel(dailyMeal) }
+                val pieChartsData = CreatePieChartUiModels(nextDate)
                 _dataState.update {
                     HomeDataUiState.HomeData(
                         mealsData = meals,
@@ -144,8 +147,9 @@ class HomeViewModel constructor(
             }
             viewModelScope.launch {
                 _dataState.update { HomeDataUiState.Loading }
-                val meals = getMealsForDayUseCase.invoke(previousDate)
-                val pieChartsData = getPieChartsDataForDayUseCase.invoke(previousDate)
+                val meals = getMealsForDayUseCase.invoke(previousDate.toString())
+                    .map { dailyMeal -> mapper.mapToUiModel(dailyMeal) }
+                val pieChartsData = CreatePieChartUiModels(previousDate)
                 _dataState.update {
                     HomeDataUiState.HomeData(
                         mealsData = meals,
@@ -191,4 +195,81 @@ class HomeViewModel constructor(
         // TODO: навигация на экран выбора готового ингредиента
         handleHideAddIngredientDialog()
     }
+
+    private suspend fun CreatePieChartUiModels(
+        date: LocalDate
+    ) : List<PieChartUiModel> {
+        // TODO: Потом поменять на получение целей
+        val goalKcal: Int = 2000
+        val goalProtein: Double = 100.0
+        val goalFat: Double = 70.0
+        val goalCarbs: Double = 225.0
+
+        val meals = getMealsForDayUseCase.invoke(date.toString())
+
+        val totalKcal = meals.sumOf { it.kcal }
+        val totalProtein = meals.sumOf { it.proteinG.toDoubleOrNull() ?: 0.0 }
+        val totalFat = meals.sumOf { it.fatG.toDoubleOrNull() ?: 0.0 }
+        val totalCarbs = meals.sumOf { it.carbsG.toDoubleOrNull() ?: 0.0 }
+
+        return listOf(
+            PieChartUiModel(
+                targetText = calcRemainingAmount(
+                    totalKcal,
+                    goalKcal
+                ).toString(),
+                targetSubtext = PieChartSubtextUi.KCAL.labelResId,
+                leftText = "",
+                pieData = calcRatios(totalKcal.toDouble(), goalKcal.toDouble()),
+            ),
+            PieChartUiModel(
+                targetText = "${calcRemainingAmount(
+                    totalProtein,
+                    goalProtein
+                )} г",
+                targetSubtext = PieChartSubtextUi.PROTEIN.labelResId,
+                leftText = "",
+                pieData = calcRatios(totalProtein, goalProtein),
+            ),
+            PieChartUiModel(
+                targetText = "${calcRemainingAmount(
+                    totalFat,
+                    goalFat
+                )} г",
+                targetSubtext = PieChartSubtextUi.FAT.labelResId,
+                leftText = "",
+                pieData = calcRatios(totalFat, goalFat),
+            ),
+            PieChartUiModel(
+                targetText = "${calcRemainingAmount(
+                    totalCarbs,
+                    goalCarbs
+                )} г",
+                targetSubtext = PieChartSubtextUi.CARBS.labelResId,
+                leftText = "",
+                pieData = calcRatios(totalCarbs, goalCarbs),
+            ),
+        )
+    }
+
+    private fun calcRemainingAmount(consumed: Double, goal: Double): Double {
+        val remaining = goal - consumed
+        return if (remaining > 0) remaining else 0.0
+    }
+
+    private fun calcRemainingAmount(consumed: Int, goal: Int): Int {
+        val remaining = goal - consumed
+        return if (remaining > 0) remaining else 0
+    }
+
+    private fun calcRatios(consumed: Double, goal: Double): List<Float> {
+        if (goal <= 0.0) return listOf(0f, 0f)
+        val consumedRatio = (consumed / goal)
+            .coerceIn(0.0, 1.0)
+        return listOf(
+            consumedRatio.toFloat(),
+            (1.0 - consumedRatio).toFloat()
+        )
+    }
 }
+
