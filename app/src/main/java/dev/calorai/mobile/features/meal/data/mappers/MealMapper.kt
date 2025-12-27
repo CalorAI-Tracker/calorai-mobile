@@ -1,8 +1,12 @@
 package dev.calorai.mobile.features.meal.data.mappers
 
 import dev.calorai.mobile.core.uikit.mealCard.MealUiModel
+import dev.calorai.mobile.core.uikit.pieChart.PieChartUiModel
+import dev.calorai.mobile.core.uikit.weekBar.DateUiModel
+import dev.calorai.mobile.core.uikit.weekBar.TimePeriod
+import dev.calorai.mobile.features.home.domain.model.DayMealProgressInfo
 import dev.calorai.mobile.features.home.ui.model.MealTypeUi
-import dev.calorai.mobile.features.meal.domain.model.MealType
+import dev.calorai.mobile.features.home.ui.model.PieChartSubtextUi
 import dev.calorai.mobile.features.meal.data.dto.createMealEntry.CreateMealEntryRequest
 import dev.calorai.mobile.features.meal.data.dto.enums.MealTypeDto
 import dev.calorai.mobile.features.meal.data.dto.getDailyMeal.GetDailyMealResponse
@@ -11,6 +15,7 @@ import dev.calorai.mobile.features.meal.data.entity.DailyMealsEntity
 import dev.calorai.mobile.features.meal.domain.model.CreateMealEntryPayload
 import dev.calorai.mobile.features.meal.domain.model.DailyMeal
 import dev.calorai.mobile.features.meal.domain.model.MealId
+import dev.calorai.mobile.features.meal.domain.model.MealType
 import java.time.LocalDate
 
 class MealMapper {
@@ -83,7 +88,7 @@ class MealMapper {
         }
     }
 
-    fun mapToUiModel(dailyMeal: DailyMeal): MealUiModel =
+    fun mapToMealUiModel(dailyMeal: DailyMeal): MealUiModel =
         MealUiModel(
             id = dailyMeal.id.value,
             title = mapToUi(dailyMeal.meal),
@@ -91,6 +96,39 @@ class MealMapper {
             visibleFoodList = emptyList(),  // TODO: Потом исправить, когда сделаем составные приема пищи
             type = dailyMeal.meal,
         )
+
+    fun mapToDateUiModel(dayProgress: DayMealProgressInfo): DateUiModel = DateUiModel(
+        date = dayProgress.date,
+        timePeriod = dayProgress.date.toTimePeriod(),
+        progress = dayProgress.ratioKcal.first(),
+    )
+
+    fun mapToPieChartUiModel(dayInfo: DayMealProgressInfo): List<PieChartUiModel> = listOf(
+        PieChartUiModel(
+            targetText = dayInfo.remainingAmountKcal.toString(),
+            targetSubtext = PieChartSubtextUi.KCAL.labelResId,
+            leftText = "",
+            pieData = dayInfo.ratioKcal,
+        ),
+        PieChartUiModel(
+            targetText = "${dayInfo.remainingAmountProtein} г", // TODO() move text format to UI
+            targetSubtext = PieChartSubtextUi.PROTEIN.labelResId,
+            leftText = "",
+            pieData = dayInfo.ratioProtein,
+        ),
+        PieChartUiModel(
+            targetText = "${dayInfo.remainingAmountFat} г", // TODO() move text format to UI
+            targetSubtext = PieChartSubtextUi.FAT.labelResId,
+            leftText = "",
+            pieData = dayInfo.ratioFat,
+        ),
+        PieChartUiModel(
+            targetText = "${dayInfo.remainingAmountCarbs} г", // TODO() move text format to UI
+            targetSubtext = PieChartSubtextUi.CARBS.labelResId,
+            leftText = "",
+            pieData = dayInfo.ratioCarbs,
+        ),
+    )
 
     private fun mapToData(mealType: MealType): MealTypeDto = when (mealType) {
         MealType.BREAKFAST -> MealTypeDto.BREAKFAST
@@ -112,4 +150,11 @@ class MealMapper {
         MealType.LUNCH -> MealTypeUi.LUNCH
         MealType.SNACK -> MealTypeUi.SNACK
     }
+
+    private fun LocalDate.toTimePeriod(referenceDate: LocalDate = LocalDate.now()): TimePeriod =
+        when {
+            isBefore(referenceDate) -> TimePeriod.PAST
+            isAfter(referenceDate) -> TimePeriod.FUTURE
+            else -> TimePeriod.PRESENT
+        }
 }
