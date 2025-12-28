@@ -43,7 +43,6 @@ internal val authModule = module {
             globalRouter = get<RouterController>(qualifier<GlobalRouterContext>()),
             signUpUseCase = get(),
             loginUseCase = get(),
-            createUserProfileUseCase = get(),
         )
     }
     single<AuthApi> { get<Retrofit>(qualifier<NetworkContext.Base>()).create(AuthApi::class.java) }

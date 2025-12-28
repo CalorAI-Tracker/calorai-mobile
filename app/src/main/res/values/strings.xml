@@ -100,4 +100,12 @@
     <string name="pie_chart_unit_of_measure_gram">%.1f г</string>
 
     <string name="web_client_id">1034327741385-18ulmdssbq2pc2n21s096oens7g4a665.apps.googleusercontent.com</string>
+    <string name="onboarding_goal_title">Какая у тебя цель?</string>
+    <string name="onboarding_activity_title">Сколько тренировок у тебя в неделю?</string>
+    <string name="onboarding_birthday_title">Укажи возраст</string>
+    <string name="onboarding_birthday_description">Это важно. Так мы сможем точнее рассчитать потребность в калориях.</string>
+    <string name="onboarding_gender_title">Укажи свой пол</string>
+    <string name="onboarding_gender_description">Это поможет нам создать более персонализированный план для вас.</string>
+    <string name="onboarding_height_weight_title">Укажи рост и вес</string>
+    <string name="onboarding_height_weight_description">Это важно. Так мы сможем точнее рассчитать потребность в калориях.</string>
 </resources>
