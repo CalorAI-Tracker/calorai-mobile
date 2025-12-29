@@ -5,7 +5,9 @@ import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavOptions
 import androidx.navigation.compose.composable
 import dev.calorai.mobile.core.navigation.Destination
+import dev.calorai.mobile.features.main.ui.MainUiAction
 import dev.calorai.mobile.features.profile.ui.ProfileRoot
+import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.serialization.Serializable
 
 @Serializable
@@ -15,8 +17,10 @@ fun NavController.navigateToProfileScreen(navOptions: NavOptions? = null) {
     navigate(route = ProfileRoute, navOptions = navOptions)
 }
 
-fun NavGraphBuilder.profileSection() {
+fun NavGraphBuilder.profileSection(
+    mainUiActions: SharedFlow<MainUiAction>,
+) {
     composable<ProfileRoute> {
-        ProfileRoot()
+        ProfileRoot(mainUiActions = mainUiActions)
     }
 }

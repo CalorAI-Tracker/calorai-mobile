@@ -43,6 +43,9 @@ import dev.calorai.mobile.core.uikit.weekBar.DateUiModel
 import dev.calorai.mobile.core.uikit.weekBar.TimePeriod
 import dev.calorai.mobile.core.uikit.weekBar.WeekBar
 import dev.calorai.mobile.core.uikit.weekBar.WeekBarUiModel
+import dev.calorai.mobile.core.utils.ObserveAsEvents
+import dev.calorai.mobile.features.main.ui.MainUiAction
+import kotlinx.coroutines.flow.SharedFlow
 import org.koin.androidx.compose.koinViewModel
 import java.time.DayOfWeek
 import java.time.LocalDate
@@ -51,9 +54,19 @@ import java.time.temporal.TemporalAdjusters
 @Composable
 fun HomeRoot(
     viewModel: HomeViewModel = koinViewModel(),
+    mainUiActions: SharedFlow<MainUiAction>,
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     val data by viewModel.dataState.collectAsStateWithLifecycle()
+
+    ObserveAsEvents(mainUiActions) { action ->
+        when (action) {
+            is MainUiAction.ModalCreateMealButtonClick -> viewModel.onEvent(
+                HomeUiEvent.ModalCreateMealButtonClick(action.mealType)
+            )
+        }
+    }
+
     HomeScreen(
         state = state,
         data = data,

@@ -2,6 +2,7 @@ package dev.calorai.mobile.features.home.ui
 
 import dev.calorai.mobile.core.uikit.mealCard.MealUiModel
 import dev.calorai.mobile.core.uikit.weekBar.DateUiModel
+import dev.calorai.mobile.features.meal.domain.model.MealType
 
 sealed interface HomeUiEvent {
     data class SelectDate(val date: DateUiModel) : HomeUiEvent
@@ -12,4 +13,5 @@ sealed interface HomeUiEvent {
     data object HideAddIngredientDialog : HomeUiEvent
     data object AddManualClick : HomeUiEvent
     data object ChooseReadyClick : HomeUiEvent
+    data class ModalCreateMealButtonClick(val mealType: MealType) : HomeUiEvent
 }

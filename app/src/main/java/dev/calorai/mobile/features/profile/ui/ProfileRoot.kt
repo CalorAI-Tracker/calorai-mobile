@@ -51,22 +51,24 @@ import dev.calorai.mobile.core.uikit.LabeledTextField
 import dev.calorai.mobile.core.uikit.PrimaryButton
 import dev.calorai.mobile.core.uikit.SimpleDropdown
 import dev.calorai.mobile.core.utils.ObserveAsEvents
+import dev.calorai.mobile.features.main.ui.MainUiAction
 import dev.calorai.mobile.features.profile.ui.model.ActivityUi
 import dev.calorai.mobile.features.profile.ui.model.GenderUi
 import dev.calorai.mobile.features.profile.ui.model.GoalUi
 import dev.calorai.mobile.features.profile.ui.model.SavingErrorType
+import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.launch
 import org.koin.androidx.compose.koinViewModel
 
 @Composable
 fun ProfileRoot(
     viewModel: ProfileViewModel = koinViewModel(),
+    mainUiActions: SharedFlow<MainUiAction>,
 ) {
     val uiState by viewModel.state.collectAsStateWithLifecycle()
     val snackbarHostState = remember { SnackbarHostState() }
     val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
-
 
     ObserveAsEvents(viewModel.uiActions) { action ->
         coroutineScope.launch {

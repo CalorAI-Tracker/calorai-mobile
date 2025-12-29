@@ -7,19 +7,19 @@ import androidx.navigation.NavOptions
 import dev.calorai.mobile.core.navigation.Router
 import dev.calorai.mobile.core.uikit.bottomNavBar.BottomNavItem
 import dev.calorai.mobile.core.uikit.bottomNavBar.BottomNavItem.Companion.ITEMS
-import dev.calorai.mobile.features.meal.domain.model.MealType
 import dev.calorai.mobile.features.home.navigateToHomeScreen
 import dev.calorai.mobile.features.plan.navigateToPlanScreen
-import dev.calorai.mobile.features.progress.navigateToProgressScreen
 import dev.calorai.mobile.features.profile.navigateToProfileScreen
-import dev.calorai.mobile.features.meal.details.navigateToMealDetailsScreen
+import dev.calorai.mobile.features.progress.navigateToProgressScreen
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 class MainViewModel constructor(
-    private val globalRouter: Router,
     private val mainRouter: Router,
 ) : ViewModel() {
 
@@ -32,21 +32,23 @@ class MainViewModel constructor(
 
     val state: StateFlow<MainUiState> = _state
 
+    private val _uiActions = MutableSharedFlow<MainUiAction>()
+    val uiActions: SharedFlow<MainUiAction> = _uiActions.asSharedFlow()
+
     fun onEvent(event: MainUiEvent) {
         when (event) {
-            is MainUiEvent.ModalMealButtonClick -> navigateToCreateMealScreen(event.mealType)
+            is MainUiEvent.ModalMealButtonClick -> {
+                viewModelScope.launch {
+                    _uiActions.emit(MainUiAction.ModalCreateMealButtonClick(event.mealType))
+                }
+            }
+
             is MainUiEvent.BottomNavItemSelect -> handleBottomNavItemSelected(event.navItem)
             MainUiEvent.AddButtonClick -> _state.update { it.copy(bottomSheet = true) }
             MainUiEvent.BottomSheetHideRequest -> _state.update { it.copy(bottomSheet = false) }
             MainUiEvent.FetchStartDestination -> _state.update {
                 it.copy(selectedItem = getSelectedItem())
             }
-        }
-    }
-
-    private fun navigateToCreateMealScreen(mealType: MealType) {
-        viewModelScope.launch {
-            globalRouter.emit { navigateToMealDetailsScreen(mealType) }
         }
     }
 

@@ -6,6 +6,8 @@ import androidx.navigation.NavOptions
 import androidx.navigation.compose.composable
 import dev.calorai.mobile.core.navigation.Destination
 import dev.calorai.mobile.features.home.ui.HomeRoot
+import dev.calorai.mobile.features.main.ui.MainUiAction
+import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.serialization.Serializable
 
 @Serializable
@@ -16,8 +18,9 @@ fun NavController.navigateToHomeScreen(navOptions: NavOptions? = null) {
 }
 
 fun NavGraphBuilder.homeSection(
+    mainUiActions: SharedFlow<MainUiAction>,
 ) {
     composable<HomeRoute> {
-        HomeRoot()
+        HomeRoot(mainUiActions = mainUiActions)
     }
 }
