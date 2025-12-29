@@ -20,6 +20,7 @@ interface MealApi {
 
     @POST("food-diary/{userId}/entries")
     suspend fun createMealEntry(
+        @Path("userId") userId: Long,
         @Body body: CreateMealEntryRequest
     ): Response<Unit>
 }

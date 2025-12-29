@@ -87,7 +87,7 @@ class HomeViewModel constructor(
         initialValue = HomeDataUiState.Loading,
     )
 
-    private var selectedMealId: Long? = null
+    private var selectedMealType: MealType? = null
 
     init {
         loadDataForDate(date = LocalDate.now())
@@ -96,7 +96,8 @@ class HomeViewModel constructor(
     fun onEvent(event: HomeUiEvent) {
         when (event) {
             is HomeUiEvent.SelectDate -> loadDataForDate(event.date.date)
-            is HomeUiEvent.MealCardAddButtonClick -> handleMealCardAddButtonClick(event.meal.id)
+            is HomeUiEvent.MealCardAddButtonClick -> handleMealCardAddButtonClick(event.meal.type)
+            is HomeUiEvent.ModalCreateMealButtonClick -> handleMealCardAddButtonClick(event.mealType)
             is HomeUiEvent.MealCardClick -> navigateToMealDetails(event.meal.type)
             HomeUiEvent.SelectNextDate -> selectNextDate()
             HomeUiEvent.SelectPreviousDate -> selectPreviousDate()
@@ -121,33 +122,39 @@ class HomeViewModel constructor(
         loadDataForDate(currentDate.minusDays(1))
     }
 
-    private fun navigateToCreateMeal(mealId: Long) {
-        viewModelScope.launch { globalRouter.emit { navigateToCreateMealManualScreen(mealId) } }
-    }
-
     private fun navigateToMealDetails(mealType: MealType) {
-        viewModelScope.launch { globalRouter.emit { navigateToMealDetailsScreen(mealType) } }
+        viewModelScope.launch {
+            globalRouter.emit {
+                navigateToMealDetailsScreen(
+                    mealType = mealType,
+                    date = currentDate.value.toString(),
+                )
+            }
+        }
     }
 
-    private fun handleMealCardAddButtonClick(mealId: Long) {
+    private fun handleMealCardAddButtonClick(mealType: MealType) {
         showAddIngredientDialogState.update { true }
-        selectedMealId = mealId
+        selectedMealType = mealType
     }
 
     private fun hideAddIngredientDialog() {
         showAddIngredientDialogState.update { false }
-        selectedMealId = null
+        selectedMealType = null
     }
 
     private fun handleAddManualClick() {
-        selectedMealId?.let {
-            viewModelScope.launch {
+        viewModelScope.launch {
+            selectedMealType?.let { mealType ->
                 globalRouter.emit {
-                    navigateToCreateMealManualScreen(selectedMealId!!)
+                    navigateToCreateMealManualScreen(
+                        mealType = mealType,
+                        date = currentDate.value.toString(),
+                    )
                 }
             }
+            hideAddIngredientDialog()
         }
-        hideAddIngredientDialog()
     }
 
     private fun handleChooseReadyClick() {

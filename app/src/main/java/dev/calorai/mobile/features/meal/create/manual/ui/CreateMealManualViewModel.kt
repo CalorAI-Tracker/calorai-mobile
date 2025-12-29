@@ -2,52 +2,59 @@ package dev.calorai.mobile.features.meal.create.manual.ui
 
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import androidx.navigation.toRoute
 import dev.calorai.mobile.features.meal.create.manual.CreateMealManualRoute
+import dev.calorai.mobile.features.meal.domain.model.CreateMealEntryPayload
+import dev.calorai.mobile.features.meal.domain.usecases.CreateMealEntryUseCase
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
 
 class CreateMealManualViewModel constructor(
     savedStateHandle: SavedStateHandle,
+    private val createMealEntryUseCase: CreateMealEntryUseCase,
 ) : ViewModel() {
 
     private val mealRoute = savedStateHandle.toRoute<CreateMealManualRoute>()
-    val mealId = mealRoute.mealId
 
     private val _uiState = MutableStateFlow(CreateMealManualUiState())
     val uiState = _uiState.asStateFlow()
 
-
     fun onEvent(event: CreateMealManualUiEvent) {
         when (event) {
-            is CreateMealManualUiEvent.NameChange ->
-                update { copy(name = event.value) }
-
-            is CreateMealManualUiEvent.CaloriesChange ->
-                update { copy(calories = event.value) }
-
-            is CreateMealManualUiEvent.ProteinsChange ->
-                update { copy(proteins = event.value) }
-
-            is CreateMealManualUiEvent.FatsChange ->
-                update { copy(fats = event.value) }
-
-            is CreateMealManualUiEvent.CarbsChange ->
-                update { copy(carbs = event.value) }
-
-            is CreateMealManualUiEvent.PortionChange ->
-                update { copy(portion = event.value) }
-
-            CreateMealManualUiEvent.AddClick ->
-                onAddClick()
+            is CreateMealManualUiEvent.NameChange -> update { copy(name = event.value) }
+            is CreateMealManualUiEvent.CaloriesChange -> update { copy(calories = event.value) }
+            is CreateMealManualUiEvent.ProteinsChange -> update { copy(proteins = event.value) }
+            is CreateMealManualUiEvent.FatsChange -> update { copy(fats = event.value) }
+            is CreateMealManualUiEvent.CarbsChange -> update { copy(carbs = event.value) }
+            is CreateMealManualUiEvent.PortionChange -> update { copy(portion = event.value) }
+            CreateMealManualUiEvent.AddClick -> onAddClick()
         }
     }
 
     private fun onAddClick() {
         // TODO: навигация или сохранение
+        viewModelScope.launch {
+            // TODO: mapper
+            val payload = CreateMealEntryPayload(
+                entryName = uiState.value.name,
+                meal = mealRoute.mealType,
+                eatenAt = mealRoute.date,
+                proteinPerBaseG = formatDoubleInput(uiState.value.proteins)
+                    .toDoubleOrNull() ?: 0.0,
+                fatPerBaseG = formatDoubleInput(uiState.value.fats)
+                    .toDoubleOrNull() ?: 0.0,
+                carbsPerBaseG = formatDoubleInput(uiState.value.carbs)
+                    .toDoubleOrNull() ?: 0.0,
+                baseQuantityGrams = 100.0, // TODO: Возможно, поменять потом. Это на сколько грамм приходится стата БЖУ. Обычно, это 100 г 
+                portionQuantityGrams = formatDoubleInput(uiState.value.portion)
+                    .toDoubleOrNull() ?: 0.0,
+            )
+            runCatching { createMealEntryUseCase(payload) }
+        }
     }
-
 
     private fun update(block: CreateMealManualUiState.() -> CreateMealManualUiState) {
         _uiState.update { it.block() }
@@ -56,7 +63,7 @@ class CreateMealManualViewModel constructor(
 
 fun formatDoubleInput(input: String): String {
     val number = input
-        .replace(',','.')
+        .replace(',', '.')
         .toDoubleOrNull()
         ?: return "0.0"
 
