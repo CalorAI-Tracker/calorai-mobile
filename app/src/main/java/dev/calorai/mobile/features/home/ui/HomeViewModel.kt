@@ -19,6 +19,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -35,10 +36,12 @@ class HomeViewModel constructor(
     private val currentDate = MutableStateFlow(LocalDate.now())
     private val currentWeekProgress: Flow<List<DayMealProgressInfo>> =
         currentDate.map { getWeekByDateUseCase.invoke(it) }
-            .distinctUntilChanged { old, new -> old.first() == new.first() }
+            .distinctUntilChanged { old, new ->
+                old.first() == new.first() }
             .map { days: List<LocalDate> ->
                 days.map { day -> getDayProgressUseCase.invoke(day) }
             }
+            .shareIn(viewModelScope, SharingStarted.Eagerly)
 
     private val weekBar: Flow<WeekBarUiModel> = combine(
         currentDate,
@@ -88,10 +91,6 @@ class HomeViewModel constructor(
     )
 
     private var selectedMealType: MealType? = null
-
-    init {
-        loadDataForDate(date = LocalDate.now())
-    }
 
     fun onEvent(event: HomeUiEvent) {
         when (event) {

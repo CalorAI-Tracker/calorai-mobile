@@ -3,8 +3,11 @@ package dev.calorai.mobile.features.meal.create.manual.ui
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import androidx.navigation.NavOptions
 import androidx.navigation.toRoute
+import dev.calorai.mobile.core.navigation.Router
 import dev.calorai.mobile.features.meal.create.manual.CreateMealManualRoute
+import dev.calorai.mobile.features.meal.details.navigateToMealDetailsScreen
 import dev.calorai.mobile.features.meal.domain.model.CreateMealEntryPayload
 import dev.calorai.mobile.features.meal.domain.usecases.CreateMealEntryUseCase
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -13,6 +16,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 class CreateMealManualViewModel constructor(
+    private val globalRouter: Router,
     savedStateHandle: SavedStateHandle,
     private val createMealEntryUseCase: CreateMealEntryUseCase,
 ) : ViewModel() {
@@ -53,6 +57,23 @@ class CreateMealManualViewModel constructor(
                     .toDoubleOrNull() ?: 0.0,
             )
             runCatching { createMealEntryUseCase(payload) }
+                .onSuccess {
+                    navigateToMealDetails()
+            }
+        }
+    }
+
+    private fun navigateToMealDetails() {
+        viewModelScope.launch {
+            globalRouter.emit {
+                navigateToMealDetailsScreen(
+                    mealType = mealRoute.mealType,
+                    date = mealRoute.date,
+                    navOptions = NavOptions.Builder()
+                        .setPopUpTo< CreateMealManualRoute>(inclusive = true)
+                        .build(),
+                )
+            }
         }
     }
 
