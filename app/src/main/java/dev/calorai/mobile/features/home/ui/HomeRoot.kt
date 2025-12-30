@@ -34,6 +34,7 @@ import androidx.compose.ui.window.DialogProperties
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dev.calorai.mobile.R
 import dev.calorai.mobile.core.uikit.CalorAiTheme
+import dev.calorai.mobile.core.uikit.PrimaryButton
 import dev.calorai.mobile.core.uikit.mealCard.MealCard
 import dev.calorai.mobile.core.uikit.mealCard.MealUiModel
 import dev.calorai.mobile.core.uikit.pieChart.PieChart
@@ -43,6 +44,9 @@ import dev.calorai.mobile.core.uikit.weekBar.DateUiModel
 import dev.calorai.mobile.core.uikit.weekBar.TimePeriod
 import dev.calorai.mobile.core.uikit.weekBar.WeekBar
 import dev.calorai.mobile.core.uikit.weekBar.WeekBarUiModel
+import dev.calorai.mobile.core.utils.ObserveAsEvents
+import dev.calorai.mobile.features.main.ui.MainUiAction
+import kotlinx.coroutines.flow.SharedFlow
 import org.koin.androidx.compose.koinViewModel
 import java.time.DayOfWeek
 import java.time.LocalDate
@@ -51,9 +55,19 @@ import java.time.temporal.TemporalAdjusters
 @Composable
 fun HomeRoot(
     viewModel: HomeViewModel = koinViewModel(),
+    mainUiActions: SharedFlow<MainUiAction>,
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     val data by viewModel.dataState.collectAsStateWithLifecycle()
+
+    ObserveAsEvents(mainUiActions) { action ->
+        when (action) {
+            is MainUiAction.ModalCreateMealButtonClick -> viewModel.onEvent(
+                HomeUiEvent.ModalCreateMealButtonClick(action.mealType)
+            )
+        }
+    }
+
     HomeScreen(
         state = state,
         data = data,
@@ -181,8 +195,7 @@ private fun AddIngredientDialog(
                     style = MaterialTheme.typography.bodyLarge,
                     modifier = Modifier.padding(bottom = 16.dp)
                 )
-
-                Button(
+                PrimaryButton(
                     onClick = {
                         onAddManualClick()
                         onDismissRequest()
@@ -191,15 +204,9 @@ private fun AddIngredientDialog(
                         .fillMaxWidth()
                         .height(56.dp)
                         .padding(vertical = 4.dp),
-                    shape = RoundedCornerShape(12.dp)
-                ) {
-                    Text(
-                        text = stringResource(R.string.details_add_manual),
-                        style = MaterialTheme.typography.bodyMedium
-                    )
-                }
-
-                Button(
+                    text = stringResource(R.string.details_add_manual),
+                )
+                PrimaryButton(
                     onClick = {
                         onChooseReadyClick()
                         onDismissRequest()
@@ -208,13 +215,8 @@ private fun AddIngredientDialog(
                         .fillMaxWidth()
                         .height(56.dp)
                         .padding(vertical = 4.dp),
-                    shape = RoundedCornerShape(12.dp)
-                ) {
-                    Text(
-                        text = stringResource(R.string.details_choose_ready),
-                        style = MaterialTheme.typography.bodyMedium
-                    )
-                }
+                    text = stringResource(R.string.details_choose_ready),
+                )
             }
         }
     }

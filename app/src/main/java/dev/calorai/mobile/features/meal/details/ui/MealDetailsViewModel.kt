@@ -30,15 +30,10 @@ class MealDetailsViewModel constructor(
     fun onEvent(event: MealDetailsUiEvent) {
         when (event) {
             MealDetailsUiEvent.AddMoreClick -> openAddIngredientSheet()
-
             MealDetailsUiEvent.CloseAddIngredient -> closeAddIngredientSheet()
-
             MealDetailsUiEvent.AddManualClick -> addIngredientManual()
-
             MealDetailsUiEvent.ChooseReadyClick -> chooseReadyIngredient()
-
             MealDetailsUiEvent.ContinueClick -> continueClick()
-
             is MealDetailsUiEvent.IngredientClick -> onIngredientClick(event.ingredient)
         }
     }
@@ -58,21 +53,18 @@ class MealDetailsViewModel constructor(
     private fun addIngredientManual() {
         viewModelScope.launch {
             globalRouter.emit {
-                // TODO: mealId - возможно нужно получить из какого-то источника, хз что с ним делать и как передавать
-                // Пока используем временное значение -1 или 0
-                navigateToCreateMealManualScreen(mealId = -1L)
+                navigateToCreateMealManualScreen(
+                    mealType = mealRoute.mealType,
+                    date = mealRoute.date,
+                )
             }
-        }
-        _uiState.update {
-            it.copy(showAddIngredientSheet = false)
+            _uiState.update { it.copy(showAddIngredientSheet = false) }
         }
     }
 
     private fun chooseReadyIngredient() {
         // здесь будет навигация на экран выбора готового
-        _uiState.update {
-            it.copy(showAddIngredientSheet = false)
-        }
+        _uiState.update { it.copy(showAddIngredientSheet = false) }
     }
 
     private fun continueClick() {

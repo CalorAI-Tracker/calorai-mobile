@@ -19,6 +19,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -35,10 +36,12 @@ class HomeViewModel constructor(
     private val currentDate = MutableStateFlow(LocalDate.now())
     private val currentWeekProgress: Flow<List<DayMealProgressInfo>> =
         currentDate.map { getWeekByDateUseCase.invoke(it) }
-            .distinctUntilChanged { old, new -> old.first() == new.first() }
+            .distinctUntilChanged { old, new ->
+                old.first() == new.first() }
             .map { days: List<LocalDate> ->
                 days.map { day -> getDayProgressUseCase.invoke(day) }
             }
+            .shareIn(viewModelScope, SharingStarted.Eagerly)
 
     private val weekBar: Flow<WeekBarUiModel> = combine(
         currentDate,
@@ -87,16 +90,13 @@ class HomeViewModel constructor(
         initialValue = HomeDataUiState.Loading,
     )
 
-    private var selectedMealId: Long? = null
-
-    init {
-        loadDataForDate(date = LocalDate.now())
-    }
+    private var selectedMealType: MealType? = null
 
     fun onEvent(event: HomeUiEvent) {
         when (event) {
             is HomeUiEvent.SelectDate -> loadDataForDate(event.date.date)
-            is HomeUiEvent.MealCardAddButtonClick -> handleMealCardAddButtonClick(event.meal.id)
+            is HomeUiEvent.MealCardAddButtonClick -> handleMealCardAddButtonClick(event.meal.type)
+            is HomeUiEvent.ModalCreateMealButtonClick -> handleMealCardAddButtonClick(event.mealType)
             is HomeUiEvent.MealCardClick -> navigateToMealDetails(event.meal.type)
             HomeUiEvent.SelectNextDate -> selectNextDate()
             HomeUiEvent.SelectPreviousDate -> selectPreviousDate()
@@ -121,33 +121,39 @@ class HomeViewModel constructor(
         loadDataForDate(currentDate.minusDays(1))
     }
 
-    private fun navigateToCreateMeal(mealId: Long) {
-        viewModelScope.launch { globalRouter.emit { navigateToCreateMealManualScreen(mealId) } }
-    }
-
     private fun navigateToMealDetails(mealType: MealType) {
-        viewModelScope.launch { globalRouter.emit { navigateToMealDetailsScreen(mealType) } }
+        viewModelScope.launch {
+            globalRouter.emit {
+                navigateToMealDetailsScreen(
+                    mealType = mealType,
+                    date = currentDate.value.toString(),
+                )
+            }
+        }
     }
 
-    private fun handleMealCardAddButtonClick(mealId: Long) {
+    private fun handleMealCardAddButtonClick(mealType: MealType) {
         showAddIngredientDialogState.update { true }
-        selectedMealId = mealId
+        selectedMealType = mealType
     }
 
     private fun hideAddIngredientDialog() {
         showAddIngredientDialogState.update { false }
-        selectedMealId = null
+        selectedMealType = null
     }
 
     private fun handleAddManualClick() {
-        selectedMealId?.let {
-            viewModelScope.launch {
+        viewModelScope.launch {
+            selectedMealType?.let { mealType ->
                 globalRouter.emit {
-                    navigateToCreateMealManualScreen(selectedMealId!!)
+                    navigateToCreateMealManualScreen(
+                        mealType = mealType,
+                        date = currentDate.value.toString(),
+                    )
                 }
             }
+            hideAddIngredientDialog()
         }
-        hideAddIngredientDialog()
     }
 
     private fun handleChooseReadyClick() {

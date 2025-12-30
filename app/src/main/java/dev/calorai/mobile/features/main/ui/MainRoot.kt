@@ -33,9 +33,9 @@ import dev.calorai.mobile.core.uikit.CalorAiTheme
 import dev.calorai.mobile.core.uikit.bottomNavBar.BottomNavBar
 import dev.calorai.mobile.core.uikit.bottomNavBar.BottomNavItem
 import dev.calorai.mobile.core.uikit.commonGradientBackground
-import dev.calorai.mobile.features.meal.domain.model.MealType
-import dev.calorai.mobile.features.main.MainNavGraph
 import dev.calorai.mobile.features.home.ui.HomeScreenPreview
+import dev.calorai.mobile.features.main.MainNavGraph
+import dev.calorai.mobile.features.meal.domain.model.MealType
 import kotlinx.coroutines.launch
 import org.koin.androidx.compose.koinViewModel
 
@@ -49,7 +49,7 @@ fun MainRoot(
         state = state,
         onEvent = viewModel::onEvent,
         content = {
-            MainNavGraph()
+            MainNavGraph(mainUiActions = viewModel.uiActions)
             LaunchedEffect(MainUiEvent.FetchStartDestination) {
                 viewModel.onEvent(MainUiEvent.FetchStartDestination)
             }

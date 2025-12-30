@@ -33,12 +33,12 @@ import dev.calorai.mobile.core.uikit.AddIngredientBottomPanel
 import dev.calorai.mobile.core.uikit.CalorAiTheme
 import dev.calorai.mobile.core.uikit.PrimaryButton
 import dev.calorai.mobile.core.uikit.commonGradientBackground
-import dev.calorai.mobile.features.meal.domain.model.MealType
 import dev.calorai.mobile.core.uikit.pieChart.PieChart
 import dev.calorai.mobile.core.uikit.pieChart.PieChartStyle
 import dev.calorai.mobile.core.uikit.pieChart.PieChartUiModel
 import dev.calorai.mobile.core.uikit.pieChart.UnitOfMeasure
 import dev.calorai.mobile.features.meal.details.ui.model.MealMacroLabelUi
+import dev.calorai.mobile.features.meal.domain.model.MealType
 import org.koin.androidx.compose.koinViewModel
 
 @Composable
@@ -230,11 +230,11 @@ private fun MealDetailsScreenPreview() {
                     MacroUi(14f, MealMacroLabelUi.CARBS.labelResId, listOf(60f, 40f)),
                 ),
                 ingredients = listOf(
-//                    IngredientUi("Креветки", "99 ккал", "8 шт"),
-//                    IngredientUi("Рис", "130 ккал", "100 г"),
-//                    IngredientUi("Яйцо пашот", "68 ккал", "1 шт"),
-//                    IngredientUi("Помидоры черри", "9 ккал", "3 шт"),
-//                    IngredientUi("Авокадо", "0 ккал", "70 г"),
+                    IngredientUi("Креветки", "99 ккал", "8 шт"),
+                    IngredientUi("Рис", "130 ккал", "100 г"),
+                    IngredientUi("Яйцо пашот", "68 ккал", "1 шт"),
+                    IngredientUi("Помидоры черри", "9 ккал", "3 шт"),
+                    IngredientUi("Авокадо", "0 ккал", "70 г"),
                 )
             ),
             onEvent = {}

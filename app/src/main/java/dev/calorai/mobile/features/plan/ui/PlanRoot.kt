@@ -8,11 +8,14 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import dev.calorai.mobile.core.uikit.CalorAiTheme
+import dev.calorai.mobile.features.main.ui.MainUiAction
+import kotlinx.coroutines.flow.SharedFlow
 import org.koin.androidx.compose.koinViewModel
 
 @Composable
 fun PlanRoot(
     viewModel: PlanViewModel = koinViewModel(),
+    mainUiActions: SharedFlow<MainUiAction>,
 ) {
     PlanScreen()
 }

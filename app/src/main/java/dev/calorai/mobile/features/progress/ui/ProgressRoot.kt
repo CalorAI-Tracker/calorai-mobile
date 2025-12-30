@@ -8,11 +8,14 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import dev.calorai.mobile.core.uikit.CalorAiTheme
+import dev.calorai.mobile.features.main.ui.MainUiAction
+import kotlinx.coroutines.flow.SharedFlow
 import org.koin.androidx.compose.koinViewModel
 
 @Composable
 fun ProgressRoot(
     viewModel: ProgressViewModel = koinViewModel(),
+    mainUiActions: SharedFlow<MainUiAction>,
 ) {
     ProgressScreen()
 }

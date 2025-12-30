@@ -1,6 +1,5 @@
 package dev.calorai.mobile.features.main.di
 
-import dev.calorai.mobile.core.navigation.GlobalRouterContext
 import dev.calorai.mobile.core.navigation.RouterController
 import dev.calorai.mobile.core.navigation.RouterControllerImpl
 import dev.calorai.mobile.features.main.MainRouterContext
@@ -13,7 +12,6 @@ internal val mainModule = module {
     single<RouterController>(qualifier<MainRouterContext>()) { RouterControllerImpl() }
     viewModel {
         MainViewModel(
-            globalRouter = get<RouterController>(qualifier<GlobalRouterContext>()),
             mainRouter = get<RouterController>(qualifier<MainRouterContext>()),
         )
     }

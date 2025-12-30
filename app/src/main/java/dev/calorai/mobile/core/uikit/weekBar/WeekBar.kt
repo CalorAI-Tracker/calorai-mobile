@@ -70,7 +70,7 @@ private fun DayItem(
     modifier: Modifier = Modifier
 ) {
     val textColor = when (dateData.timePeriod) {
-        TimePeriod.FUTURE -> MaterialTheme.colorScheme.onSurface
+        TimePeriod.FUTURE -> MaterialTheme.colorScheme.onBackground
         TimePeriod.PAST,
         TimePeriod.PRESENT,
             -> MaterialTheme.colorScheme.onPrimary
