@@ -6,7 +6,9 @@ import androidx.lifecycle.viewModelScope
 import androidx.navigation.toRoute
 import dev.calorai.mobile.core.navigation.Router
 import dev.calorai.mobile.features.meal.create.manual.navigateToCreateMealManualScreen
+import dev.calorai.mobile.features.meal.data.mappers.MealMapper
 import dev.calorai.mobile.features.meal.details.MealDetailsRoute
+import dev.calorai.mobile.features.meal.domain.usecases.GetMealIngredientsUseCase
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
@@ -14,6 +16,8 @@ import kotlinx.coroutines.launch
 
 class MealDetailsViewModel constructor(
     savedStateHandle: SavedStateHandle,
+    private val getMealIngredientsUseCase: GetMealIngredientsUseCase,
+    private val mapper: MealMapper,
     private val globalRouter: Router,
 ) : ViewModel() {
 
@@ -26,6 +30,9 @@ class MealDetailsViewModel constructor(
     )
     val uiState = _uiState.asStateFlow()
 
+    init {
+        loadIngredients()
+    }
 
     fun onEvent(event: MealDetailsUiEvent) {
         when (event) {
@@ -73,5 +80,25 @@ class MealDetailsViewModel constructor(
 
     private fun onIngredientClick(ingredient: IngredientUi) {
         // переход в детали ингредиента / редактирование
+    }
+
+    private fun loadIngredients() {
+        viewModelScope.launch {
+            try {
+                val ingredients = getMealIngredientsUseCase(
+                    date = mealRoute.date,
+                    mealType = mealRoute.mealType,
+                )
+                _uiState.update {
+                    it.copy(
+                        ingredients = ingredients.map { mapper.mapToIngredientUiModel(it) }
+                    )
+                }
+            } catch (_: Exception) {
+                _uiState.update {
+                    it.copy(ingredients = emptyList())
+                }
+            }
+        }
     }
 }

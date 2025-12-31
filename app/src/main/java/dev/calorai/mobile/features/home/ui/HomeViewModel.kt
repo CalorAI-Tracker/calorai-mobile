@@ -32,13 +32,14 @@ class HomeViewModel constructor(
     private val mapper: MealMapper,
     private val globalRouter: Router,
 ) : ViewModel() {
-
+    private var forceRefresh: Boolean = false
     private val currentDate = MutableStateFlow(LocalDate.now())
     private val currentWeekProgress: Flow<List<DayMealProgressInfo>> =
         currentDate.map { getWeekByDateUseCase.invoke(it) }
             .distinctUntilChanged { old, new ->
-                old.first() == new.first() }
+                old.first() == new.first()  && !forceRefresh }
             .map { days: List<LocalDate> ->
+                forceRefresh = false
                 days.map { day -> getDayProgressUseCase.invoke(day) }
             }
             .shareIn(viewModelScope, SharingStarted.Eagerly)
@@ -103,6 +104,7 @@ class HomeViewModel constructor(
             HomeUiEvent.AddManualClick -> handleAddManualClick()
             HomeUiEvent.ChooseReadyClick -> handleChooseReadyClick()
             HomeUiEvent.HideAddIngredientDialog -> hideAddIngredientDialog()
+            HomeUiEvent.OnRefresh -> refreshData()
         }
     }
 
@@ -154,6 +156,12 @@ class HomeViewModel constructor(
             }
             hideAddIngredientDialog()
         }
+    }
+
+    private fun refreshData() {
+        forceRefresh = true
+        loadDataForDate(currentDate.value)
+        //viewModelScope.launch { currentDate.value = currentDate.value }
     }
 
     private fun handleChooseReadyClick() {

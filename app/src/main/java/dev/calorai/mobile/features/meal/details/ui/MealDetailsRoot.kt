@@ -142,6 +142,7 @@ private fun MealDetailsScreen(
                         title = ingredient.title,
                         kcal = ingredient.kcal,
                         weight = ingredient.weight,
+                        unitOfMeasure = ingredient.unitOfMeasure,
                         onClick = {
                             onEvent(MealDetailsUiEvent.IngredientClick(ingredient))
                         }
@@ -179,8 +180,9 @@ private fun MealDetailsScreen(
 @Composable
 private fun IngredientItem(
     title: String,
-    kcal: String,
-    weight: String,
+    kcal: Int,
+    weight: Double,
+    unitOfMeasure: UnitOfMeasure,
     onClick: () -> Unit
 ) {
     Card(
@@ -200,16 +202,24 @@ private fun IngredientItem(
         ) {
             Row {
                 Text(
-                    text = title,
+                    text = "$title ",
                     fontWeight = FontWeight.Medium,
                     color = MaterialTheme.colorScheme.onPrimary
                 )
-
-                Text(text = " • $kcal", color = MaterialTheme.colorScheme.onSurface)
+                Text(
+                    text = stringResource(
+                        id = R.string.details_meal_ingredients_kcal,
+                        kcal
+                    ),
+                    color = MaterialTheme.colorScheme.onSurface
+                )
             }
 
             Text(
-                text = weight,
+                text = stringResource(
+                    id = unitOfMeasure.unitResId,
+                    weight
+                ),
                 fontWeight = FontWeight.Medium,
                 color = MaterialTheme.colorScheme.onSurface
             )
@@ -230,11 +240,11 @@ private fun MealDetailsScreenPreview() {
                     MacroUi(14f, MealMacroLabelUi.CARBS.labelResId, listOf(60f, 40f)),
                 ),
                 ingredients = listOf(
-                    IngredientUi("Креветки", "99 ккал", "8 шт"),
-                    IngredientUi("Рис", "130 ккал", "100 г"),
-                    IngredientUi("Яйцо пашот", "68 ккал", "1 шт"),
-                    IngredientUi("Помидоры черри", "9 ккал", "3 шт"),
-                    IngredientUi("Авокадо", "0 ккал", "70 г"),
+                    IngredientUi("Креветки", 100, 8.0, UnitOfMeasure.GRAM),
+                    //IngredientUi("Рис", "130 ккал", "100 г"),
+                    //IngredientUi("Яйцо пашот", "68 ккал", "1 шт"),
+                    //IngredientUi("Помидоры черри", "9 ккал", "3 шт"),
+                    //IngredientUi("Авокадо", "0 ккал", "70 г"),
                 )
             ),
             onEvent = {}

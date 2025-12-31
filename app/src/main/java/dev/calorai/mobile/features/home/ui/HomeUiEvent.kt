@@ -14,4 +14,6 @@ sealed interface HomeUiEvent {
     data object AddManualClick : HomeUiEvent
     data object ChooseReadyClick : HomeUiEvent
     data class ModalCreateMealButtonClick(val mealType: MealType) : HomeUiEvent
+
+    data object OnRefresh : HomeUiEvent
 }

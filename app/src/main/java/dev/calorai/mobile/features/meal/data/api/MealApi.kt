@@ -2,6 +2,7 @@ package dev.calorai.mobile.features.meal.data.api
 
 import dev.calorai.mobile.features.meal.data.dto.createMealEntry.CreateMealEntryRequest
 import dev.calorai.mobile.features.meal.data.dto.getDailyMeal.GetDailyMealResponse
+import dev.calorai.mobile.features.meal.data.dto.getDailyMealsComposition.GetDailyMealsCompositionResponse
 import retrofit2.Response
 import retrofit2.http.Body
 import retrofit2.http.GET
@@ -23,4 +24,10 @@ interface MealApi {
         @Path("userId") userId: Long,
         @Body body: CreateMealEntryRequest
     ): Response<Unit>
+
+    @GET("food-diary/{userId}/composition")
+    suspend fun getDailyMealsComposition(
+        @Path("userId") userId: Long,
+        @Query("date") date: String? = null
+    ): Response<GetDailyMealsCompositionResponse>
 }

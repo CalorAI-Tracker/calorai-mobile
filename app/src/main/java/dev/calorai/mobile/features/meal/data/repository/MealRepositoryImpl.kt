@@ -8,6 +8,8 @@ import dev.calorai.mobile.features.meal.domain.MealRepository
 import dev.calorai.mobile.features.meal.domain.model.CreateMealEntryPayload
 import dev.calorai.mobile.features.meal.domain.model.DailyMeal
 import dev.calorai.mobile.features.meal.domain.model.MealId
+import dev.calorai.mobile.features.meal.domain.model.MealEntry
+import dev.calorai.mobile.features.meal.domain.model.MealType
 import dev.calorai.mobile.features.profile.data.EmptyUserIdException
 import dev.calorai.mobile.features.profile.data.UserIdStore
 import dev.calorai.mobile.features.profile.data.dao.UserDao
@@ -88,6 +90,21 @@ class MealRepositoryImpl(
             throw HttpException(response)
         }
         syncDailyMeals(payload.eatenAt)
+    }
+
+    override suspend fun getMealIngredients(
+        date: String,
+        mealType: MealType
+    ): List<MealEntry> =
+        withContext(dispatcher) {
+            val userId = userIdStore.getUserId() ?: throw EmptyUserIdException()
+            val response = api.getDailyMealsComposition(userId.value, date)
+            if (!response.isSuccessful) {
+                throw HttpException(response)
+            }
+            val getIngredientsResponse = response.body() ?: throw IllegalStateException()
+            val entries = getIngredientsResponse.meals[mealType.name].orEmpty()
+            entries.map { mapper.mapToDomain(it) }
     }
 
     override fun observeMealsByDate(date: String): Flow<List<DailyMeal>> = dailyMealsDao

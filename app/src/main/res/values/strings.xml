@@ -62,6 +62,7 @@
     <string name="details_meal_macro_label_protein">белок</string>
     <string name="details_meal_macro_label_fat">жиры</string>
     <string name="details_meal_macro_label_carbs">углеводы</string>
+    <string name="details_meal_ingredients_kcal"> • %1$d ккал</string>
 
     <string name="signup_title">Создай свой аккаунт</string>
     <string name="signup_description">Начни питаться лучше</string>

@@ -15,13 +15,16 @@ import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.pointer.pointerInput
@@ -99,60 +102,66 @@ private fun HomeScreenReady(
     data: HomeDataUiState,
     onEvent: (HomeUiEvent) -> Unit = {},
 ) {
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .onSwipe(
-                threshold = 150f,
-                onRightSwipe = { onEvent(HomeUiEvent.SelectPreviousDate) },
-                onLeftSwipe = { onEvent(HomeUiEvent.SelectNextDate) },
-            )
+    var isRefreshing by remember { mutableStateOf(false) }
+    PullToRefreshBox(
+        isRefreshing = isRefreshing,
+        onRefresh = { onEvent(HomeUiEvent.OnRefresh) },
     ) {
-        Text(
+        Column(
             modifier = Modifier
-                .padding(start = 20.dp, top = 30.dp),
-            text = stringResource(R.string.home_welcome_title, state.userName),
-            style = MaterialTheme.typography.titleLarge,
-        )
-        Spacer(modifier = Modifier.height(30.dp))
-        WeekBar(
-            weekData = state.weekBar,
-            modifier = Modifier.fillMaxWidth(),
-            onDateSelected = { onEvent(HomeUiEvent.SelectDate(it)) }
-        )
-        Spacer(modifier = Modifier.height(16.dp))
-        LazyColumn(
-            modifier = Modifier
-                .fillMaxSize(),
-            contentPadding = PaddingValues(horizontal = 16.dp, vertical = 24.dp),
-            verticalArrangement = Arrangement.Center,
-            horizontalAlignment = Alignment.CenterHorizontally
+                .fillMaxSize()
+                .onSwipe(
+                    threshold = 150f,
+                    onRightSwipe = { onEvent(HomeUiEvent.SelectPreviousDate) },
+                    onLeftSwipe = { onEvent(HomeUiEvent.SelectNextDate) },
+                )
         ) {
-            when (data) {
-                HomeDataUiState.Error -> Unit
-                HomeDataUiState.Loading -> {
-                    item {
-                        Column(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .wrapContentHeight(),
-                            horizontalAlignment = Alignment.CenterHorizontally
-                        ) {
-                            CircularProgressIndicator()
+            Text(
+                modifier = Modifier
+                    .padding(start = 20.dp, top = 30.dp),
+                text = stringResource(R.string.home_welcome_title, state.userName),
+                style = MaterialTheme.typography.titleLarge,
+            )
+            Spacer(modifier = Modifier.height(30.dp))
+            WeekBar(
+                weekData = state.weekBar,
+                modifier = Modifier.fillMaxWidth(),
+                onDateSelected = { onEvent(HomeUiEvent.SelectDate(it)) }
+            )
+            Spacer(modifier = Modifier.height(16.dp))
+            LazyColumn(
+                modifier = Modifier
+                    .fillMaxSize(),
+                contentPadding = PaddingValues(horizontal = 16.dp, vertical = 24.dp),
+                verticalArrangement = Arrangement.Center,
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                when (data) {
+                    HomeDataUiState.Error -> Unit
+                    HomeDataUiState.Loading -> {
+                        item {
+                            Column(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .wrapContentHeight(),
+                                horizontalAlignment = Alignment.CenterHorizontally
+                            ) {
+                                CircularProgressIndicator()
+                            }
                         }
                     }
-                }
 
-                is HomeDataUiState.HomeData -> {
-                    item {
-                        PieChartsList(data.pieChartsData)
-                        Spacer(modifier = Modifier.height(25.dp))
+                    is HomeDataUiState.HomeData -> {
+                        item {
+                            PieChartsList(data.pieChartsData)
+                            Spacer(modifier = Modifier.height(25.dp))
+                        }
+                        items(data.mealsData) { meal ->
+                            MealsListItem(meal = meal, onEvent = onEvent)
+                            Spacer(modifier = Modifier.height(6.dp))
+                        }
+                        item { Spacer(modifier = Modifier.height(30.dp)) }
                     }
-                    items(data.mealsData) { meal ->
-                        MealsListItem(meal = meal, onEvent = onEvent)
-                        Spacer(modifier = Modifier.height(6.dp))
-                    }
-                    item { Spacer(modifier = Modifier.height(30.dp)) }
                 }
             }
         }
