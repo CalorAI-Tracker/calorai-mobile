@@ -83,11 +83,14 @@ class ProfileViewModel constructor(
 
     private fun loadUserProfile() {
         viewModelScope.launch {
-            runCatching {
+            _state.update { it.copy(isRefreshing = true) }
+            val result = runCatching {
                 getUserProfileUseCase.invoke()?.let { user ->
                     _state.update { it.copy(user = mapper.mapToUi(user)) }
                 }
-            }.onFailure {
+            }
+            _state.update { it.copy(isRefreshing = false) }
+            if (result.isFailure) {
                 _uiActions.emit(ProfileUiAction.ShowNetworkError)
             }
         }

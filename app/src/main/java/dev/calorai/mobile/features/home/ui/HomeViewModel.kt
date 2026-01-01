@@ -12,6 +12,8 @@ import dev.calorai.mobile.features.meal.create.manual.navigateToCreateMealManual
 import dev.calorai.mobile.features.meal.data.mappers.MealMapper
 import dev.calorai.mobile.features.meal.details.navigateToMealDetailsScreen
 import dev.calorai.mobile.features.meal.domain.model.MealType
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.channels.Channel.Factory.BUFFERED
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -19,6 +21,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
@@ -34,14 +37,20 @@ class HomeViewModel constructor(
 ) : ViewModel() {
 
     private val currentDate = MutableStateFlow(LocalDate.now())
-    private val currentWeekProgress: Flow<List<DayMealProgressInfo>> =
-        currentDate.map { getWeekByDateUseCase.invoke(it) }
-            .distinctUntilChanged { old, new ->
-                old.first() == new.first() }
-            .map { days: List<LocalDate> ->
-                days.map { day -> getDayProgressUseCase.invoke(day) }
-            }
-            .shareIn(viewModelScope, SharingStarted.Eagerly)
+
+    private val currentWeek: Flow<List<LocalDate>> = currentDate
+        .map { getWeekByDateUseCase.invoke(it) }
+        .distinctUntilChanged { old, new -> old.first() == new.first() }
+
+    private val refreshChannel: Channel<Unit> = Channel(BUFFERED)
+
+    private val currentWeekProgress: Flow<List<DayMealProgressInfo>> = combine(
+        currentWeek,
+        refreshChannel.receiveAsFlow(),
+    ) { days: List<LocalDate>, _ ->
+        days.map { day -> getDayProgressUseCase.invoke(day) }
+    }
+        .shareIn(viewModelScope, SharingStarted.Lazily)
 
     private val weekBar: Flow<WeekBarUiModel> = combine(
         currentDate,
@@ -58,7 +67,7 @@ class HomeViewModel constructor(
     val state: StateFlow<HomeUiState> = combine(
         weekBar,
         showAddIngredientDialogState,
-        getCurrentUserNameUseCase.invoke()
+        getCurrentUserNameUseCase.invoke(),
     ) { week, showAddIngredientDialog, name ->
         HomeUiState.Ready(
             weekBar = week,
@@ -67,7 +76,7 @@ class HomeViewModel constructor(
         )
     }.stateIn(
         viewModelScope,
-        SharingStarted.WhileSubscribed(500L),
+        SharingStarted.Lazily,
         HomeUiState.Loading,
     )
 
@@ -78,19 +87,25 @@ class HomeViewModel constructor(
         val currentDayInfo = weekProgress.find { it.date == selectedDate }
         if (currentDayInfo != null) {
             HomeDataUiState.HomeData(
+                date = selectedDate,
                 mealsData = currentDayInfo.meals.map(mapper::mapToMealUiModel),
                 pieChartsData = mapper.mapToPieChartUiModel(currentDayInfo),
             )
         } else {
-            HomeDataUiState.Loading
+            HomeDataUiState.Loading(selectedDate)
         }
-    }.stateIn(
-        scope = viewModelScope,
-        started = SharingStarted.Lazily,
-        initialValue = HomeDataUiState.Loading,
-    )
+    }
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.Lazily,
+            initialValue = HomeDataUiState.Loading(currentDate.value),
+        )
 
     private var selectedMealType: MealType? = null
+
+    fun onStart() {
+        refreshData()
+    }
 
     fun onEvent(event: HomeUiEvent) {
         when (event) {
@@ -103,11 +118,16 @@ class HomeViewModel constructor(
             HomeUiEvent.AddManualClick -> handleAddManualClick()
             HomeUiEvent.ChooseReadyClick -> handleChooseReadyClick()
             HomeUiEvent.HideAddIngredientDialog -> hideAddIngredientDialog()
+            HomeUiEvent.OnRefresh -> refreshData()
         }
     }
 
+    private fun refreshData() {
+        refreshChannel.trySend(Unit)
+    }
+
     private fun loadDataForDate(date: LocalDate) {
-        viewModelScope.launch { currentDate.update { date } }
+        currentDate.update { date }
     }
 
     private fun selectNextDate() {
@@ -144,15 +164,14 @@ class HomeViewModel constructor(
 
     private fun handleAddManualClick() {
         viewModelScope.launch {
-            selectedMealType?.let { mealType ->
-                globalRouter.emit {
-                    navigateToCreateMealManualScreen(
-                        mealType = mealType,
-                        date = currentDate.value.toString(),
-                    )
-                }
-            }
+            val mealType = requireNotNull(selectedMealType)
             hideAddIngredientDialog()
+            globalRouter.emit {
+                navigateToCreateMealManualScreen(
+                    mealType = mealType,
+                    date = currentDate.value.toString(),
+                )
+            }
         }
     }
 

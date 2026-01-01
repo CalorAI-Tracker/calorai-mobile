@@ -1,5 +1,6 @@
 package dev.calorai.mobile.features.meal.create.manual.ui
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -14,9 +15,12 @@ import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusDirection
 import androidx.compose.ui.focus.FocusManager
@@ -33,6 +37,7 @@ import dev.calorai.mobile.core.uikit.PrimaryButton
 import dev.calorai.mobile.core.uikit.PrimaryTextField
 import dev.calorai.mobile.core.uikit.PrimaryTextFieldWithTitle
 import dev.calorai.mobile.core.uikit.commonGradientBackground
+import dev.calorai.mobile.features.meal.domain.model.MealType
 import org.koin.androidx.compose.koinViewModel
 
 @Composable
@@ -41,6 +46,7 @@ fun CreateMealManualRoot(
 ) {
     val uiState by viewModel.uiState.collectAsState()
 
+    BackHandler { viewModel.onEvent(CreateMealManualUiEvent.BackPressed) }
     CreateMealManualScreen(
         uiState = uiState,
         onEvent = viewModel::onEvent
@@ -53,21 +59,37 @@ private fun CreateMealManualScreen(
     onEvent: (CreateMealManualUiEvent) -> Unit,
 ) {
     val system = WindowInsets.systemBars.asPaddingValues()
+    val title = when (uiState.mealType) {
+        MealType.BREAKFAST -> stringResource(R.string.details_meal_type_breakfast)
+        MealType.LUNCH -> stringResource(R.string.details_meal_type_lunch)
+        MealType.DINNER -> stringResource(R.string.details_meal_type_dinner)
+        MealType.SNACK -> stringResource(R.string.details_meal_type_snack)
+    }
+
     Column(
         modifier = Modifier
             .fillMaxSize()
             .commonGradientBackground()
             .padding(
-                top = system.calculateTopPadding(),
+                top = system.calculateTopPadding() + 32.dp,
                 bottom = system.calculateBottomPadding(),
                 start = 16.dp,
                 end = 16.dp,
             ),
     ) {
+        Text(
+            text = title,
+            style = MaterialTheme.typography.headlineLarge,
+            color = MaterialTheme.colorScheme.onPrimary,
+            modifier = Modifier.align(Alignment.Start)
+        )
+        Spacer(Modifier.size(5.dp))
+        Text(
+            text = stringResource(R.string.create_meal_manual_description),
+            style = MaterialTheme.typography.bodyMedium,
+        )
+        Spacer(modifier = Modifier.size(20.dp))
         Column(verticalArrangement = Arrangement.spacedBy(20.dp)) {
-
-            Spacer(modifier = Modifier.size(20.dp))
-
             ProductNameField(
                 value = uiState.name,
                 onValueChange = { onEvent(CreateMealManualUiEvent.NameChange(it)) },
@@ -79,15 +101,15 @@ private fun CreateMealManualScreen(
                 horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 ManualTextFieldWithTitle(
-                    title = stringResource(R.string.create_meal_manual_calories),
-                    value = uiState.calories.toString(),
-                    onValueChange = { onEvent(CreateMealManualUiEvent.CaloriesChange(it)) },
-                    modifier = Modifier.weight(1f)
-                )
-                ManualTextFieldWithTitle(
                     title = stringResource(R.string.create_meal_manual_protein),
                     value = uiState.proteins.toString(),
                     onValueChange = { onEvent(CreateMealManualUiEvent.ProteinsChange(it)) },
+                    modifier = Modifier.weight(1f)
+                )
+                ManualTextFieldWithTitle(
+                    title = stringResource(R.string.create_meal_manual_fats),
+                    value = uiState.fats.toString(),
+                    onValueChange = { onEvent(CreateMealManualUiEvent.FatsChange(it)) },
                     modifier = Modifier.weight(1f)
                 )
             }
@@ -97,25 +119,18 @@ private fun CreateMealManualScreen(
                 horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 ManualTextFieldWithTitle(
-                    title = stringResource(R.string.create_meal_manual_fats),
-                    value = uiState.fats.toString(),
-                    onValueChange = { onEvent(CreateMealManualUiEvent.FatsChange(it)) },
-                    modifier = Modifier.weight(1f)
-                )
-                ManualTextFieldWithTitle(
                     title = stringResource(R.string.create_meal_manual_carbohydrates),
                     value = uiState.carbs.toString(),
                     onValueChange = { onEvent(CreateMealManualUiEvent.CarbsChange(it)) },
                     modifier = Modifier.weight(1f)
                 )
+                ManualTextFieldWithTitle(
+                    title = stringResource(R.string.create_meal_manual_portion),
+                    value = uiState.portion.toString(),
+                    onValueChange = { onEvent(CreateMealManualUiEvent.PortionChange(it)) },
+                    modifier = Modifier.weight(1f)
+                )
             }
-
-            ManualTextFieldWithTitle(
-                title = stringResource(R.string.create_meal_manual_portion),
-                value = uiState.portion.toString(),
-                onValueChange = { onEvent(CreateMealManualUiEvent.PortionChange(it)) },
-                modifier = Modifier.fillMaxWidth()
-            )
         }
 
         Spacer(Modifier.weight(1f))
@@ -194,11 +209,11 @@ private fun CreateMealManualScreenPreview() {
         CreateMealManualScreen(
             uiState = CreateMealManualUiState(
                 name = "Овсяная каша",
-                calories = "71.0",
                 proteins = "2.5",
                 fats = "1.5",
                 carbs = "12.0",
-                portion = "100.0"
+                portion = "100.0",
+                mealType = MealType.BREAKFAST,
             ),
             onEvent = {}
         )

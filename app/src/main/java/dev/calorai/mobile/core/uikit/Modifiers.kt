@@ -1,6 +1,7 @@
 package dev.calorai.mobile.core.uikit
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.gestures.awaitHorizontalDragOrCancellation
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawBehind
@@ -12,6 +13,8 @@ import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
 import androidx.compose.ui.graphics.nativeCanvas
 import androidx.compose.ui.graphics.toArgb
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.input.pointer.positionChange
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 
@@ -61,3 +64,27 @@ fun Modifier.blurShadow(
         }
     }
 )
+
+fun Modifier.onSwipe(
+    threshold: Float,
+    onRightSwipe: () -> Unit,
+    onLeftSwipe: () -> Unit,
+) = pointerInput(Unit) {
+    while (true) {
+        awaitPointerEventScope {
+            val down = awaitPointerEvent().changes.firstOrNull() ?: return@awaitPointerEventScope
+            if (!down.pressed) return@awaitPointerEventScope
+            var totalX = 0f
+            while (true) {
+                val event = awaitHorizontalDragOrCancellation(down.id) ?: break
+                val dragX = event.positionChange().x
+                totalX += dragX
+                event.consume()
+            }
+            when {
+                totalX > threshold -> onRightSwipe()
+                totalX < -threshold -> onLeftSwipe()
+            }
+        }
+    }
+}

@@ -1,6 +1,10 @@
 package dev.calorai.mobile.features.home.ui
 
-import androidx.compose.foundation.gestures.awaitHorizontalDragOrCancellation
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.AnimatedContentTransitionScope.SlideDirection
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -11,32 +15,34 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.wrapContentHeight
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Button
-import androidx.compose.material3.Card
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.input.pointer.positionChange
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.window.Dialog
-import androidx.compose.ui.window.DialogProperties
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.repeatOnLifecycle
 import dev.calorai.mobile.R
+import dev.calorai.mobile.core.uikit.AddIngredientDialog
 import dev.calorai.mobile.core.uikit.CalorAiTheme
-import dev.calorai.mobile.core.uikit.PrimaryButton
 import dev.calorai.mobile.core.uikit.mealCard.MealCard
 import dev.calorai.mobile.core.uikit.mealCard.MealUiModel
+import dev.calorai.mobile.core.uikit.onSwipe
 import dev.calorai.mobile.core.uikit.pieChart.PieChart
 import dev.calorai.mobile.core.uikit.pieChart.PieChartStyle
 import dev.calorai.mobile.core.uikit.pieChart.PieChartUiModel
@@ -60,6 +66,13 @@ fun HomeRoot(
     val state by viewModel.state.collectAsStateWithLifecycle()
     val data by viewModel.dataState.collectAsStateWithLifecycle()
 
+    val lifecycleOwner = LocalLifecycleOwner.current
+    LaunchedEffect(Unit) {
+        lifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+            viewModel.onStart()
+        }
+    }
+
     ObserveAsEvents(mainUiActions) { action ->
         when (action) {
             is MainUiAction.ModalCreateMealButtonClick -> viewModel.onEvent(
@@ -81,15 +94,24 @@ private fun HomeScreen(
     data: HomeDataUiState,
     onEvent: (HomeUiEvent) -> Unit = {},
 ) {
-    when (state) {
-        HomeUiState.Loading -> Box(
-            modifier = Modifier.fillMaxSize(),
-            contentAlignment = Alignment.Center,
-        ) {
-            CircularProgressIndicator()
-        }
+    var isRefreshing by remember { mutableStateOf(false) }
+    PullToRefreshBox(
+        isRefreshing = isRefreshing,
+        onRefresh = {
+            isRefreshing = false
+            onEvent(HomeUiEvent.OnRefresh)
+        },
+    ) {
+        when (state) {
+            HomeUiState.Loading -> Box(
+                modifier = Modifier.fillMaxSize(),
+                contentAlignment = Alignment.Center,
+            ) {
+                CircularProgressIndicator()
+            }
 
-        is HomeUiState.Ready -> HomeScreenReady(state, data, onEvent)
+            is HomeUiState.Ready -> HomeScreenReady(state, data, onEvent)
+        }
     }
 }
 
@@ -121,38 +143,53 @@ private fun HomeScreenReady(
             onDateSelected = { onEvent(HomeUiEvent.SelectDate(it)) }
         )
         Spacer(modifier = Modifier.height(16.dp))
-        LazyColumn(
-            modifier = Modifier
-                .fillMaxSize(),
-            contentPadding = PaddingValues(horizontal = 16.dp, vertical = 24.dp),
-            verticalArrangement = Arrangement.Center,
-            horizontalAlignment = Alignment.CenterHorizontally
+        AnimatedContent(
+            targetState = data,
+            transitionSpec = {
+                if (initialState.date == targetState.date) {
+                    return@AnimatedContent fadeIn() togetherWith fadeOut()
+                }
+                val direction = if (initialState.date < targetState.date) {
+                    SlideDirection.Left
+                } else {
+                    SlideDirection.Right
+                }
+                slideIntoContainer(towards = direction) { offsetForFullSlide ->
+                    offsetForFullSlide / 2
+                } togetherWith slideOutOfContainer(towards = direction)
+            },
         ) {
             when (data) {
-                HomeDataUiState.Error -> Unit
-                HomeDataUiState.Loading -> {
-                    item {
-                        Column(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .wrapContentHeight(),
-                            horizontalAlignment = Alignment.CenterHorizontally
-                        ) {
-                            CircularProgressIndicator()
-                        }
+                is HomeDataUiState.Error -> Unit
+                is HomeDataUiState.Loading -> {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(top = 200.dp),
+                        contentAlignment = Alignment.TopCenter,
+                    ) {
+                        CircularProgressIndicator(modifier = Modifier.size(100.dp))
                     }
                 }
 
                 is HomeDataUiState.HomeData -> {
-                    item {
-                        PieChartsList(data.pieChartsData)
-                        Spacer(modifier = Modifier.height(25.dp))
+                    LazyColumn(
+                        modifier = Modifier
+                            .fillMaxSize(),
+                        contentPadding = PaddingValues(horizontal = 16.dp, vertical = 24.dp),
+                        verticalArrangement = Arrangement.Top,
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        item {
+                            PieChartsList(data.pieChartsData)
+                            Spacer(modifier = Modifier.height(25.dp))
+                        }
+                        items(data.mealsData) { meal ->
+                            MealsListItem(meal = meal, onEvent = onEvent)
+                            Spacer(modifier = Modifier.height(6.dp))
+                        }
+                        item { Spacer(modifier = Modifier.height(30.dp)) }
                     }
-                    items(data.mealsData) { meal ->
-                        MealsListItem(meal = meal, onEvent = onEvent)
-                        Spacer(modifier = Modifier.height(6.dp))
-                    }
-                    item { Spacer(modifier = Modifier.height(30.dp)) }
                 }
             }
         }
@@ -164,61 +201,6 @@ private fun HomeScreenReady(
             onAddManualClick = { onEvent(HomeUiEvent.AddManualClick) },
             onChooseReadyClick = { onEvent(HomeUiEvent.ChooseReadyClick) }
         )
-    }
-}
-
-@Composable
-private fun AddIngredientDialog(
-    onDismissRequest: () -> Unit,
-    onAddManualClick: () -> Unit,
-    onChooseReadyClick: () -> Unit,
-) {
-    Dialog(
-        onDismissRequest = onDismissRequest,
-        properties = DialogProperties(
-            dismissOnBackPress = true,
-            dismissOnClickOutside = true
-        )
-    ) {
-        Card(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp),
-            shape = RoundedCornerShape(16.dp),
-        ) {
-            Column(
-                modifier = Modifier.padding(16.dp),
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                Text(
-                    text = stringResource(R.string.add_ingredient_dialog_title),
-                    style = MaterialTheme.typography.bodyLarge,
-                    modifier = Modifier.padding(bottom = 16.dp)
-                )
-                PrimaryButton(
-                    onClick = {
-                        onAddManualClick()
-                        onDismissRequest()
-                    },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(56.dp)
-                        .padding(vertical = 4.dp),
-                    text = stringResource(R.string.details_add_manual),
-                )
-                PrimaryButton(
-                    onClick = {
-                        onChooseReadyClick()
-                        onDismissRequest()
-                    },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(56.dp)
-                        .padding(vertical = 4.dp),
-                    text = stringResource(R.string.details_choose_ready),
-                )
-            }
-        }
     }
 }
 
@@ -290,31 +272,8 @@ fun HomeScreenPreview() {
             data = HomeDataUiState.HomeData(
                 mealsData = emptyList(),
                 pieChartsData = emptyList(),
+                date = LocalDate.now(),
             )
         )
-    }
-}
-
-fun Modifier.onSwipe(
-    threshold: Float,
-    onRightSwipe: () -> Unit,
-    onLeftSwipe: () -> Unit,
-) = pointerInput(Unit) {
-    while (true) {
-        awaitPointerEventScope {
-            val down = awaitPointerEvent().changes.firstOrNull() ?: return@awaitPointerEventScope
-            if (!down.pressed) return@awaitPointerEventScope
-            var totalX = 0f
-            while (true) {
-                val event = awaitHorizontalDragOrCancellation(down.id) ?: break
-                val dragX = event.positionChange().x
-                totalX += dragX
-                event.consume()
-            }
-            when {
-                totalX > threshold -> onRightSwipe()
-                totalX < -threshold -> onLeftSwipe()
-            }
-        }
     }
 }

@@ -8,6 +8,8 @@ import dev.calorai.mobile.features.home.domain.usecases.GetCurrentUserNameUseCas
 import dev.calorai.mobile.features.home.domain.usecases.GetCurrentUserNameUseCaseImpl
 import dev.calorai.mobile.features.home.domain.usecases.GetDayProgressUseCase
 import dev.calorai.mobile.features.home.domain.usecases.GetDayProgressUseCaseImpl
+import dev.calorai.mobile.features.home.domain.usecases.GetGoalParamsForDayUseCase
+import dev.calorai.mobile.features.home.domain.usecases.GetGoalParamsForDayUseCaseImpl
 import dev.calorai.mobile.features.home.domain.usecases.GetWeekByDateUseCase
 import dev.calorai.mobile.features.home.domain.usecases.GetWeekByDateUseCaseImpl
 import dev.calorai.mobile.features.home.ui.HomeViewModel
@@ -27,7 +29,13 @@ internal val homeModule = module {
         GetCurrentUserNameUseCaseImpl(userDao = get())
     }
     factory<GetDayProgressUseCase> {
-        GetDayProgressUseCaseImpl(repository = get())
+        GetDayProgressUseCaseImpl(
+            repository = get(),
+            getGoalParamsForDayUseCase = get(),
+        )
+    }
+    factory<GetGoalParamsForDayUseCase> {
+        GetGoalParamsForDayUseCaseImpl()
     }
     viewModel {
         HomeViewModel(

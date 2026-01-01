@@ -2,6 +2,7 @@ package dev.calorai.mobile.features.meal.details.ui
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -17,10 +18,10 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -28,8 +29,9 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dev.calorai.mobile.R
-import dev.calorai.mobile.core.uikit.AddIngredientBottomPanel
+import dev.calorai.mobile.core.uikit.AddIngredientDialog
 import dev.calorai.mobile.core.uikit.CalorAiTheme
 import dev.calorai.mobile.core.uikit.PrimaryButton
 import dev.calorai.mobile.core.uikit.commonGradientBackground
@@ -45,17 +47,36 @@ import org.koin.androidx.compose.koinViewModel
 fun MealDetailsRoot(
     viewModel: MealDetailsViewModel = koinViewModel(),
 ) {
-    val uiState by viewModel.uiState.collectAsState()
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     MealDetailsScreen(
         uiState = uiState,
         onEvent = viewModel::onEvent
     )
 }
 
-
 @Composable
 private fun MealDetailsScreen(
     uiState: MealDetailsUiState,
+    onEvent: (MealDetailsUiEvent) -> Unit
+) {
+    when (uiState) {
+        MealDetailsUiState.Loading -> Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .commonGradientBackground(),
+            contentAlignment = Alignment.Center,
+        ) {
+            CircularProgressIndicator()
+        }
+
+        is MealDetailsUiState.Ready -> MealDetailsScreenReady(uiState, onEvent)
+    }
+}
+
+
+@Composable
+private fun MealDetailsScreenReady(
+    uiState: MealDetailsUiState.Ready,
     onEvent: (MealDetailsUiEvent) -> Unit
 ) {
     val system = WindowInsets.systemBars.asPaddingValues()
@@ -118,13 +139,14 @@ private fun MealDetailsScreen(
             ) {
                 Text(
                     text = stringResource(R.string.details_ingredients),
-                    style = MaterialTheme.typography.titleLarge
+                    color = MaterialTheme.colorScheme.onSurface,
+                    style = MaterialTheme.typography.titleMedium
                 )
 
                 Text(
                     text = stringResource(R.string.details_add_more),
                     style = MaterialTheme.typography.titleMedium,
-                    color = MaterialTheme.colorScheme.onSurface,
+                    color = MaterialTheme.colorScheme.onBackground,
                     modifier = Modifier.clickable {
                         onEvent(MealDetailsUiEvent.AddMoreClick)
                     }
@@ -142,6 +164,7 @@ private fun MealDetailsScreen(
                         title = ingredient.title,
                         kcal = ingredient.kcal,
                         weight = ingredient.weight,
+                        unitOfMeasure = ingredient.unitOfMeasure,
                         onClick = {
                             onEvent(MealDetailsUiEvent.IngredientClick(ingredient))
                         }
@@ -161,8 +184,8 @@ private fun MealDetailsScreen(
     }
 
     if (uiState.showAddIngredientSheet || uiState.ingredients.isEmpty()) {
-        AddIngredientBottomPanel(
-            onDismiss = {
+        AddIngredientDialog(
+            onDismissRequest = {
                 if (!uiState.ingredients.isEmpty())
                     onEvent(MealDetailsUiEvent.CloseAddIngredient)
             },
@@ -179,8 +202,9 @@ private fun MealDetailsScreen(
 @Composable
 private fun IngredientItem(
     title: String,
-    kcal: String,
-    weight: String,
+    kcal: Int,
+    weight: Double,
+    unitOfMeasure: UnitOfMeasure,
     onClick: () -> Unit
 ) {
     Card(
@@ -200,18 +224,26 @@ private fun IngredientItem(
         ) {
             Row {
                 Text(
-                    text = title,
+                    text = "$title ",
                     fontWeight = FontWeight.Medium,
                     color = MaterialTheme.colorScheme.onPrimary
                 )
-
-                Text(text = " • $kcal", color = MaterialTheme.colorScheme.onSurface)
+                Text(
+                    text = stringResource(
+                        id = R.string.details_meal_ingredients_kcal,
+                        kcal
+                    ),
+                    color = MaterialTheme.colorScheme.onBackground
+                )
             }
 
             Text(
-                text = weight,
+                text = stringResource(
+                    id = unitOfMeasure.unitResId,
+                    weight
+                ),
                 fontWeight = FontWeight.Medium,
-                color = MaterialTheme.colorScheme.onSurface
+                color = MaterialTheme.colorScheme.onBackground
             )
         }
     }
@@ -222,7 +254,7 @@ private fun IngredientItem(
 private fun MealDetailsScreenPreview() {
     CalorAiTheme {
         MealDetailsScreen(
-            uiState = MealDetailsUiState(
+            uiState = MealDetailsUiState.Ready(
                 mealType = MealType.DINNER,
                 macros = listOf(
                     MacroUi(16f, MealMacroLabelUi.PROTEIN.labelResId, listOf(70f, 30f)),
@@ -230,11 +262,11 @@ private fun MealDetailsScreenPreview() {
                     MacroUi(14f, MealMacroLabelUi.CARBS.labelResId, listOf(60f, 40f)),
                 ),
                 ingredients = listOf(
-                    IngredientUi("Креветки", "99 ккал", "8 шт"),
-                    IngredientUi("Рис", "130 ккал", "100 г"),
-                    IngredientUi("Яйцо пашот", "68 ккал", "1 шт"),
-                    IngredientUi("Помидоры черри", "9 ккал", "3 шт"),
-                    IngredientUi("Авокадо", "0 ккал", "70 г"),
+                    IngredientUi("Креветки", 100, 8.0, UnitOfMeasure.GRAM),
+                    //IngredientUi("Рис", "130 ккал", "100 г"),
+                    //IngredientUi("Яйцо пашот", "68 ккал", "1 шт"),
+                    //IngredientUi("Помидоры черри", "9 ккал", "3 шт"),
+                    //IngredientUi("Авокадо", "0 ккал", "70 г"),
                 )
             ),
             onEvent = {}

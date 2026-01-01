@@ -5,4 +5,5 @@ import dev.calorai.mobile.features.profile.ui.model.UserProfileUi
 data class ProfileUiState(
     val user: UserProfileUi = UserProfileUi(),
     val isSaving: Boolean = false,
+    val isRefreshing: Boolean = false,
 )

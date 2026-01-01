@@ -34,7 +34,6 @@ import androidx.compose.ui.zIndex
 import coil.compose.rememberAsyncImagePainter
 import dev.calorai.mobile.R
 import dev.calorai.mobile.core.uikit.CalorAiTheme
-import dev.calorai.mobile.core.uikit.blurShadow
 import dev.calorai.mobile.core.uikit.calculateItemOffset
 import dev.calorai.mobile.core.uikit.circleMediumSize
 import dev.calorai.mobile.features.home.ui.model.MealTypeUi
@@ -50,15 +49,11 @@ fun MealCard(
     onAddClick: () -> Unit = {},
 ) {
     Card(
-        modifier = modifier.blurShadow(
-            color = Color.Black.copy(alpha = 0.05f),
-            blurRadius = 13.dp,
-            offsetY = 3.dp,
-            shape = RoundedCornerShape(30.dp)
-        ),
+        modifier = modifier,
         colors = CardDefaults.cardColors().copy(
             containerColor = Color.White,
         ),
+        elevation = CardDefaults.elevatedCardElevation(),
         shape = RoundedCornerShape(30.dp),
     ) {
         MealCardContent(
@@ -175,7 +170,7 @@ private fun FoodThumbnail(
     val painter = if (!food.urlToImage.isNullOrBlank()) {
         rememberAsyncImagePainter(model = food.urlToImage)
     } else {
-        painterResource(R.drawable.fried_eggs)
+        painterResource(R.drawable.ic_kcal)
     }
 
     Image(
@@ -189,7 +184,7 @@ private fun FoodThumbnail(
 @Preview(showBackground = true)
 @Composable
 private fun MealCardPreview_EmptyImages() {
-    val foodList = List(7) {
+    val foodList = List(3) {
         FoodUiModel(
             id = it.toLong(),
             name = "Meal $it",

@@ -62,6 +62,7 @@
     <string name="details_meal_macro_label_protein">белок</string>
     <string name="details_meal_macro_label_fat">жиры</string>
     <string name="details_meal_macro_label_carbs">углеводы</string>
+    <string name="details_meal_ingredients_kcal"> • %1$d ккал</string>
 
     <string name="signup_title">Создай свой аккаунт</string>
     <string name="signup_description">Начни питаться лучше</string>
@@ -71,7 +72,6 @@
     <string name="signup_login">Войти</string>
 
     <string name="create_meal_manual_name_placeholder">Название продукта</string>
-    <string name="create_meal_manual_calories">Калории</string>
     <string name="create_meal_manual_protein">Белки</string>
     <string name="create_meal_manual_fats">Жиры</string>
     <string name="create_meal_manual_carbohydrates">Углеводы</string>
@@ -108,4 +108,5 @@
     <string name="onboarding_gender_description">Это поможет нам создать более персонализированный план для вас.</string>
     <string name="onboarding_height_weight_title">Укажи рост и вес</string>
     <string name="onboarding_height_weight_description">Это важно. Так мы сможем точнее рассчитать потребность в калориях.</string>
+    <string name="create_meal_manual_description">Введите название и параметры продукта</string>
 </resources>

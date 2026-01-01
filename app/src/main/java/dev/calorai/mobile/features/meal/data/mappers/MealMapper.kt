@@ -12,10 +12,16 @@ import dev.calorai.mobile.features.meal.data.dto.createMealEntry.CreateMealEntry
 import dev.calorai.mobile.features.meal.data.dto.enums.MealTypeDto
 import dev.calorai.mobile.features.meal.data.dto.getDailyMeal.GetDailyMealResponse
 import dev.calorai.mobile.features.meal.data.dto.getDailyMeal.MealDto
+import dev.calorai.mobile.features.meal.data.dto.getDailyMealsComposition.MealEntryDto
 import dev.calorai.mobile.features.meal.data.entity.DailyMealsEntity
+import dev.calorai.mobile.features.meal.details.ui.IngredientUi
+import dev.calorai.mobile.features.meal.details.ui.MacroUi
+import dev.calorai.mobile.features.meal.details.ui.model.MealMacroLabelUi
 import dev.calorai.mobile.features.meal.domain.model.CreateMealEntryPayload
 import dev.calorai.mobile.features.meal.domain.model.DailyMeal
+import dev.calorai.mobile.features.meal.domain.model.MealEntry
 import dev.calorai.mobile.features.meal.domain.model.MealId
+import dev.calorai.mobile.features.meal.domain.model.MealProgressInfo
 import dev.calorai.mobile.features.meal.domain.model.MealType
 import java.time.LocalDate
 
@@ -71,6 +77,16 @@ class MealMapper {
             fatG = entity.fatG,
             carbsG = entity.carbsG,
             entriesCnt = entity.entriesCnt,
+        )
+
+    fun mapToDomain(dto: MealEntryDto): MealEntry =
+        MealEntry(
+            name = dto.entryName,
+            quantityGrams = dto.quantityGrams,
+            kcal = dto.kcal,
+            proteinG = dto.proteinG,
+            fatG = dto.fatG,
+            carbsG = dto.carbsG,
         )
 
     fun mapToDomain(response: GetDailyMealResponse): List<DailyMeal> {
@@ -132,6 +148,32 @@ class MealMapper {
             targetSubtext = PieChartSubtextUi.CARBS.labelResId,
             leftText = "",
             pieData = dayInfo.ratioCarbs,
+        ),
+    )
+
+    fun mapToIngredientUiModel(mealEntry: MealEntry): IngredientUi =
+        IngredientUi(
+            title = mealEntry.name,
+            kcal = mealEntry.kcal,
+            weight = mealEntry.quantityGrams,
+            unitOfMeasure = UnitOfMeasure.GRAM, // TODO: Потом с бэка нужно получать единицы ингридиента (гр, шт, ...)
+        )
+
+    fun mapToMacroUiModel(progressInfo: MealProgressInfo): List<MacroUi> = listOf(
+        MacroUi(
+            value = progressInfo.remainingAmountProtein,
+            label = MealMacroLabelUi.PROTEIN.labelResId,
+            values = progressInfo.ratioProtein,
+        ),
+        MacroUi(
+            value = progressInfo.remainingAmountCarbs,
+            label = MealMacroLabelUi.CARBS.labelResId,
+            values = progressInfo.ratioCarbs,
+        ),
+        MacroUi(
+            value = progressInfo.remainingAmountFat,
+            label = MealMacroLabelUi.FAT.labelResId,
+            values = progressInfo.ratioFat,
         ),
     )
 
