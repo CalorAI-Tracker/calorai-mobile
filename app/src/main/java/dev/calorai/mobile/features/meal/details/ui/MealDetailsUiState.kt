@@ -4,12 +4,16 @@ import androidx.annotation.StringRes
 import dev.calorai.mobile.core.uikit.pieChart.UnitOfMeasure
 import dev.calorai.mobile.features.meal.domain.model.MealType
 
-data class MealDetailsUiState(
-    val mealType: MealType = MealType.BREAKFAST,
-    val macros: List<MacroUi> = emptyList(),
-    val ingredients: List<IngredientUi> = emptyList(),
-    val showAddIngredientSheet: Boolean = false,
-)
+sealed interface MealDetailsUiState {
+    data class Ready(
+        val mealType: MealType = MealType.BREAKFAST,
+        val macros: List<MacroUi> = emptyList(),
+        val ingredients: List<IngredientUi> = emptyList(),
+        val showAddIngredientSheet: Boolean = false,
+    ) : MealDetailsUiState
+
+    data object Loading : MealDetailsUiState
+}
 
 data class MacroUi(
     val value: Float,

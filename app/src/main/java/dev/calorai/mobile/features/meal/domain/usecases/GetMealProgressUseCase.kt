@@ -1,43 +1,49 @@
-package dev.calorai.mobile.features.home.domain.usecases
+package dev.calorai.mobile.features.meal.domain.usecases
 
-import dev.calorai.mobile.features.home.domain.model.DayMealProgressInfo
 import dev.calorai.mobile.features.meal.domain.MealRepository
-import java.time.LocalDate
+import dev.calorai.mobile.features.meal.domain.model.MealProgressInfo
+import dev.calorai.mobile.features.meal.domain.model.MealType
 
-interface GetDayProgressUseCase {
-    suspend operator fun invoke(date: LocalDate): DayMealProgressInfo
+interface GetMealProgressUseCase {
+    suspend operator fun invoke(
+        date: String,
+        mealType: MealType,
+    ): MealProgressInfo
 }
 
-internal class GetDayProgressUseCaseImpl(
+internal class GetMealProgressUseCaseImpl(
     private val repository: MealRepository,
-    private val getGoalParamsForDayUseCase: GetGoalParamsForDayUseCase,
-) : GetDayProgressUseCase {
+    private val getGoalParamsForMealUseCase: GetGoalParamsForMealUseCase,
+) : GetMealProgressUseCase {
 
-    override suspend fun invoke(date: LocalDate): DayMealProgressInfo {
-        val goals = getGoalParamsForDayUseCase.invoke(date)
+    override suspend fun invoke(
+        date: String,
+        mealType: MealType
+    ): MealProgressInfo {
+        val goals = getGoalParamsForMealUseCase.invoke(date, mealType)
 
-        val meals = repository.getDailyMeals(date.toString())
+        val entries = repository.getMealIngredients(
+            date = date,
+            mealType = mealType,
+        )
 
         var totalKcal = 0f
         var totalProtein = 0f
         var totalFat = 0f
         var totalCarbs = 0f
 
-        meals.forEach { meal ->
+        entries.forEach { meal ->
             totalKcal += meal.kcal
-            totalProtein += meal.proteinG.toFloatOrZero()
-            totalFat += meal.fatG.toFloatOrZero()
-            totalCarbs += meal.carbsG.toFloatOrZero()
+            totalProtein += meal.proteinG.toFloat()
+            totalFat += meal.fatG.toFloat()
+            totalCarbs += meal.carbsG.toFloat()
         }
 
-        return DayMealProgressInfo(
-            date = date,
-            meals = meals,
-            remainingAmountKcal = calcRemainingAmount(totalKcal, goals.goalKcal),
+        return MealProgressInfo(
+            entries = entries,
             remainingAmountProtein = calcRemainingAmount(totalProtein, goals.goalProtein),
             remainingAmountFat = calcRemainingAmount(totalFat, goals.goalFat),
             remainingAmountCarbs = calcRemainingAmount(totalCarbs, goals.goalCarbs),
-            ratioKcal = calcRatios(totalKcal, goals.goalKcal),
             ratioProtein = calcRatios(totalProtein, goals.goalProtein),
             ratioFat = calcRatios(totalFat, goals.goalFat),
             ratioCarbs = calcRatios(totalCarbs, goals.goalCarbs),
@@ -54,6 +60,4 @@ internal class GetDayProgressUseCaseImpl(
         val consumedRatio = (consumed / goal).coerceIn(0.0f, 1.0f)
         return listOf(consumedRatio, 1.0f - consumedRatio)
     }
-
-    private fun String.toFloatOrZero(): Float = this.toFloatOrNull() ?: 0.0f
 }

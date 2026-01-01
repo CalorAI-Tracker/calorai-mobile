@@ -15,10 +15,13 @@ import dev.calorai.mobile.features.meal.data.dto.getDailyMeal.MealDto
 import dev.calorai.mobile.features.meal.data.dto.getDailyMealsComposition.MealEntryDto
 import dev.calorai.mobile.features.meal.data.entity.DailyMealsEntity
 import dev.calorai.mobile.features.meal.details.ui.IngredientUi
+import dev.calorai.mobile.features.meal.details.ui.MacroUi
+import dev.calorai.mobile.features.meal.details.ui.model.MealMacroLabelUi
 import dev.calorai.mobile.features.meal.domain.model.CreateMealEntryPayload
 import dev.calorai.mobile.features.meal.domain.model.DailyMeal
 import dev.calorai.mobile.features.meal.domain.model.MealEntry
 import dev.calorai.mobile.features.meal.domain.model.MealId
+import dev.calorai.mobile.features.meal.domain.model.MealProgressInfo
 import dev.calorai.mobile.features.meal.domain.model.MealType
 import java.time.LocalDate
 
@@ -155,6 +158,24 @@ class MealMapper {
             weight = mealEntry.quantityGrams,
             unitOfMeasure = UnitOfMeasure.GRAM, // TODO: Потом с бэка нужно получать единицы ингридиента (гр, шт, ...)
         )
+
+    fun mapToMacroUiModel(progressInfo: MealProgressInfo): List<MacroUi> = listOf(
+        MacroUi(
+            value = progressInfo.remainingAmountProtein,
+            label = MealMacroLabelUi.PROTEIN.labelResId,
+            values = progressInfo.ratioProtein,
+        ),
+        MacroUi(
+            value = progressInfo.remainingAmountCarbs,
+            label = MealMacroLabelUi.CARBS.labelResId,
+            values = progressInfo.ratioCarbs,
+        ),
+        MacroUi(
+            value = progressInfo.remainingAmountFat,
+            label = MealMacroLabelUi.FAT.labelResId,
+            values = progressInfo.ratioFat,
+        ),
+    )
 
     private fun mapToData(mealType: MealType): MealTypeDto = when (mealType) {
         MealType.BREAKFAST -> MealTypeDto.BREAKFAST

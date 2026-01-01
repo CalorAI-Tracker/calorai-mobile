@@ -127,7 +127,6 @@ private fun ProfileScreen(
     hostState: SnackbarHostState,
     onEvent: (ProfileUiEvent) -> Unit,
 ) {
-    var isRefreshing by remember { mutableStateOf(false) }
     Scaffold(
         topBar = {
             TopAppBar(
@@ -162,7 +161,7 @@ private fun ProfileScreen(
         containerColor = Color.Transparent,
     ) { paddingValues ->
         PullToRefreshBox(
-            isRefreshing = isRefreshing,
+            isRefreshing = state.isRefreshing,
             onRefresh = { onEvent(ProfileUiEvent.OnRefresh) },
         ) {
             Box(

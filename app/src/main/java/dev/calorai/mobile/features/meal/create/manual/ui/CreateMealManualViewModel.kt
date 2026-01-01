@@ -23,18 +23,22 @@ class CreateMealManualViewModel constructor(
 
     private val mealRoute = savedStateHandle.toRoute<CreateMealManualRoute>()
 
-    private val _uiState = MutableStateFlow(CreateMealManualUiState())
+    private val _uiState = MutableStateFlow(
+        CreateMealManualUiState(
+            mealType = mealRoute.mealType,
+        )
+    )
     val uiState = _uiState.asStateFlow()
 
     fun onEvent(event: CreateMealManualUiEvent) {
         when (event) {
             is CreateMealManualUiEvent.NameChange -> update { copy(name = event.value) }
-            is CreateMealManualUiEvent.CaloriesChange -> update { copy(calories = event.value) }
             is CreateMealManualUiEvent.ProteinsChange -> update { copy(proteins = event.value) }
             is CreateMealManualUiEvent.FatsChange -> update { copy(fats = event.value) }
             is CreateMealManualUiEvent.CarbsChange -> update { copy(carbs = event.value) }
             is CreateMealManualUiEvent.PortionChange -> update { copy(portion = event.value) }
             CreateMealManualUiEvent.AddClick -> onAddClick()
+            CreateMealManualUiEvent.BackPressed -> navigateToMealDetails()
         }
     }
 
@@ -70,7 +74,7 @@ class CreateMealManualViewModel constructor(
                     mealType = mealRoute.mealType,
                     date = mealRoute.date,
                     navOptions = NavOptions.Builder()
-                        .setPopUpTo< CreateMealManualRoute>(inclusive = true)
+                        .setPopUpTo<CreateMealManualRoute>(inclusive = true)
                         .build(),
                 )
             }
