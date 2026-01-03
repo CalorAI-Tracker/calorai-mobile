@@ -124,7 +124,7 @@ class LoginViewModel constructor(
                     }
                 }
                 .onFailure {
-                    // TODO
+                    _uiActions.emit(LoginUiAction.ShowErrorMessage)
                 }
         }
     }
