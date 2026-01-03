@@ -109,4 +109,5 @@
     <string name="onboarding_height_weight_title">Укажи рост и вес</string>
     <string name="onboarding_height_weight_description">Это важно. Так мы сможем точнее рассчитать потребность в калориях.</string>
     <string name="create_meal_manual_description">Введите название и параметры продукта</string>
+    <string name="something_went_wrong">Что-то пошло не так</string>
 </resources>
