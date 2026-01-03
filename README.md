@@ -31,20 +31,34 @@
 
 ### 🎥 Демонстрация
 
-#### Авторизация
-![Авторизация](assets/auth_login.gif)
-
-#### Регистрация
-![Регистрация](assets/auth_sign_up.gif)
-
-#### Добавление приема пищи (с нуля)
-![Добавление с нуля](assets/add_from_empty.gif)
-
-#### Добавление к существующему приему
-![Добавление к существующему](assets/add_to_exist.gif)
-
-#### Редактирование профиля
-![Редактирование профиля](assets/profile_edit.gif)
+<table>
+  <tr>
+    <td align="center">
+      <strong>Авторизация</strong><br/>
+      <img src="assets/auth_login.gif" width="300"/>
+    </td>
+    <td align="center">
+      <strong>Регистрация</strong><br/>
+      <img src="assets/auth_sign_up.gif" width="300"/>
+    </td>
+  </tr>
+  <tr>
+    <td align="center">
+      <strong>Добавление приема пищи (с нуля)</strong><br/>
+      <img src="assets/add_from_empty.gif" width="300"/>
+    </td>
+    <td align="center">
+      <strong>Добавление к существующему приему</strong><br/>
+      <img src="assets/add_to_exist.gif" width="300"/>
+    </td>
+  </tr>
+  <tr>
+    <td align="center" colspan="2">
+      <strong>Редактирование профиля</strong><br/>
+      <img src="assets/profile_edit.gif" width="300"/>
+    </td>
+  </tr>
+</table>
 
 ---
 
