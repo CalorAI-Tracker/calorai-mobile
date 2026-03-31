@@ -1,6 +1,7 @@
 package dev.calorai.mobile.features.meal.details.ui
 
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -22,8 +23,11 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
@@ -33,6 +37,8 @@ import dev.calorai.mobile.core.uikit.AddIngredientBottomPanel
 import dev.calorai.mobile.core.uikit.CalorAiTheme
 import dev.calorai.mobile.core.uikit.PrimaryButton
 import dev.calorai.mobile.core.uikit.commonGradientBackground
+import dev.calorai.mobile.core.uikit.ingredientContextMenu.IngredientContextMenu
+import dev.calorai.mobile.core.uikit.ingredientContextMenu.IngredientContextMenuAction
 import dev.calorai.mobile.core.uikit.pieChart.PieChart
 import dev.calorai.mobile.core.uikit.pieChart.PieChartStyle
 import dev.calorai.mobile.core.uikit.pieChart.PieChartUiModel
@@ -40,6 +46,9 @@ import dev.calorai.mobile.core.uikit.pieChart.UnitOfMeasure
 import dev.calorai.mobile.features.meal.details.ui.model.MealMacroLabelUi
 import dev.calorai.mobile.features.meal.domain.model.MealType
 import org.koin.androidx.compose.koinViewModel
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.layout.positionInWindow
 
 @Composable
 fun MealDetailsRoot(
@@ -145,7 +154,9 @@ private fun MealDetailsScreen(
                         unitOfMeasure = ingredient.unitOfMeasure,
                         onClick = {
                             onEvent(MealDetailsUiEvent.IngredientClick(ingredient))
-                        }
+                        },
+                        onEditClick = {}, // TODO: Поменять
+                        onDeleteClick = {}, // TODO: Поменять
                     )
                 }
             }
@@ -183,13 +194,41 @@ private fun IngredientItem(
     kcal: Int,
     weight: Double,
     unitOfMeasure: UnitOfMeasure,
-    onClick: () -> Unit
+    onClick: () -> Unit,
+    onEditClick: () -> Unit,
+    onDeleteClick: () -> Unit,
 ) {
+    var isContextMenuVisible by remember { mutableStateOf(false) }
+    var anchorOffset by remember { mutableStateOf(Offset.Zero) }
+
+    if (isContextMenuVisible) {
+        IngredientContextMenu(
+            anchorOffset = anchorOffset,
+            onDismiss = {
+                isContextMenuVisible = false
+            },
+            onItemSelected = { action ->
+                when (action) {
+                    IngredientContextMenuAction.EDIT -> onEditClick()
+                    IngredientContextMenuAction.DELETE -> onDeleteClick()
+                }
+            },
+        )
+    }
+
     Card(
         modifier = Modifier
             .fillMaxWidth()
             .height(64.dp)
-            .clickable { onClick() },
+            .onGloballyPositioned { coordinates ->
+                anchorOffset = coordinates.positionInWindow()
+            }
+            .combinedClickable(
+                onClick = onClick,
+                onLongClick = {
+                    isContextMenuVisible = true
+                },
+            ),
         shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
     ) {

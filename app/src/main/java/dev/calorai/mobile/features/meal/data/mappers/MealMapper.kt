@@ -44,9 +44,9 @@ class MealMapper {
             date = date,
             meal = dto.meal.name,
             kcal = dto.kcal,
-            proteinG = dto.proteinG,
-            fatG = dto.fatG,
-            carbsG = dto.carbsG,
+            proteinG = dto.proteinG.toString(),
+            fatG = dto.fatG.toString(),
+            carbsG = dto.carbsG.toString(),
             entriesCnt = dto.entriesCnt
         )
 
@@ -94,9 +94,9 @@ class MealMapper {
                 date = date,
                 meal = mapToData(mealDto.meal),
                 kcal = mealDto.kcal,
-                proteinG = mealDto.proteinG,
-                fatG = mealDto.fatG,
-                carbsG = mealDto.carbsG,
+                proteinG = mealDto.proteinG.toString(),
+                fatG = mealDto.fatG.toString(),
+                carbsG = mealDto.carbsG.toString(),
                 entriesCnt = mealDto.entriesCnt
             )
         }

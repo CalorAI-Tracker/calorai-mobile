@@ -24,13 +24,13 @@ data class MealDto(
     val kcal: Int,
 
     @SerialName("proteinG")
-    val proteinG: String,
+    val proteinG: Double,
 
     @SerialName("fatG")
-    val fatG: String,
+    val fatG: Double,
 
     @SerialName("carbsG")
-    val carbsG: String,
+    val carbsG: Double,
 
     @SerialName("entriesCnt")
     val entriesCnt: Int,

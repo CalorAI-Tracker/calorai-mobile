@@ -12,7 +12,7 @@ interface MealRepository {
     suspend fun getDailyMeals(date: String): List<DailyMeal>
     suspend fun createMealEntryAndSync(payload: CreateMealEntryPayload)
     suspend fun getMealIngredients(date: String, mealType: MealType): List<MealEntry> // TODO: Потом добавить таблицу ингридиентов записанных и обернуть здесь ответ в Flow
-    fun observeMealsByDate(date: String): Flow<List<DailyMeal>>
+    fun observeMealsByDate(date: String): Flow<List<DailyMeal>> // TODO: Использовать, пока юзается только getDailyMeals
     suspend fun deleteMealById(id: MealId)
     suspend fun deleteMealsByDate(date: String)
     suspend fun clearAllMeals()
