@@ -1,7 +1,7 @@
 package dev.calorai.mobile.features.meal.di
 
 import dev.calorai.mobile.core.network.di.NetworkContext
-import dev.calorai.mobile.features.meal.create.manual.di.createMealManualModule
+import dev.calorai.mobile.features.meal.create.manual.di.MealManualEditorModule
 import dev.calorai.mobile.features.meal.data.api.MealApi
 import dev.calorai.mobile.features.meal.data.mappers.MealMapper
 import dev.calorai.mobile.features.meal.data.repository.MealRepositoryImpl
@@ -30,7 +30,7 @@ internal val mealModule = module {
         CreateMealEntryUseCaseImpl(repository = get())
     }
     includes(
-        createMealManualModule,
+        MealManualEditorModule,
         mealDetailsModule,
     )
 }

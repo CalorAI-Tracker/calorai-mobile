@@ -41,22 +41,22 @@ import dev.calorai.mobile.features.meal.domain.model.MealType
 import org.koin.androidx.compose.koinViewModel
 
 @Composable
-fun CreateMealManualRoot(
-    viewModel: CreateMealManualViewModel = koinViewModel(),
+fun MealManualEditorRoot(
+    viewModel: MealManualEditorViewModel = koinViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsState()
 
-    BackHandler { viewModel.onEvent(CreateMealManualUiEvent.BackPressed) }
-    CreateMealManualScreen(
+    BackHandler { viewModel.onEvent(MealManualEditorUiEvent.BackPressed) }
+    MealManualEditorScreen(
         uiState = uiState,
         onEvent = viewModel::onEvent
     )
 }
 
 @Composable
-private fun CreateMealManualScreen(
-    uiState: CreateMealManualUiState,
-    onEvent: (CreateMealManualUiEvent) -> Unit,
+private fun MealManualEditorScreen(
+    uiState: MealManualEditorUiState,
+    onEvent: (MealManualEditorUiEvent) -> Unit,
 ) {
     val system = WindowInsets.systemBars.asPaddingValues()
     val title = when (uiState.mealType) {
@@ -92,7 +92,7 @@ private fun CreateMealManualScreen(
         Column(verticalArrangement = Arrangement.spacedBy(20.dp)) {
             ProductNameField(
                 value = uiState.name,
-                onValueChange = { onEvent(CreateMealManualUiEvent.NameChange(it)) },
+                onValueChange = { onEvent(MealManualEditorUiEvent.NameChange(it)) },
                 modifier = Modifier.fillMaxWidth()
             )
 
@@ -103,13 +103,13 @@ private fun CreateMealManualScreen(
                 ManualTextFieldWithTitle(
                     title = stringResource(R.string.create_meal_manual_protein),
                     value = uiState.proteins.toString(),
-                    onValueChange = { onEvent(CreateMealManualUiEvent.ProteinsChange(it)) },
+                    onValueChange = { onEvent(MealManualEditorUiEvent.ProteinsChange(it)) },
                     modifier = Modifier.weight(1f)
                 )
                 ManualTextFieldWithTitle(
                     title = stringResource(R.string.create_meal_manual_fats),
                     value = uiState.fats.toString(),
-                    onValueChange = { onEvent(CreateMealManualUiEvent.FatsChange(it)) },
+                    onValueChange = { onEvent(MealManualEditorUiEvent.FatsChange(it)) },
                     modifier = Modifier.weight(1f)
                 )
             }
@@ -121,13 +121,13 @@ private fun CreateMealManualScreen(
                 ManualTextFieldWithTitle(
                     title = stringResource(R.string.create_meal_manual_carbohydrates),
                     value = uiState.carbs.toString(),
-                    onValueChange = { onEvent(CreateMealManualUiEvent.CarbsChange(it)) },
+                    onValueChange = { onEvent(MealManualEditorUiEvent.CarbsChange(it)) },
                     modifier = Modifier.weight(1f)
                 )
                 ManualTextFieldWithTitle(
                     title = stringResource(R.string.create_meal_manual_portion),
                     value = uiState.portion.toString(),
-                    onValueChange = { onEvent(CreateMealManualUiEvent.PortionChange(it)) },
+                    onValueChange = { onEvent(MealManualEditorUiEvent.PortionChange(it)) },
                     modifier = Modifier.weight(1f)
                 )
             }
@@ -136,8 +136,8 @@ private fun CreateMealManualScreen(
         Spacer(Modifier.weight(1f))
 
         PrimaryButton(
-            onClick = { onEvent(CreateMealManualUiEvent.AddClick) },
-            text = stringResource(R.string.create_meal_manual_add),
+            onClick = { onEvent(MealManualEditorUiEvent.SubmitClick) },
+            text = stringResource(uiState.actionButtonTextRes),
         )
         Spacer(Modifier.size(32.dp))
     }
@@ -206,8 +206,9 @@ private fun ManualTextFieldWithTitle(
 @Composable
 private fun CreateMealManualScreenPreview() {
     CalorAiTheme {
-        CreateMealManualScreen(
-            uiState = CreateMealManualUiState(
+        MealManualEditorScreen(
+            uiState = MealManualEditorUiState(
+                mode = MealManualEditorMode.Create,
                 name = "Овсяная каша",
                 proteins = "2.5",
                 fats = "1.5",

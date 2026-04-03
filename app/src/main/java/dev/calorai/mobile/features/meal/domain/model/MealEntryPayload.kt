@@ -1,6 +1,6 @@
 package dev.calorai.mobile.features.meal.domain.model
 
-data class CreateMealEntryPayload(
+data class MealEntryPayload(
     val entryName: String,
     val meal: MealType,
     val eatenAt: String,

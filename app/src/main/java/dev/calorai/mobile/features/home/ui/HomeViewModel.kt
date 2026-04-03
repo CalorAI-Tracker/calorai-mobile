@@ -8,7 +8,7 @@ import dev.calorai.mobile.features.home.domain.model.DayMealProgressInfo
 import dev.calorai.mobile.features.home.domain.usecases.GetCurrentUserNameUseCase
 import dev.calorai.mobile.features.home.domain.usecases.GetDayProgressUseCase
 import dev.calorai.mobile.features.home.domain.usecases.GetWeekByDateUseCase
-import dev.calorai.mobile.features.meal.create.manual.navigateToCreateMealManualScreen
+import dev.calorai.mobile.features.meal.create.manual.navigateToMealManualEditorScreen
 import dev.calorai.mobile.features.meal.data.mappers.MealMapper
 import dev.calorai.mobile.features.meal.details.navigateToMealDetailsScreen
 import dev.calorai.mobile.features.meal.domain.model.MealType
@@ -167,7 +167,7 @@ class HomeViewModel constructor(
             val mealType = requireNotNull(selectedMealType)
             hideAddIngredientDialog()
             globalRouter.emit {
-                navigateToCreateMealManualScreen(
+                navigateToMealManualEditorScreen(
                     mealType = mealType,
                     date = currentDate.value.toString(),
                 )
