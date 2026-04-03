@@ -1,4 +1,4 @@
-package dev.calorai.mobile.core.uikit.ingredientContextMenu
+package dev.calorai.mobile.core.uikit.contextMenu
 
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.unit.IntOffset
@@ -8,7 +8,7 @@ import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.window.PopupPositionProvider
 import kotlin.math.roundToInt
 
-class IngredientContextMenuPositionProvider(
+class PrimaryContextMenuPositionProvider(
     private val anchorOffset: Offset,
 ) : PopupPositionProvider {
 

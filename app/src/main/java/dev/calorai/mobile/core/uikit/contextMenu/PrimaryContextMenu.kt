@@ -1,4 +1,5 @@
-package dev.calorai.mobile.core.uikit.ingredientContextMenu
+package dev.calorai.mobile.core.uikit.contextMenu
+
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -21,20 +22,20 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Popup
 import androidx.compose.ui.window.PopupProperties
-import dev.calorai.mobile.core.uikit.CalorAiTheme
 
 @Composable
-fun IngredientContextMenu(
+fun <ITEM : PrimaryContextMenuItem<KEY>, KEY> PrimaryContextMenu(
     anchorOffset: Offset,
+    items: List<ITEM>,
     onDismiss: () -> Unit,
-    onItemSelected: (IngredientContextMenuAction) -> Unit,
+    onItemSelected: (KEY) -> Unit,
+    modifier: Modifier = Modifier,
 ) {
     Popup(
-        popupPositionProvider = IngredientContextMenuPositionProvider(
+        popupPositionProvider = PrimaryContextMenuPositionProvider(
             anchorOffset = anchorOffset,
         ),
         onDismissRequest = onDismiss,
@@ -45,25 +46,22 @@ fun IngredientContextMenu(
             clippingEnabled = true,
         ),
     ) {
-        IngredientContextMenuContent(
-            items = listOf(
-                IngredientContextMenuItem.EditIngredientContextMenuItem,
-                IngredientContextMenuItem.DeleteIngredientContextMenuItem
-            ),
-            onItemSelected = { action ->
-                onItemSelected(action)
+        PrimaryContextMenuContent(
+            items = items,
+            onItemSelected = { key ->
+                onItemSelected(key)
                 onDismiss()
             },
-            modifier = Modifier
+            modifier = modifier
                 .width(210.dp)
         )
     }
 }
 
 @Composable
-private fun IngredientContextMenuContent(
-    items: List<IngredientContextMenuItem>,
-    onItemSelected: (IngredientContextMenuAction) -> Unit,
+private fun <ITEM : PrimaryContextMenuItem<KEY>, KEY> PrimaryContextMenuContent(
+    items: List<ITEM>,
+    onItemSelected: (KEY) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Card(
@@ -80,9 +78,9 @@ private fun IngredientContextMenuContent(
             modifier = Modifier.fillMaxWidth()
         ) {
             items.forEachIndexed { index, item ->
-                IngredientContextMenuItem(
+                PrimaryContextMenuItem(
                     item = item,
-                    onClick = { onItemSelected(item.action) },
+                    onClick = { onItemSelected(item.key) },
                 )
                 if (index != items.lastIndex) {
                     HorizontalDivider(
@@ -96,16 +94,11 @@ private fun IngredientContextMenuContent(
 }
 
 @Composable
-private fun IngredientContextMenuItem(
-    item: IngredientContextMenuItem,
+private fun <ITEM : PrimaryContextMenuItem<KEY>, KEY> PrimaryContextMenuItem(
+    item: ITEM,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val color = if (item.isDestructive) {
-        MaterialTheme.colorScheme.secondary
-    } else {
-        MaterialTheme.colorScheme.onPrimary
-    }
     Row(
         modifier = modifier
             .fillMaxWidth()
@@ -116,35 +109,15 @@ private fun IngredientContextMenuItem(
         horizontalArrangement = Arrangement.SpaceBetween,
     ) {
         Text(
-            text = stringResource(item.title),
+            text = stringResource(item.titleRes),
             style = MaterialTheme.typography.bodyMedium,
-            color = color,
+            color = item.titleColor,
         )
         Icon(
             painter = painterResource(item.iconRes),
             contentDescription = null,
-            tint = color,
+            tint = item.iconColor,
             modifier = Modifier.size(20.dp),
-        )
-    }
-}
-
-@Preview(
-    showBackground = true,
-    backgroundColor = 0xFFFFEAE6,
-)
-@Composable
-private fun MenuPreview() {
-    val items = listOf(
-        IngredientContextMenuItem.EditIngredientContextMenuItem,
-        IngredientContextMenuItem.DeleteIngredientContextMenuItem
-    )
-    CalorAiTheme {
-        IngredientContextMenuContent(
-            items = items,
-            onItemSelected = {},
-            modifier = Modifier
-                .width(230.dp)
         )
     }
 }

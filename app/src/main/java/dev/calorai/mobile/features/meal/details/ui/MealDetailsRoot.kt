@@ -42,8 +42,7 @@ import dev.calorai.mobile.core.uikit.AddIngredientDialog
 import dev.calorai.mobile.core.uikit.CalorAiTheme
 import dev.calorai.mobile.core.uikit.PrimaryButton
 import dev.calorai.mobile.core.uikit.commonGradientBackground
-import dev.calorai.mobile.core.uikit.ingredientContextMenu.IngredientContextMenu
-import dev.calorai.mobile.core.uikit.ingredientContextMenu.IngredientContextMenuAction
+import dev.calorai.mobile.core.uikit.contextMenu.ingredientContextMenu.IngredientContextMenu
 import dev.calorai.mobile.core.uikit.pieChart.PieChart
 import dev.calorai.mobile.core.uikit.pieChart.PieChartStyle
 import dev.calorai.mobile.core.uikit.pieChart.PieChartUiModel
@@ -226,14 +225,10 @@ private fun IngredientItem(
     if (isContextMenuVisible) {
         IngredientContextMenu(
             anchorOffset = anchorOffset,
+            onEdit = onEditClick,
+            onDelete = onDeleteClick,
             onDismiss = {
                 isContextMenuVisible = false
-            },
-            onItemSelected = { action ->
-                when (action) {
-                    IngredientContextMenuAction.EDIT -> onEditClick()
-                    IngredientContextMenuAction.DELETE -> onDeleteClick()
-                }
             },
         )
     }
