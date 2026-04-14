@@ -79,6 +79,8 @@
     <string name="create_meal_manual_add">Добавить</string>
     <string name="create_meal_manual_textfield_placeholder">0.0</string>
 
+    <string name="edit_meal_manual_save">Сохранить</string>
+
     <string name="add_ingredient_dialog_title">Добавить ингредиент</string>
     <string name="add_ingredient_dialog_message">Выберите способ добавления ингредиента</string>
 
@@ -110,4 +112,7 @@
     <string name="onboarding_height_weight_description">Это важно. Так мы сможем точнее рассчитать потребность в калориях.</string>
     <string name="create_meal_manual_description">Введите название и параметры продукта</string>
     <string name="something_went_wrong">Что-то пошло не так</string>
+
+    <string name="context_menu_edit">Редактировать</string>
+    <string name="context_menu_delete">Удалить</string>
 </resources>

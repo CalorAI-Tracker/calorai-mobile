@@ -5,7 +5,7 @@ import dev.calorai.mobile.features.meal.data.dao.DailyMealsDao
 import dev.calorai.mobile.features.meal.data.entity.DailyMealsEntity
 import dev.calorai.mobile.features.meal.data.mappers.MealMapper
 import dev.calorai.mobile.features.meal.domain.MealRepository
-import dev.calorai.mobile.features.meal.domain.model.CreateMealEntryPayload
+import dev.calorai.mobile.features.meal.domain.model.MealEntryPayload
 import dev.calorai.mobile.features.meal.domain.model.DailyMeal
 import dev.calorai.mobile.features.meal.domain.model.MealId
 import dev.calorai.mobile.features.meal.domain.model.MealEntry
@@ -79,7 +79,7 @@ class MealRepositoryImpl(
     }
 
     override suspend fun createMealEntryAndSync(
-        payload: CreateMealEntryPayload
+        payload: MealEntryPayload
     ) = withContext(dispatcher) {
         val userId = userIdStore.getUserId() ?: throw EmptyUserIdException()
         val response = api.createMealEntry(

@@ -11,4 +11,10 @@ sealed interface MealDetailsUiEvent {
     data class IngredientClick(
         val ingredient: IngredientUi
     ) : MealDetailsUiEvent
+    /*data class IngredientEditClick(
+        val ingredient: IngredientUi
+    ) : MealDetailsUiEvent*/
+    data class IngredientDeleteClick(
+        val ingredient: IngredientUi
+    ) : MealDetailsUiEvent
 }

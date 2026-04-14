@@ -17,7 +17,7 @@ import dev.calorai.mobile.features.meal.data.entity.DailyMealsEntity
 import dev.calorai.mobile.features.meal.details.ui.IngredientUi
 import dev.calorai.mobile.features.meal.details.ui.MacroUi
 import dev.calorai.mobile.features.meal.details.ui.model.MealMacroLabelUi
-import dev.calorai.mobile.features.meal.domain.model.CreateMealEntryPayload
+import dev.calorai.mobile.features.meal.domain.model.MealEntryPayload
 import dev.calorai.mobile.features.meal.domain.model.DailyMeal
 import dev.calorai.mobile.features.meal.domain.model.MealEntry
 import dev.calorai.mobile.features.meal.domain.model.MealId
@@ -27,7 +27,7 @@ import java.time.LocalDate
 
 class MealMapper {
 
-    fun mapToRequest(payload: CreateMealEntryPayload): CreateMealEntryRequest =
+    fun mapToRequest(payload: MealEntryPayload): CreateMealEntryRequest =
         CreateMealEntryRequest(
             entryName = payload.entryName,
             meal = mapToData(payload.meal),
@@ -47,9 +47,9 @@ class MealMapper {
             date = date,
             meal = dto.meal.name,
             kcal = dto.kcal,
-            proteinG = dto.proteinG,
-            fatG = dto.fatG,
-            carbsG = dto.carbsG,
+            proteinG = dto.proteinG.toString(),
+            fatG = dto.fatG.toString(),
+            carbsG = dto.carbsG.toString(),
             entriesCnt = dto.entriesCnt
         )
 
@@ -97,9 +97,9 @@ class MealMapper {
                 date = date,
                 meal = mapToData(mealDto.meal),
                 kcal = mealDto.kcal,
-                proteinG = mealDto.proteinG,
-                fatG = mealDto.fatG,
-                carbsG = mealDto.carbsG,
+                proteinG = mealDto.proteinG.toString(),
+                fatG = mealDto.fatG.toString(),
+                carbsG = mealDto.carbsG.toString(),
                 entriesCnt = mealDto.entriesCnt
             )
         }

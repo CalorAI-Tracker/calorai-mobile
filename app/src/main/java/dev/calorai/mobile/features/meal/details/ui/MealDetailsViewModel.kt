@@ -6,7 +6,7 @@ import androidx.lifecycle.viewModelScope
 import androidx.navigation.NavOptions
 import androidx.navigation.toRoute
 import dev.calorai.mobile.core.navigation.Router
-import dev.calorai.mobile.features.meal.create.manual.navigateToCreateMealManualScreen
+import dev.calorai.mobile.features.meal.create.manual.navigateToMealManualEditorScreen
 import dev.calorai.mobile.features.meal.data.mappers.MealMapper
 import dev.calorai.mobile.features.meal.details.MealDetailsRoute
 import dev.calorai.mobile.features.meal.domain.model.MealProgressInfo
@@ -63,6 +63,8 @@ class MealDetailsViewModel constructor(
             MealDetailsUiEvent.ChooseReadyClick -> chooseReadyIngredient()
             MealDetailsUiEvent.ContinueClick -> continueClick()
             is MealDetailsUiEvent.IngredientClick -> onIngredientClick(event.ingredient)
+            //is MealDetailsUiEvent.IngredientEditClick -> editIngredientManual()
+            is MealDetailsUiEvent.IngredientDeleteClick -> {} // TODO: Поменять
         }
     }
 
@@ -77,7 +79,7 @@ class MealDetailsViewModel constructor(
     private fun addIngredientManual() {
         viewModelScope.launch {
             globalRouter.emit {
-                navigateToCreateMealManualScreen(
+                navigateToMealManualEditorScreen(
                     mealType = mealRoute.mealType,
                     date = mealRoute.date,
                     navOptions = NavOptions.Builder()
@@ -86,6 +88,21 @@ class MealDetailsViewModel constructor(
                 )
             }
             showAddIngredientSheetState.update { false }
+        }
+    }
+
+    private fun editIngredientManual(entryId: Long) {
+        viewModelScope.launch {
+            globalRouter.emit {
+                navigateToMealManualEditorScreen(
+                    mealRoute.mealType,
+                    date = mealRoute.date,
+                    entryId = entryId,
+                    navOptions = NavOptions.Builder()
+                        .setPopUpTo<MealDetailsRoute>(inclusive = true)
+                        .build(),
+                )
+            }
         }
     }
 
