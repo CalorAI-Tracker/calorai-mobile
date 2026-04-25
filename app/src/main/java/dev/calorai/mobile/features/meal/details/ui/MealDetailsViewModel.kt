@@ -6,11 +6,13 @@ import androidx.lifecycle.viewModelScope
 import androidx.navigation.NavOptions
 import androidx.navigation.toRoute
 import dev.calorai.mobile.core.navigation.Router
-import dev.calorai.mobile.features.meal.create.manual.navigateToMealManualEditorScreen
 import dev.calorai.mobile.features.meal.data.mappers.MealMapper
 import dev.calorai.mobile.features.meal.details.MealDetailsRoute
+import dev.calorai.mobile.features.meal.domain.model.MealEntryId
 import dev.calorai.mobile.features.meal.domain.model.MealProgressInfo
+import dev.calorai.mobile.features.meal.domain.usecases.DeleteMealEntryUseCase
 import dev.calorai.mobile.features.meal.domain.usecases.GetMealProgressUseCase
+import dev.calorai.mobile.features.meal.edit.manual.navigateToMealManualEditorScreen
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -22,6 +24,7 @@ import kotlinx.coroutines.launch
 class MealDetailsViewModel constructor(
     savedStateHandle: SavedStateHandle,
     private val getMealProgressUseCase: GetMealProgressUseCase,
+    private val deleteMealEntryUseCase: DeleteMealEntryUseCase,
     private val mapper: MealMapper,
     private val globalRouter: Router,
 ) : ViewModel() {
@@ -63,8 +66,7 @@ class MealDetailsViewModel constructor(
             MealDetailsUiEvent.ChooseReadyClick -> chooseReadyIngredient()
             MealDetailsUiEvent.ContinueClick -> continueClick()
             is MealDetailsUiEvent.IngredientClick -> onIngredientClick(event.ingredient)
-            //is MealDetailsUiEvent.IngredientEditClick -> editIngredientManual()
-            is MealDetailsUiEvent.IngredientDeleteClick -> {} // TODO: Поменять
+            is MealDetailsUiEvent.IngredientDeleteClick -> deleteIngredient(event.ingredient.id)
         }
     }
 
@@ -91,17 +93,15 @@ class MealDetailsViewModel constructor(
         }
     }
 
-    private fun editIngredientManual(entryId: Long) {
+    private fun deleteIngredient(entryId: Long) {
         viewModelScope.launch {
-            globalRouter.emit {
-                navigateToMealManualEditorScreen(
-                    mealRoute.mealType,
+            runCatching {
+                deleteMealEntryUseCase.invoke(
+                    mealEntryId = MealEntryId(entryId),
                     date = mealRoute.date,
-                    entryId = entryId,
-                    navOptions = NavOptions.Builder()
-                        .setPopUpTo<MealDetailsRoute>(inclusive = true)
-                        .build(),
                 )
+            }.onSuccess {
+                loadIngredients()
             }
         }
     }
@@ -118,7 +118,18 @@ class MealDetailsViewModel constructor(
     }
 
     private fun onIngredientClick(ingredient: IngredientUi) {
-        // переход в детали ингредиента / редактирование
+        viewModelScope.launch {
+            globalRouter.emit {
+                navigateToMealManualEditorScreen(
+                    mealType = mealRoute.mealType,
+                    date = mealRoute.date,
+                    entryId = ingredient.id,
+                    navOptions = NavOptions.Builder()
+                        .setPopUpTo<MealDetailsRoute>(inclusive = true)
+                        .build(),
+                )
+            }
+        }
     }
 
     private fun loadIngredients() {

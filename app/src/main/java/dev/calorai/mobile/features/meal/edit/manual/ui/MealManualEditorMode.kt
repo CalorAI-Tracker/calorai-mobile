@@ -1,4 +1,4 @@
-package dev.calorai.mobile.features.meal.create.manual.ui
+package dev.calorai.mobile.features.meal.edit.manual.ui
 
 sealed interface MealManualEditorMode {
     data object Create : MealManualEditorMode

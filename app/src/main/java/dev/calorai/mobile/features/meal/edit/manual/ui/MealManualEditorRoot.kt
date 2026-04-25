@@ -1,8 +1,13 @@
-package dev.calorai.mobile.features.meal.create.manual.ui
+package dev.calorai.mobile.features.meal.edit.manual.ui
 
 import androidx.activity.compose.BackHandler
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.PickVisualMediaRequest
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
@@ -14,6 +19,9 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -59,12 +67,7 @@ private fun MealManualEditorScreen(
     onEvent: (MealManualEditorUiEvent) -> Unit,
 ) {
     val system = WindowInsets.systemBars.asPaddingValues()
-    val title = when (uiState.mealType) {
-        MealType.BREAKFAST -> stringResource(R.string.details_meal_type_breakfast)
-        MealType.LUNCH -> stringResource(R.string.details_meal_type_lunch)
-        MealType.DINNER -> stringResource(R.string.details_meal_type_dinner)
-        MealType.SNACK -> stringResource(R.string.details_meal_type_snack)
-    }
+    val title = stringResource(uiState.titleTextRes)
 
     Column(
         modifier = Modifier
@@ -84,63 +87,113 @@ private fun MealManualEditorScreen(
             modifier = Modifier.align(Alignment.Start)
         )
         Spacer(Modifier.size(5.dp))
-        Text(
-            text = stringResource(R.string.create_meal_manual_description),
-            style = MaterialTheme.typography.bodyMedium,
-        )
-        Spacer(modifier = Modifier.size(20.dp))
-        Column(verticalArrangement = Arrangement.spacedBy(20.dp)) {
+        when (uiState) {
+            is MealManualEditorUiState.Loading -> Box(
+                modifier = Modifier
+                    .fillMaxSize(),
+                contentAlignment = Alignment.Center,
+            ) {
+                CircularProgressIndicator()
+            }
+
+            is MealManualEditorUiState.Ready -> MealManualEditorScreenReady(uiState, onEvent)
+        }
+    }
+}
+
+@Composable
+private fun ColumnScope.MealManualEditorScreenReady(
+    uiState: MealManualEditorUiState.Ready,
+    onEvent: (MealManualEditorUiEvent) -> Unit,
+) {
+    val singlePhotoPickerLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.PickVisualMedia(),
+        onResult = { uri ->
+            onEvent(MealManualEditorUiEvent.PickImage(uri))
+        }
+    )
+
+    Text(
+        text = stringResource(R.string.create_meal_manual_description),
+        style = MaterialTheme.typography.bodyMedium,
+    )
+    Spacer(modifier = Modifier.size(20.dp))
+    Column(verticalArrangement = Arrangement.spacedBy(20.dp)) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
             ProductNameField(
                 value = uiState.name,
                 onValueChange = { onEvent(MealManualEditorUiEvent.NameChange(it)) },
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier.weight(1f)
             )
-
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(12.dp)
+            Button(
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = MaterialTheme.colorScheme.secondary
+                ),
+                onClick = {
+                    singlePhotoPickerLauncher.launch(
+                        PickVisualMediaRequest(
+                            mediaType = ActivityResultContracts.PickVisualMedia.ImageOnly,
+                            maxItems = 1
+                        )
+                    )
+                }
             ) {
-                ManualTextFieldWithTitle(
-                    title = stringResource(R.string.create_meal_manual_protein),
-                    value = uiState.proteins.toString(),
-                    onValueChange = { onEvent(MealManualEditorUiEvent.ProteinsChange(it)) },
-                    modifier = Modifier.weight(1f)
-                )
-                ManualTextFieldWithTitle(
-                    title = stringResource(R.string.create_meal_manual_fats),
-                    value = uiState.fats.toString(),
-                    onValueChange = { onEvent(MealManualEditorUiEvent.FatsChange(it)) },
-                    modifier = Modifier.weight(1f)
-                )
-            }
-
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(12.dp)
-            ) {
-                ManualTextFieldWithTitle(
-                    title = stringResource(R.string.create_meal_manual_carbohydrates),
-                    value = uiState.carbs.toString(),
-                    onValueChange = { onEvent(MealManualEditorUiEvent.CarbsChange(it)) },
-                    modifier = Modifier.weight(1f)
-                )
-                ManualTextFieldWithTitle(
-                    title = stringResource(R.string.create_meal_manual_portion),
-                    value = uiState.portion.toString(),
-                    onValueChange = { onEvent(MealManualEditorUiEvent.PortionChange(it)) },
-                    modifier = Modifier.weight(1f)
+                Icon(
+                    painter = painterResource(R.drawable.ic_gallery),
+                    contentDescription = null,
+                    modifier = Modifier.size(20.dp),
+                    tint = MaterialTheme.colorScheme.surface,
                 )
             }
         }
 
-        Spacer(Modifier.weight(1f))
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            ManualTextFieldWithTitle(
+                title = stringResource(R.string.create_meal_manual_protein),
+                value = uiState.proteins,
+                onValueChange = { onEvent(MealManualEditorUiEvent.ProteinsChange(it)) },
+                modifier = Modifier.weight(1f)
+            )
+            ManualTextFieldWithTitle(
+                title = stringResource(R.string.create_meal_manual_fats),
+                value = uiState.fats,
+                onValueChange = { onEvent(MealManualEditorUiEvent.FatsChange(it)) },
+                modifier = Modifier.weight(1f)
+            )
+        }
 
-        PrimaryButton(
-            onClick = { onEvent(MealManualEditorUiEvent.SubmitClick) },
-            text = stringResource(uiState.actionButtonTextRes),
-        )
-        Spacer(Modifier.size(32.dp))
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            ManualTextFieldWithTitle(
+                title = stringResource(R.string.create_meal_manual_carbohydrates),
+                value = uiState.carbs,
+                onValueChange = { onEvent(MealManualEditorUiEvent.CarbsChange(it)) },
+                modifier = Modifier.weight(1f)
+            )
+            ManualTextFieldWithTitle(
+                title = stringResource(R.string.create_meal_manual_portion),
+                value = uiState.portion,
+                onValueChange = { onEvent(MealManualEditorUiEvent.PortionChange(it)) },
+                modifier = Modifier.weight(1f)
+            )
+        }
     }
+
+    Spacer(Modifier.weight(1f))
+
+    PrimaryButton(
+        onClick = { onEvent(MealManualEditorUiEvent.SubmitClick) },
+        text = stringResource(uiState.actionButtonTextRes),
+    )
+    Spacer(Modifier.size(32.dp))
 }
 
 @Composable
@@ -204,10 +257,10 @@ private fun ManualTextFieldWithTitle(
 
 @Preview(showBackground = true)
 @Composable
-private fun CreateMealManualScreenPreview() {
+private fun CreateMealManualScreenReadyPreview() {
     CalorAiTheme {
         MealManualEditorScreen(
-            uiState = MealManualEditorUiState(
+            uiState = MealManualEditorUiState.Ready(
                 mode = MealManualEditorMode.Create,
                 name = "Овсяная каша",
                 proteins = "2.5",
@@ -220,3 +273,19 @@ private fun CreateMealManualScreenPreview() {
         )
     }
 }
+
+
+@Preview(showBackground = true)
+@Composable
+private fun CreateMealManualScreenLoadingPreview() {
+    CalorAiTheme {
+        MealManualEditorScreen(
+            uiState = MealManualEditorUiState.Loading(
+                mode = MealManualEditorMode.Create,
+                mealType = MealType.BREAKFAST,
+            ),
+            onEvent = {}
+        )
+    }
+}
+

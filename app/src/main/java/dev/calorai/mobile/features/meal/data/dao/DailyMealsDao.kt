@@ -5,7 +5,6 @@ import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import dev.calorai.mobile.features.meal.data.entity.DailyMealsEntity
-import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface DailyMealsDao {
@@ -15,9 +14,6 @@ interface DailyMealsDao {
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertAll(meals: List<DailyMealsEntity>)
-
-    @Query("SELECT * FROM ${DailyMealsEntity.TABLE} WHERE date = :date ORDER BY meal ASC")
-    fun getMealsByDate(date: String): Flow<List<DailyMealsEntity>>
 
     @Query("SELECT * FROM ${DailyMealsEntity.TABLE} WHERE date = :date ORDER BY meal ASC")
     suspend fun getMealsByDateOnce(date: String): List<DailyMealsEntity>

@@ -141,7 +141,6 @@ class AuthAndTokenTests {
 
         // Делаем запрос к MealApi с прокидыванием токена
         val getDailyMealResponse: Response<GetDailyMealResponse> = mealApi.getDailyMeal(
-            userId = 2,
             date = "2025-12-09"
         )
         val getDailyMealBody = requireNotNull(getDailyMealResponse.body())

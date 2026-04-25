@@ -2,114 +2,97 @@ package dev.calorai.mobile.features.meal.data.repository
 
 import dev.calorai.mobile.features.meal.data.api.MealApi
 import dev.calorai.mobile.features.meal.data.dao.DailyMealsDao
-import dev.calorai.mobile.features.meal.data.entity.DailyMealsEntity
+import dev.calorai.mobile.features.meal.data.dao.IngredientsDao
+import dev.calorai.mobile.features.meal.data.entity.IngredientsEntity
 import dev.calorai.mobile.features.meal.data.mappers.MealMapper
 import dev.calorai.mobile.features.meal.domain.MealRepository
-import dev.calorai.mobile.features.meal.domain.model.MealEntryPayload
 import dev.calorai.mobile.features.meal.domain.model.DailyMeal
-import dev.calorai.mobile.features.meal.domain.model.MealId
 import dev.calorai.mobile.features.meal.domain.model.MealEntry
+import dev.calorai.mobile.features.meal.domain.model.MealEntryId
+import dev.calorai.mobile.features.meal.domain.model.MealEntryPayload
+import dev.calorai.mobile.features.meal.domain.model.MealId
+import dev.calorai.mobile.features.meal.domain.model.MealRecognizeEntry
 import dev.calorai.mobile.features.meal.domain.model.MealType
-import dev.calorai.mobile.features.profile.data.EmptyUserIdException
-import dev.calorai.mobile.features.profile.data.UserIdStore
-import dev.calorai.mobile.features.profile.data.dao.UserDao
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
+import okhttp3.MediaType.Companion.toMediaTypeOrNull
+import okhttp3.MultipartBody
+import okhttp3.RequestBody.Companion.toRequestBody
 import retrofit2.HttpException
+import retrofit2.Response
 
-class MealRepositoryImpl(
+class MealRepositoryImpl constructor(
     private val api: MealApi,
     private val dailyMealsDao: DailyMealsDao,
-    private val userDao: UserDao,
+    private val ingredientsDao: IngredientsDao,
     private val mapper: MealMapper,
-    private val userIdStore: UserIdStore,
     private val dispatcher: CoroutineDispatcher = Dispatchers.IO,
 ) : MealRepository {
 
-    private suspend fun syncDailyMeals(
-        date: String
-    ) = withContext(dispatcher) {
-        val userId = userDao.getUserId()
-            ?: throw IllegalStateException("No userId found in DB")
-        val response = api.getDailyMeal(userId = userId, date = date)
-        if (!response.isSuccessful) {
-            throw HttpException(response)
-        }
-        val body = response.body()
-            ?: throw IllegalStateException("SyncDailyMeals: body is null")
-        val serverEntities = body.meals.map { mapper.mapToEntity(it, body.date) }
-        val localEntities = dailyMealsDao.getMealsByDateOnce(body.date)
-        if (!areMealListsEqual(localEntities, serverEntities)) {
-            dailyMealsDao.deleteByDate(body.date)
-            dailyMealsDao.insertAll(serverEntities)
-        }
-    }
-
-    override suspend fun getDailyMeals(
-        date: String
-    ): List<DailyMeal> = withContext(dispatcher) {
+    override suspend fun getDailyMeals(date: String): List<DailyMeal> = withContext(dispatcher) {
         try {
-            val userId = userIdStore.getUserId() ?: throw EmptyUserIdException()
-            val response = api.getDailyMeal(userId = userId.value, date = date)
-            if (!response.isSuccessful) {
-                return@withContext getDailyMealsLocal(date)
-            }
-            val dailyMealsResponse = response.body() ?: throw IllegalStateException()
-            val serverEntities =
-                dailyMealsResponse.meals.map { mapper.mapToEntity(it, dailyMealsResponse.date) }
-            dailyMealsDao.deleteByDate(dailyMealsResponse.date)
-            dailyMealsDao.insertAll(serverEntities)
-            val dailyMeals = dailyMealsDao.getMealsByDateOnce(dailyMealsResponse.date)
-                .map { mapper.mapToDomain(it) }
-            return@withContext dailyMeals
+            syncDailyMealWithApi(date = date)
+            return@withContext getDailyMealsLocal(date)
         } catch (_: Exception) {
             return@withContext getDailyMealsLocal(date)
         }
     }
 
-    private suspend fun getDailyMealsLocal(
-        date: String
-    ): List<DailyMeal> = withContext(dispatcher) {
-        dailyMealsDao
-            .getMealsByDateOnce(date)
-            .map { mapper.mapToDomain(it) }
+    override suspend fun createMealEntryAndSync(payload: MealEntryPayload) =
+        withContext(dispatcher) {
+            try {
+                api.createMealEntry(body = mapper.mapToRequest(payload)).throwOnError()
+                syncDailyMealWithApi(date = payload.eatenAt)
+                syncMealIngredientsWithApi(date = payload.eatenAt)
+            } catch (_: Exception) {
+            }
+        }
+
+    override suspend fun getMealEntry(mealEntryId: MealEntryId): MealEntry =
+        withContext(dispatcher) {
+            requireNotNull(ingredientsDao.getById(id = mealEntryId.value))
+                .let(mapper::mapToDomain)
+        }
+
+    override suspend fun updateMealEntryAndSync(
+        mealEntryId: MealEntryId,
+        payload: MealEntryPayload,
+    ) = withContext(dispatcher) {
+        try {
+            api.updateMealEntry(
+                entryId = mealEntryId.value,
+                body = mapper.mapToRequest(payload),
+            ).throwOnError()
+            syncDailyMealWithApi(date = payload.eatenAt)
+            syncMealIngredientsWithApi(date = payload.eatenAt)
+        } catch (_: Exception) {
+        }
     }
 
-    override suspend fun createMealEntryAndSync(
-        payload: MealEntryPayload
+    override suspend fun deleteMealEntryAndSync(
+        mealEntryId: MealEntryId,
+        date: String,
     ) = withContext(dispatcher) {
-        val userId = userIdStore.getUserId() ?: throw EmptyUserIdException()
-        val response = api.createMealEntry(
-            userId = userId.value,
-            body = mapper.mapToRequest(payload),
-        )
-        if (!response.isSuccessful) {
-            throw HttpException(response)
+        try {
+            api.deleteMealEntry(entryId = mealEntryId.value).throwOnError()
+            syncDailyMealWithApi(date = date)
+            syncMealIngredientsWithApi(date = date)
+        } catch (_: Exception) {
         }
-        syncDailyMeals(payload.eatenAt)
     }
 
     override suspend fun getMealIngredients(
         date: String,
-        mealType: MealType
-    ): List<MealEntry> =
-        withContext(dispatcher) {
-            val userId = userIdStore.getUserId() ?: throw EmptyUserIdException()
-            val response = api.getDailyMealsComposition(userId.value, date)
-            if (!response.isSuccessful) {
-                throw HttpException(response)
-            }
-            val getIngredientsResponse = response.body() ?: throw IllegalStateException()
-            val entries = getIngredientsResponse.meals[mealType.name].orEmpty()
-            entries.map { mapper.mapToDomain(it) }
+        mealType: MealType,
+    ): List<MealEntry> = withContext(dispatcher) {
+        try {
+            syncMealIngredientsWithApi(date = date)
+            return@withContext getMealIngredientsLocal(date, mealType)
+        } catch (_: Exception) {
+            return@withContext getMealIngredientsLocal(date, mealType)
+        }
     }
-
-    override fun observeMealsByDate(date: String): Flow<List<DailyMeal>> = dailyMealsDao
-        .getMealsByDate(date)
-        .map { entities -> entities.map(mapper::mapToDomain) }
 
     override suspend fun deleteMealById(id: MealId) = withContext(dispatcher) {
         dailyMealsDao.deleteById(id.value)
@@ -117,19 +100,94 @@ class MealRepositoryImpl(
 
     override suspend fun deleteMealsByDate(date: String) = withContext(dispatcher) {
         dailyMealsDao.deleteByDate(date)
+        ingredientsDao.deleteByDate(date)
     }
 
     override suspend fun clearAllMeals() = withContext(dispatcher) {
         dailyMealsDao.clearAllMeals()
+        ingredientsDao.clearAll()
     }
-}
 
-private fun areMealListsEqual(
-    local: List<DailyMealsEntity>,
-    server: List<DailyMealsEntity>
-): Boolean {
-    if (local.size != server.size) return false
-    val localSorted = local.sortedBy { it.meal }
-    val serverSorted = server.sortedBy { it.meal }
-    return localSorted == serverSorted
+    override suspend fun mealRecognize(image: ByteArray): MealRecognizeEntry =
+        withContext(dispatcher) {
+            val contentType = "image/jpeg".toMediaTypeOrNull()
+            val requestFile = image.toRequestBody(contentType)
+            val body = MultipartBody.Part.createFormData(
+                name = "image",
+                filename = "meal.jpg",
+                body = requestFile,
+            )
+            return@withContext api.mealRecognize(image = body).getOrThrow().let(mapper::mapToDomain)
+        }
+
+    private suspend fun syncDailyMealWithApi(date: String) = withContext(dispatcher) {
+        val apiEntities = api.getDailyMeal(date).getOrThrow().meals.map { mealDto ->
+            mapper.mapToEntity(
+                dto = mealDto,
+                date = date,
+            )
+        }
+        val localEntities = dailyMealsDao.getMealsByDateOnce(date = date)
+        if (!localEntities.areListsEqual(apiEntities)) {
+            dailyMealsDao.deleteByDate(date)
+            if (apiEntities.isNotEmpty()) {
+                dailyMealsDao.insertAll(apiEntities)
+            }
+        }
+    }
+
+    private suspend fun syncMealIngredientsWithApi(date: String) = withContext(dispatcher) {
+        api.getDailyMealsComposition(date).getOrThrow().meals.forEach { (mealType, entries) ->
+            val apiEntities: List<IngredientsEntity> = entries.map { mealEntryDto ->
+                mapper.mapToEntity(
+                    dto = mealEntryDto,
+                    date = date,
+                    mealType = mealType,
+                )
+            }
+            val localEntities = ingredientsDao.getByDateAndMealTypeOnce(
+                date = date,
+                mealType = mealType,
+            )
+            if (!localEntities.areListsEqual(apiEntities)) {
+                ingredientsDao.deleteByDateAndMealType(
+                    date = date,
+                    mealType = mealType,
+                )
+                if (apiEntities.isNotEmpty()) {
+                    ingredientsDao.insertAll(apiEntities)
+                }
+            }
+        }
+    }
+
+    private suspend fun getDailyMealsLocal(date: String): List<DailyMeal> =
+        withContext(dispatcher) {
+            dailyMealsDao
+                .getMealsByDateOnce(date)
+                .map(mapper::mapToDomain)
+        }
+
+    private suspend fun getMealIngredientsLocal(
+        date: String,
+        mealType: MealType,
+    ): List<MealEntry> = withContext(dispatcher) {
+        ingredientsDao
+            .getByDateAndMealTypeOnce(date = date, mealType = mealType.name)
+            .map(mapper::mapToDomain)
+    }
+
+    private fun <T> Response<T>.getOrThrow(): T {
+        throwOnError()
+        return requireNotNull(this.body())
+    }
+
+    private fun Response<*>.throwOnError() {
+        if (!this.isSuccessful) throw HttpException(this)
+    }
+
+    private fun <T> List<T>.areListsEqual(other: List<T>): Boolean {
+        if (size != other.size) return false
+        return toSet() == other.toSet()
+    }
 }

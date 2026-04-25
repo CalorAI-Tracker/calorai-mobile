@@ -1,12 +1,12 @@
-package dev.calorai.mobile.features.meal.create.manual
+package dev.calorai.mobile.features.meal.edit.manual
 
 import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavOptions
 import androidx.navigation.compose.composable
 import dev.calorai.mobile.core.navigation.Destination
-import dev.calorai.mobile.features.meal.create.manual.ui.MealManualEditorRoot
 import dev.calorai.mobile.features.meal.domain.model.MealType
+import dev.calorai.mobile.features.meal.edit.manual.ui.MealManualEditorRoot
 import kotlinx.serialization.Serializable
 
 @Serializable
@@ -32,7 +32,7 @@ fun NavController.navigateToMealManualEditorScreen(
     )
 }
 
-fun NavGraphBuilder.MealEditorSection() {
+fun NavGraphBuilder.mealEditorSection() {
     composable<MealManualEditorRoute> {
         MealManualEditorRoot()
     }

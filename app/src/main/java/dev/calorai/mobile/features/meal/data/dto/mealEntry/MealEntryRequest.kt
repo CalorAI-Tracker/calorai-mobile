@@ -1,11 +1,11 @@
-package dev.calorai.mobile.features.meal.data.dto.createMealEntry
+package dev.calorai.mobile.features.meal.data.dto.mealEntry
 
 import dev.calorai.mobile.features.meal.data.dto.enums.MealTypeDto
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 @Serializable
-data class CreateMealEntryRequest(
+data class MealEntryRequest(
 
     @SerialName("entryName")
     val entryName: String,

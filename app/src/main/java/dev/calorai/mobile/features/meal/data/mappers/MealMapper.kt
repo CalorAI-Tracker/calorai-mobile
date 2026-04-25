@@ -8,27 +8,30 @@ import dev.calorai.mobile.core.uikit.weekBar.TimePeriod
 import dev.calorai.mobile.features.home.domain.model.DayMealProgressInfo
 import dev.calorai.mobile.features.home.ui.model.MealTypeUi
 import dev.calorai.mobile.features.home.ui.model.PieChartSubtextUi
-import dev.calorai.mobile.features.meal.data.dto.createMealEntry.CreateMealEntryRequest
 import dev.calorai.mobile.features.meal.data.dto.enums.MealTypeDto
-import dev.calorai.mobile.features.meal.data.dto.getDailyMeal.GetDailyMealResponse
 import dev.calorai.mobile.features.meal.data.dto.getDailyMeal.MealDto
 import dev.calorai.mobile.features.meal.data.dto.getDailyMealsComposition.MealEntryDto
+import dev.calorai.mobile.features.meal.data.dto.mealEntry.MealEntryRecognizeResponse
+import dev.calorai.mobile.features.meal.data.dto.mealEntry.MealEntryRequest
 import dev.calorai.mobile.features.meal.data.entity.DailyMealsEntity
+import dev.calorai.mobile.features.meal.data.entity.IngredientsEntity
 import dev.calorai.mobile.features.meal.details.ui.IngredientUi
 import dev.calorai.mobile.features.meal.details.ui.MacroUi
 import dev.calorai.mobile.features.meal.details.ui.model.MealMacroLabelUi
-import dev.calorai.mobile.features.meal.domain.model.MealEntryPayload
 import dev.calorai.mobile.features.meal.domain.model.DailyMeal
 import dev.calorai.mobile.features.meal.domain.model.MealEntry
+import dev.calorai.mobile.features.meal.domain.model.MealEntryId
+import dev.calorai.mobile.features.meal.domain.model.MealEntryPayload
 import dev.calorai.mobile.features.meal.domain.model.MealId
 import dev.calorai.mobile.features.meal.domain.model.MealProgressInfo
+import dev.calorai.mobile.features.meal.domain.model.MealRecognizeEntry
 import dev.calorai.mobile.features.meal.domain.model.MealType
 import java.time.LocalDate
 
 class MealMapper {
 
-    fun mapToRequest(payload: MealEntryPayload): CreateMealEntryRequest =
-        CreateMealEntryRequest(
+    fun mapToRequest(payload: MealEntryPayload): MealEntryRequest =
+        MealEntryRequest(
             entryName = payload.entryName,
             meal = mapToData(payload.meal),
             eatenAt = payload.eatenAt,
@@ -53,20 +56,6 @@ class MealMapper {
             entriesCnt = dto.entriesCnt
         )
 
-    fun mapToEntity(dailyMeals: List<DailyMeal>): List<DailyMealsEntity> {
-        return dailyMeals.map { dailyMeal ->
-            DailyMealsEntity(
-                date = dailyMeal.date.toString(),
-                meal = dailyMeal.meal.name,
-                kcal = dailyMeal.kcal,
-                proteinG = dailyMeal.proteinG,
-                fatG = dailyMeal.fatG,
-                carbsG = dailyMeal.carbsG,
-                entriesCnt = dailyMeal.entriesCnt
-            )
-        }
-    }
-
     fun mapToDomain(entity: DailyMealsEntity): DailyMeal =
         DailyMeal(
             id = MealId(entity.id),
@@ -78,32 +67,6 @@ class MealMapper {
             carbsG = entity.carbsG,
             entriesCnt = entity.entriesCnt,
         )
-
-    fun mapToDomain(dto: MealEntryDto): MealEntry =
-        MealEntry(
-            name = dto.entryName,
-            quantityGrams = dto.quantityGrams,
-            kcal = dto.kcal,
-            proteinG = dto.proteinG,
-            fatG = dto.fatG,
-            carbsG = dto.carbsG,
-        )
-
-    fun mapToDomain(response: GetDailyMealResponse): List<DailyMeal> {
-        val date = LocalDate.parse(response.date)
-        return response.meals.map { mealDto ->
-            DailyMeal(
-                id = MealId(0L),
-                date = date,
-                meal = mapToData(mealDto.meal),
-                kcal = mealDto.kcal,
-                proteinG = mealDto.proteinG.toString(),
-                fatG = mealDto.fatG.toString(),
-                carbsG = mealDto.carbsG.toString(),
-                entriesCnt = mealDto.entriesCnt
-            )
-        }
-    }
 
     fun mapToMealUiModel(dailyMeal: DailyMeal): MealUiModel =
         MealUiModel(
@@ -153,6 +116,7 @@ class MealMapper {
 
     fun mapToIngredientUiModel(mealEntry: MealEntry): IngredientUi =
         IngredientUi(
+            id = mealEntry.id.value,
             title = mealEntry.name,
             kcal = mealEntry.kcal,
             weight = mealEntry.quantityGrams,
@@ -177,18 +141,44 @@ class MealMapper {
         ),
     )
 
+
+    fun mapToEntity(dto: MealEntryDto, date: String, mealType: String): IngredientsEntity =
+        IngredientsEntity(
+            id = dto.id,
+            date = date,
+            mealType = mealType,
+            entryName = dto.entryName,
+            quantityGrams = dto.quantityGrams,
+            kcal = dto.kcal,
+            proteinG = dto.proteinG,
+            fatG = dto.fatG,
+            carbsG = dto.carbsG,
+        )
+
+    fun mapToDomain(ingredient: IngredientsEntity): MealEntry =
+        MealEntry(
+            id = MealEntryId(ingredient.id),
+            name = ingredient.entryName,
+            quantityGrams = ingredient.quantityGrams,
+            kcal = ingredient.kcal,
+            proteinG = ingredient.proteinG,
+            fatG = ingredient.fatG,
+            carbsG = ingredient.carbsG,
+        )
+
+    fun mapToDomain(dto: MealEntryRecognizeResponse): MealRecognizeEntry = MealRecognizeEntry(
+        name = dto.name,
+        kcalPer100g = dto.kcalPer100g,
+        proteinPer100g = dto.proteinPer100g,
+        fatPer100g = dto.fatPer100g,
+        carbsPer100g = dto.carbsPer100g,
+    )
+
     private fun mapToData(mealType: MealType): MealTypeDto = when (mealType) {
         MealType.BREAKFAST -> MealTypeDto.BREAKFAST
         MealType.DINNER -> MealTypeDto.DINNER
         MealType.LUNCH -> MealTypeDto.LUNCH
         MealType.SNACK -> MealTypeDto.SNACK
-    }
-
-    private fun mapToData(mealType: MealTypeDto): MealType = when (mealType) {
-        MealTypeDto.BREAKFAST -> MealType.BREAKFAST
-        MealTypeDto.DINNER -> MealType.DINNER
-        MealTypeDto.LUNCH -> MealType.LUNCH
-        MealTypeDto.SNACK -> MealType.SNACK
     }
 
     private fun mapToUi(mealType: MealType): MealTypeUi = when (mealType) {
