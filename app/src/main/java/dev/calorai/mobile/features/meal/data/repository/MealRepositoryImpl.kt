@@ -103,6 +103,17 @@ class MealRepositoryImpl constructor(
         ingredientsDao.deleteByDate(date)
     }
 
+    override suspend fun deleteMeal(date: String, mealType: MealType) = withContext(dispatcher) {
+        try {
+            getMealIngredients(date, mealType).forEach { mealEntry ->
+                api.deleteMealEntry(entryId = mealEntry.id.value).throwOnError()
+            }
+            syncDailyMealWithApi(date = date)
+            syncMealIngredientsWithApi(date = date)
+        } catch (_: Exception) {
+        }
+    }
+
     override suspend fun clearAllMeals() = withContext(dispatcher) {
         dailyMealsDao.clearAllMeals()
         ingredientsDao.clearAll()

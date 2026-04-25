@@ -44,6 +44,7 @@ internal val homeModule = module {
             mapper = get(),
             globalRouter = get<RouterController>(qualifier<GlobalRouterContext>()),
             getDayProgressUseCase = get(),
+            deleteMealUseCase = get(),
         )
     }
 }

@@ -10,6 +10,8 @@ import dev.calorai.mobile.features.meal.domain.usecases.CreateMealEntryUseCase
 import dev.calorai.mobile.features.meal.domain.usecases.CreateMealEntryUseCaseImpl
 import dev.calorai.mobile.features.meal.domain.usecases.DeleteMealEntryUseCase
 import dev.calorai.mobile.features.meal.domain.usecases.DeleteMealEntryUseCaseImpl
+import dev.calorai.mobile.features.meal.domain.usecases.DeleteMealUseCase
+import dev.calorai.mobile.features.meal.domain.usecases.DeleteMealUseCaseImpl
 import dev.calorai.mobile.features.meal.domain.usecases.GetMealEntryUseCase
 import dev.calorai.mobile.features.meal.domain.usecases.GetMealEntryUseCaseImpl
 import dev.calorai.mobile.features.meal.domain.usecases.RecognizeMealUseCase
@@ -45,6 +47,9 @@ internal val mealModule = module {
     }
     factory<DeleteMealEntryUseCase> {
         DeleteMealEntryUseCaseImpl(repository = get())
+    }
+    factory<DeleteMealUseCase> {
+        DeleteMealUseCaseImpl(repository = get())
     }
     factory<RecognizeMealUseCase> {
         RecognizeMealUseCaseImpl(

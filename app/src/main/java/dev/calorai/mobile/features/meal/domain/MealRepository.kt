@@ -19,5 +19,6 @@ interface MealRepository {
     suspend fun getMealIngredients(date: String, mealType: MealType): List<MealEntry>
     suspend fun deleteMealById(id: MealId)
     suspend fun deleteMealsByDate(date: String)
+    suspend fun deleteMeal(date: String, mealType: MealType)
     suspend fun clearAllMeals()
 }

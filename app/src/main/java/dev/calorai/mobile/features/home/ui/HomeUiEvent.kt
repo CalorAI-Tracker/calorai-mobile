@@ -9,6 +9,7 @@ sealed interface HomeUiEvent {
     data object SelectNextDate : HomeUiEvent
     data object SelectPreviousDate : HomeUiEvent
     data class MealCardClick(val meal: MealUiModel) : HomeUiEvent
+    data class MealCardDeleteClick(val meal: MealUiModel) : HomeUiEvent
     data class MealCardAddButtonClick(val meal: MealUiModel) : HomeUiEvent
     data object HideAddIngredientDialog : HomeUiEvent
     data object AddManualClick : HomeUiEvent
