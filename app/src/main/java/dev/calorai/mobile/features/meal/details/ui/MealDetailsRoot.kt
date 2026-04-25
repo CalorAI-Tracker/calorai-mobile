@@ -176,8 +176,9 @@ private fun MealDetailsScreenReady(
                         onClick = {
                             onEvent(MealDetailsUiEvent.IngredientClick(ingredient))
                         },
-                        onEditClick = {}, // TODO: Поменять
-                        onDeleteClick = {}, // TODO: Поменять
+                        onDeleteClick = {
+                            onEvent(MealDetailsUiEvent.IngredientDeleteClick(ingredient))
+                        },
                     )
                 }
             }
