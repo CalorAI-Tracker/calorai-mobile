@@ -13,11 +13,6 @@ import org.koin.core.qualifier.qualifier
 import org.koin.dsl.module
 import retrofit2.Retrofit
 
-sealed interface NetworkContext {
-    data object Base : NetworkContext
-    data object Authorized : NetworkContext
-}
-
 internal val networkModule = module {
 
     single<Json> {

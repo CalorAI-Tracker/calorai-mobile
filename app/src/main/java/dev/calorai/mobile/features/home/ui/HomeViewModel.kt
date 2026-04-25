@@ -8,10 +8,10 @@ import dev.calorai.mobile.features.home.domain.model.DayMealProgressInfo
 import dev.calorai.mobile.features.home.domain.usecases.GetCurrentUserNameUseCase
 import dev.calorai.mobile.features.home.domain.usecases.GetDayProgressUseCase
 import dev.calorai.mobile.features.home.domain.usecases.GetWeekByDateUseCase
-import dev.calorai.mobile.features.meal.create.manual.navigateToMealManualEditorScreen
 import dev.calorai.mobile.features.meal.data.mappers.MealMapper
 import dev.calorai.mobile.features.meal.details.navigateToMealDetailsScreen
 import dev.calorai.mobile.features.meal.domain.model.MealType
+import dev.calorai.mobile.features.meal.edit.manual.navigateToMealManualEditorScreen
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.channels.Channel.Factory.BUFFERED
 import kotlinx.coroutines.flow.Flow

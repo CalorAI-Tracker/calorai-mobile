@@ -13,23 +13,27 @@ import retrofit2.http.POST
 
 interface AuthApi {
 
-    @POST("auth/signup")
+    @POST("$AUTH/signup")
     suspend fun signUp(
         @Body body: SignupRequest
     ): Response<SignupResponse>
 
-    @POST("auth/refresh")
+    @POST("$AUTH/refresh")
     suspend fun refresh(
         @Body body: RefreshRequest
     ): Response<RefreshResponse>
 
-    @POST("auth/logout")
+    @POST("$AUTH/logout")
     suspend fun logout(
         @Body body: LogoutRequest
     ): Response<Unit>
 
-    @POST("auth/login")
+    @POST("$AUTH/login")
     suspend fun login(
         @Body body: LoginRequest
     ): Response<LoginResponse>
+
+    private companion object {
+        private const val AUTH = "auth"
+    }
 }

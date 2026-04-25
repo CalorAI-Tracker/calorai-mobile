@@ -12,19 +12,24 @@ import retrofit2.http.PUT
 import retrofit2.http.Path
 
 interface UserProfileApi {
-    @GET("user-profile/user/{userId}")
+
+    @GET("$USER_PROFILE/user/{userId}")
     suspend fun getUserProfile(
         @Path("userId") userId: Long,
     ): Response<GetUserProfileResponse>
 
-    @PUT("user-profile/user/{userId}")
+    @PUT("$USER_PROFILE/user/{userId}")
     suspend fun updateUserProfile(
         @Path("userId") userId: Long,
         @Body body: UpdateUserProfileRequest,
     ): Response<UpdateUserProfileResponse>
 
-    @POST("user-profile")
+    @POST("$USER_PROFILE")
     suspend fun createUserProfile(
         @Body body: CreateUserProfileRequest,
     ): Response<Unit>
+
+    private companion object {
+        private const val USER_PROFILE = "user-profile"
+    }
 }

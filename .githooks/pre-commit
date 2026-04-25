@@ -1,0 +1,29 @@
+#!/usr/bin/env bash
+
+# Run detekt and capture output
+echo "Running detekt check..."
+./gradlew detekt > /tmp/detekt-output 2>&1
+EXIT_CODE=$?
+
+# If detekt fails
+if [ $EXIT_CODE -ne 0 ]; then
+    echo "***********************************************"
+    echo " Detekt failed! Opening report... "
+    echo "***********************************************"
+
+    # Path to the HTML report
+    REPORT_FILE="app/build/reports/detekt/detekt.html"
+
+    # Open report based on OS (macOS)
+    if [[ "$OSTYPE" == "darwin"* ]]; then
+        open "$REPORT_FILE"
+    # Linux
+    elif [[ "$OSTYPE" == "linux-gnu"* ]]; then
+        xdg-open "$REPORT_FILE"
+    fi
+
+    # Exit with failure
+    exit $EXIT_CODE
+fi
+
+exit 0

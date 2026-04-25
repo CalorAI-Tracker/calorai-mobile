@@ -20,6 +20,7 @@ retrofit2KotlinxSerializationConverter = "1.0.0"
 loggingInterceptorVer = "5.3.0"
 roomRuntime = "2.8.4"
 securityCrypto = "1.1.0"
+detekt = "2.0.0-alpha.2"
 
 
 [libraries]
@@ -56,3 +57,4 @@ kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
 kotlin-compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
 kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlinSerialization" }
 ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
+detekt = { id = "dev.detekt", version.ref = "detekt" }

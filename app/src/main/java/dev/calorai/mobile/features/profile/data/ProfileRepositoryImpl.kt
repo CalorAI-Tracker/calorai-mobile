@@ -5,10 +5,10 @@ import dev.calorai.mobile.features.profile.data.dao.UserDao
 import dev.calorai.mobile.features.profile.domain.ProfileRepository
 import dev.calorai.mobile.features.profile.domain.model.CreateUserProfilePayload
 import dev.calorai.mobile.features.profile.domain.model.UpdateUserProfilePayload
+import dev.calorai.mobile.features.profile.domain.model.UserId
 import dev.calorai.mobile.features.profile.domain.model.UserProfile
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.lastOrNull
 import kotlinx.coroutines.withContext
 import retrofit2.HttpException
 
@@ -22,7 +22,7 @@ class ProfileRepositoryImpl constructor(
 
     override suspend fun getUserProfile(): UserProfile? = withContext(dispatcher) {
         try {
-            val userId = userIdStore.getUserId() ?: throw EmptyUserIdException()
+            val userId = requireUserId()
             val response = userProfileApi.getUserProfile(userId.value)
             if (!response.isSuccessful) {
                 return@withContext getCachedUserProfile()
@@ -38,12 +38,12 @@ class ProfileRepositoryImpl constructor(
     }
 
     private suspend fun getCachedUserProfile(): UserProfile? {
-        return userDao.observeUser().lastOrNull()?.let { mapper.mapToDomain(it) }
+        return userDao.getUser()?.let { mapper.mapToDomain(it) }
     }
 
     override suspend fun updateUserProfile(payload: UpdateUserProfilePayload) {
         withContext(dispatcher) {
-            val userId = userIdStore.getUserId() ?: throw EmptyUserIdException()
+            val userId = requireUserId()
             userDao.update(mapper.mapToEntity(userId, payload))
             userProfileApi.updateUserProfile(
                 userId = userId.value,
@@ -54,12 +54,16 @@ class ProfileRepositoryImpl constructor(
 
     override suspend fun createUserProfile(payload: CreateUserProfilePayload) {
         withContext(dispatcher) {
-            val userId = userIdStore.getUserId() ?: throw EmptyUserIdException()
+            val userId = requireUserId()
             val response = userProfileApi.createUserProfile(mapper.mapToRequest(userId, payload))
             if (!response.isSuccessful) {
                 throw HttpException(response)
             }
             userDao.insert(mapper.mapToEntity(userId, payload))
         }
+    }
+
+    private suspend fun requireUserId(): UserId {
+        return userIdStore.getUserId() ?: throw EmptyUserIdException()
     }
 }

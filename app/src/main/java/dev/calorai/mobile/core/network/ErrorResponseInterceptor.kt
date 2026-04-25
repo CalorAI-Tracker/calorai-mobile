@@ -27,7 +27,7 @@ class ErrorResponseInterceptor(
             if (statusCode != null) {
                 Log.d("ErrorInterceptor", "Intercepted API statusCode: $statusCode")
             }
-            if (statusCode != null && statusCode >= 400) {
+            if (statusCode != null && statusCode >= ERROR_STATUS) {
                 val newBody = responseJsonString.toResponseBody(mediaType)
                 return response.newBuilder()
                     .code(statusCode)
@@ -42,5 +42,9 @@ class ErrorResponseInterceptor(
         }
         val restoredBody = responseJsonString.toResponseBody(mediaType)
         return response.newBuilder().body(restoredBody).build()
+    }
+
+    private companion object {
+        private const val ERROR_STATUS = 400
     }
 }

@@ -7,6 +7,7 @@ plugins {
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.kotlin.serialization)
     alias(libs.plugins.ksp)
+    alias(libs.plugins.detekt)
 }
 
 val keystorePropertiesFile = rootProject.file("keystore.properties")
@@ -117,3 +118,14 @@ dependencies {
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
 }
+
+tasks.register<Copy>("installGitHooks") {
+    from(file("$rootDir/.githooks/pre-commit"))
+    into(file("$rootDir/.git/hooks"))
+    filePermissions {
+        unix("0777")
+    }
+}
+
+// Ensure hooks are installed before every build
+tasks.getByPath(":app:preBuild").dependsOn("installGitHooks")
