@@ -22,6 +22,7 @@ data class MacroUi(
 )
 
 data class IngredientUi(
+    val id: Long,
     val title: String,
     val kcal: Int,
     val weight: Double,

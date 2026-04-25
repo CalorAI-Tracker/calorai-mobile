@@ -83,8 +83,7 @@ class LoginViewModel constructor(
                         // data. For that you first need to validate the token:
                         // pass googleIdTokenCredential.getIdToken() to the backend server.
                         // see [validation instructions](https://developers.google.com/identity/gsi/web/guides/verify-google-id-token)
-                    } catch (e: GoogleIdTokenParsingException) {
-
+                    } catch (_: GoogleIdTokenParsingException) {
                     }
                 } else {
                     // Catch any unrecognized custom credential type here.

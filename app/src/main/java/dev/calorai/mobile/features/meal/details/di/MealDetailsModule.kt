@@ -16,6 +16,7 @@ internal val mealDetailsModule = module {
         MealDetailsViewModel(
             savedStateHandle = get(),
             getMealProgressUseCase = get(),
+            deleteMealEntryUseCase = get(),
             mapper = get(),
             globalRouter = get<RouterController>(qualifier<GlobalRouterContext>())
         )

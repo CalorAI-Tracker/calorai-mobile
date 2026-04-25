@@ -1,6 +1,7 @@
 package dev.calorai.mobile.features.meal.domain.model
 
-data class MealEntry(
+data class MealEntry constructor(
+    val id: MealEntryId,
     val name: String,
     val quantityGrams: Double,
     val kcal: Int,

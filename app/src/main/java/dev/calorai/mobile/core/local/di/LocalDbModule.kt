@@ -13,10 +13,13 @@ val localDbModule = module {
             androidContext(),
             CalorAiDatabase::class.java,
             "calorai_db"
-        ).build()
+        )
+            .fallbackToDestructiveMigration(dropAllTables = true)
+            .build()
     }
 
     single { get<CalorAiDatabase>().userDao() }
     single { get<CalorAiDatabase>().dailyMealDao() }
+    single { get<CalorAiDatabase>().ingredientsDao() }
     single<DeviceIdStore> { DeviceIdStoreImpl(context = androidContext()) }
 }

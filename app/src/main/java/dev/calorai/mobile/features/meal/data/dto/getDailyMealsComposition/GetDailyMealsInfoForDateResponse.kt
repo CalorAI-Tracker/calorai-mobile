@@ -15,6 +15,9 @@ data class GetDailyMealsCompositionResponse(
 
 @Serializable
 data class MealEntryDto(
+    @SerialName("id")
+    val id: Long,
+
     @SerialName("entryName")
     val entryName: String,
 

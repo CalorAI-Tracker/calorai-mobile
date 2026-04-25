@@ -16,7 +16,6 @@ sealed class IngredientContextMenuItem(
 ) : PrimaryContextMenuItem<IngredientContextMenuItem.Key> {
 
     enum class Key {
-        EDIT,
         DELETE,
     }
 
@@ -33,13 +32,6 @@ sealed class IngredientContextMenuItem(
         } else {
             MaterialTheme.colorScheme.onPrimary
         }
-
-    data object EditIngredientContextMenuItem: IngredientContextMenuItem(
-        titleRes = R.string.context_menu_edit,
-        iconRes = R.drawable.ic_edit,
-        key = Key.EDIT,
-        isDestructive = false,
-    )
 
     data object DeleteIngredientContextMenuItem: IngredientContextMenuItem(
         titleRes = R.string.context_menu_delete,

@@ -247,6 +247,7 @@ private fun MealsListItem(
             .height(80.dp),
         onCardClick = { onEvent(HomeUiEvent.MealCardClick(meal)) },
         onAddClick = { onEvent(HomeUiEvent.MealCardAddButtonClick(meal)) },
+        onDeleteClick = { onEvent(HomeUiEvent.MealCardDeleteClick(meal)) },
     )
 }
 

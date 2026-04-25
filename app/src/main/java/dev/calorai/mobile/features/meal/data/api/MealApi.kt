@@ -1,33 +1,58 @@
 package dev.calorai.mobile.features.meal.data.api
 
-import dev.calorai.mobile.features.meal.data.dto.createMealEntry.CreateMealEntryRequest
 import dev.calorai.mobile.features.meal.data.dto.getDailyMeal.GetDailyMealResponse
 import dev.calorai.mobile.features.meal.data.dto.getDailyMealsComposition.GetDailyMealsCompositionResponse
+import dev.calorai.mobile.features.meal.data.dto.mealEntry.MealEntryRecognizeResponse
+import dev.calorai.mobile.features.meal.data.dto.mealEntry.MealEntryRequest
+import okhttp3.MultipartBody
 import retrofit2.Response
 import retrofit2.http.Body
+import retrofit2.http.DELETE
 import retrofit2.http.GET
+import retrofit2.http.Multipart
 import retrofit2.http.POST
+import retrofit2.http.PUT
+import retrofit2.http.Part
 import retrofit2.http.Path
 import retrofit2.http.Query
 
 
 interface MealApi {
 
-    @GET("daily-meal/{userId}")
+    @GET("$DAILY_MEAL")
     suspend fun getDailyMeal(
-        @Path("userId") userId: Long,
-        @Query("date") date: String? = null
+        @Query("date") date: String,
     ): Response<GetDailyMealResponse>
 
-    @POST("food-diary/{userId}/entries")
+    @POST("$FOOD_DIARY/entries")
     suspend fun createMealEntry(
-        @Path("userId") userId: Long,
-        @Body body: CreateMealEntryRequest
+        @Body body: MealEntryRequest,
     ): Response<Unit>
 
-    @GET("food-diary/{userId}/composition")
+    @PUT("$FOOD_DIARY/entries/{entryId}")
+    suspend fun updateMealEntry(
+        @Path("entryId") entryId: Long,
+        @Body body: MealEntryRequest,
+    ): Response<Unit>
+
+    @DELETE("$FOOD_DIARY/entries/{entryId}")
+    suspend fun deleteMealEntry(
+        @Path("entryId") entryId: Long,
+    ): Response<Unit>
+
+    @GET("$FOOD_DIARY/composition")
     suspend fun getDailyMealsComposition(
-        @Path("userId") userId: Long,
-        @Query("date") date: String? = null
+        @Query("date") date: String,
     ): Response<GetDailyMealsCompositionResponse>
+
+    @Multipart
+    @POST("food/recognize")
+    suspend fun mealRecognize(
+        @Part image: MultipartBody.Part,
+    ): Response<MealEntryRecognizeResponse>
+
+    private companion object {
+        private const val FOOD_DIARY = "food-diary"
+        private const val DAILY_MEAL = "daily-meal"
+    }
 }

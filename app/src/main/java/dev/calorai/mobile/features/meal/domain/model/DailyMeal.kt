@@ -3,7 +3,6 @@ package dev.calorai.mobile.features.meal.domain.model
 import java.time.LocalDate
 
 data class DailyMeal(
-
     val id: MealId,
     val date: LocalDate,
     val meal: MealType,

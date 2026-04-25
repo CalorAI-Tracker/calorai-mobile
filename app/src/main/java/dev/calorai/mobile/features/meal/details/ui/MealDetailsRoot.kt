@@ -176,8 +176,9 @@ private fun MealDetailsScreenReady(
                         onClick = {
                             onEvent(MealDetailsUiEvent.IngredientClick(ingredient))
                         },
-                        onEditClick = {}, // TODO: Поменять
-                        onDeleteClick = {}, // TODO: Поменять
+                        onDeleteClick = {
+                            onEvent(MealDetailsUiEvent.IngredientDeleteClick(ingredient))
+                        },
                     )
                 }
             }
@@ -216,7 +217,6 @@ private fun IngredientItem(
     weight: Double,
     unitOfMeasure: UnitOfMeasure,
     onClick: () -> Unit,
-    onEditClick: () -> Unit,
     onDeleteClick: () -> Unit,
 ) {
     var isContextMenuVisible by remember { mutableStateOf(false) }
@@ -225,7 +225,6 @@ private fun IngredientItem(
     if (isContextMenuVisible) {
         IngredientContextMenu(
             anchorOffset = anchorOffset,
-            onEdit = onEditClick,
             onDelete = onDeleteClick,
             onDismiss = {
                 isContextMenuVisible = false
@@ -295,7 +294,7 @@ private fun MealDetailsScreenPreview() {
                     MacroUi(14f, MealMacroLabelUi.CARBS.labelResId, listOf(60f, 40f)),
                 ),
                 ingredients = listOf(
-                    IngredientUi("Креветки", 100, 8.0, UnitOfMeasure.GRAM),
+                    IngredientUi(1, "Креветки", 100, 8.0, UnitOfMeasure.GRAM),
                     //IngredientUi("Рис", "130 ккал", "100 г"),
                     //IngredientUi("Яйцо пашот", "68 ккал", "1 шт"),
                     //IngredientUi("Помидоры черри", "9 ккал", "3 шт"),

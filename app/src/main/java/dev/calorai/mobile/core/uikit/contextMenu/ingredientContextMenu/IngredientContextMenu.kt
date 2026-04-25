@@ -9,20 +9,17 @@ import dev.calorai.mobile.core.uikit.contextMenu.PrimaryContextMenu
 @Composable
 fun IngredientContextMenu(
     anchorOffset: Offset,
-    onEdit: () -> Unit,
     onDelete: () -> Unit,
     onDismiss: () -> Unit,
 ) {
     PrimaryContextMenu(
         anchorOffset = anchorOffset,
         items = listOf(
-            IngredientContextMenuItem.EditIngredientContextMenuItem,
             IngredientContextMenuItem.DeleteIngredientContextMenuItem
         ),
         onDismiss = onDismiss,
         onItemSelected = { key: IngredientContextMenuItem.Key ->
             when (key) {
-                IngredientContextMenuItem.Key.EDIT -> onEdit()
                 IngredientContextMenuItem.Key.DELETE -> onDelete()
             }
         }
@@ -38,7 +35,6 @@ private fun IngredientContextMenuPreview() {
     CalorAiTheme {
         IngredientContextMenu(
             anchorOffset = Offset(0f, -250f),
-            onEdit = {},
             onDelete = {},
             onDismiss = {},
         )

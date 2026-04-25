@@ -8,10 +8,11 @@ import dev.calorai.mobile.features.home.domain.model.DayMealProgressInfo
 import dev.calorai.mobile.features.home.domain.usecases.GetCurrentUserNameUseCase
 import dev.calorai.mobile.features.home.domain.usecases.GetDayProgressUseCase
 import dev.calorai.mobile.features.home.domain.usecases.GetWeekByDateUseCase
-import dev.calorai.mobile.features.meal.create.manual.navigateToMealManualEditorScreen
 import dev.calorai.mobile.features.meal.data.mappers.MealMapper
 import dev.calorai.mobile.features.meal.details.navigateToMealDetailsScreen
 import dev.calorai.mobile.features.meal.domain.model.MealType
+import dev.calorai.mobile.features.meal.domain.usecases.DeleteMealUseCase
+import dev.calorai.mobile.features.meal.edit.manual.navigateToMealManualEditorScreen
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.channels.Channel.Factory.BUFFERED
 import kotlinx.coroutines.flow.Flow
@@ -32,6 +33,7 @@ class HomeViewModel constructor(
     private val getWeekByDateUseCase: GetWeekByDateUseCase,
     getCurrentUserNameUseCase: GetCurrentUserNameUseCase,
     private val getDayProgressUseCase: GetDayProgressUseCase,
+    private val deleteMealUseCase: DeleteMealUseCase,
     private val mapper: MealMapper,
     private val globalRouter: Router,
 ) : ViewModel() {
@@ -113,12 +115,26 @@ class HomeViewModel constructor(
             is HomeUiEvent.MealCardAddButtonClick -> handleMealCardAddButtonClick(event.meal.type)
             is HomeUiEvent.ModalCreateMealButtonClick -> handleMealCardAddButtonClick(event.mealType)
             is HomeUiEvent.MealCardClick -> navigateToMealDetails(event.meal.type)
+            is HomeUiEvent.MealCardDeleteClick -> deleteMeal(event.meal.type)
             HomeUiEvent.SelectNextDate -> selectNextDate()
             HomeUiEvent.SelectPreviousDate -> selectPreviousDate()
             HomeUiEvent.AddManualClick -> handleAddManualClick()
             HomeUiEvent.ChooseReadyClick -> handleChooseReadyClick()
             HomeUiEvent.HideAddIngredientDialog -> hideAddIngredientDialog()
             HomeUiEvent.OnRefresh -> refreshData()
+        }
+    }
+
+    private fun deleteMeal(mealType: MealType) {
+        viewModelScope.launch {
+            runCatching {
+                deleteMealUseCase.invoke(
+                    mealType = mealType,
+                    date = currentDate.value.toString(),
+                )
+            }.onSuccess {
+                refreshData()
+            }
         }
     }
 

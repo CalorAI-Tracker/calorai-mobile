@@ -5,8 +5,8 @@ import androidx.annotation.StringRes
 import dev.calorai.mobile.R
 import dev.calorai.mobile.features.home.HomeRoute
 import dev.calorai.mobile.features.plan.PlanRoute
-import dev.calorai.mobile.features.progress.ProgressRoute
 import dev.calorai.mobile.features.profile.ProfileRoute
+import dev.calorai.mobile.features.progress.ProgressRoute
 import kotlin.reflect.KClass
 
 sealed class BottomNavItem(
