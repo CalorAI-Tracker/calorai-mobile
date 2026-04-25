@@ -141,7 +141,11 @@ class MealDetailsViewModel constructor(
                 )
             }
                 .onSuccess { progress ->
-                    mealProgress.update { progress }
+                    if (progress.entries.isEmpty()) {
+                        globalRouter.emit { popBackStack() }
+                    } else {
+                        mealProgress.update { progress }
+                    }
                 }
                 .onFailure {
                     mealProgress.update { null }

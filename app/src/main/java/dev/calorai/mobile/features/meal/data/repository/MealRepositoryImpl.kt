@@ -137,7 +137,12 @@ class MealRepositoryImpl constructor(
     }
 
     private suspend fun syncMealIngredientsWithApi(date: String) = withContext(dispatcher) {
-        api.getDailyMealsComposition(date).getOrThrow().meals.forEach { (mealType, entries) ->
+        val apiComposition = api.getDailyMealsComposition(date).getOrThrow()
+        val localComposition = ingredientsDao.getByDateOnce(date).groupBy { it.mealType }
+        if (localComposition.size != apiComposition.meals.size) {
+            deleteMealsByDate(date)
+        }
+        apiComposition.meals.forEach { (mealType, entries) ->
             val apiEntities: List<IngredientsEntity> = entries.map { mealEntryDto ->
                 mapper.mapToEntity(
                     dto = mealEntryDto,
