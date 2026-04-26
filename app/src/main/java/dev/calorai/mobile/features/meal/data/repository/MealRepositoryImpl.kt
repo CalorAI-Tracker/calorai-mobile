@@ -39,6 +39,10 @@ class MealRepositoryImpl constructor(
         }
     }
 
+    override suspend fun getAllMealEntries(): List<MealEntry> = withContext(dispatcher) {
+        ingredientsDao.getAllOnce().map(mapper::mapToDomain)
+    }
+
     override suspend fun createMealEntryAndSync(payload: MealEntryPayload) =
         withContext(dispatcher) {
             try {

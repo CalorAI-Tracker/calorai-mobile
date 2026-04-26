@@ -13,6 +13,7 @@ import dev.calorai.mobile.features.meal.details.navigateToMealDetailsScreen
 import dev.calorai.mobile.features.meal.domain.model.MealType
 import dev.calorai.mobile.features.meal.domain.usecases.DeleteMealUseCase
 import dev.calorai.mobile.features.meal.edit.manual.navigateToMealManualEditorScreen
+import dev.calorai.mobile.features.meal.ready.navigateToMealReadyListScreen
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.channels.Channel.Factory.BUFFERED
 import kotlinx.coroutines.flow.Flow
@@ -192,7 +193,15 @@ class HomeViewModel constructor(
     }
 
     private fun handleChooseReadyClick() {
-        // TODO: навигация на экран выбора готового ингредиента
-        hideAddIngredientDialog()
+        viewModelScope.launch {
+            val mealType = requireNotNull(selectedMealType)
+            hideAddIngredientDialog()
+            globalRouter.emit {
+                navigateToMealReadyListScreen(
+                    mealType = mealType,
+                    date = currentDate.value.toString(),
+                )
+            }
+        }
     }
 }

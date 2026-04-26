@@ -11,6 +11,7 @@ import dev.calorai.mobile.features.meal.domain.model.MealType
 interface MealRepository {
 
     suspend fun getDailyMeals(date: String): List<DailyMeal>
+    suspend fun getAllMealEntries(): List<MealEntry>
     suspend fun createMealEntryAndSync(payload: MealEntryPayload)
     suspend fun mealRecognize(image: ByteArray): MealRecognizeEntry
     suspend fun getMealEntry(mealEntryId: MealEntryId): MealEntry

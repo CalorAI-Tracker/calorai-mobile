@@ -1,4 +1,4 @@
-<resources>
+﻿<resources>
     <string name="app_name">CalorAI</string>
     <string name="add">Добавить</string>
 
@@ -115,4 +115,11 @@
 
     <string name="context_menu_edit">Редактировать</string>
     <string name="context_menu_delete">Удалить</string>
+
+    <string name="meal_ready_title">Выбери продукт</string>
+    <string name="meal_ready_empty">В базе пока нет сохраненных приемов пищи</string>
+    <string name="meal_ready_search_placeholder">Поиск</string>
+    <string name="meal_ready_nothing_found">Ничего не найдено</string>
+    <string name="meal_ready_title_with_weight">%1$s (%2$s г)</string>
+    <string name="meal_ready_summary">%1$d ккал, %2$s белка, %3$s жиров, %4$s углеводов</string>
 </resources>
