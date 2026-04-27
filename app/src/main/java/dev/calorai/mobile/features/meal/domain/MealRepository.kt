@@ -5,14 +5,14 @@ import dev.calorai.mobile.features.meal.domain.model.MealEntry
 import dev.calorai.mobile.features.meal.domain.model.MealEntryId
 import dev.calorai.mobile.features.meal.domain.model.MealEntryPayload
 import dev.calorai.mobile.features.meal.domain.model.MealId
-import dev.calorai.mobile.features.meal.domain.model.MealRecognizeEntry
+import dev.calorai.mobile.features.meal.domain.model.MealRecognizeResult
 import dev.calorai.mobile.features.meal.domain.model.MealType
 
 interface MealRepository {
 
     suspend fun getDailyMeals(date: String): List<DailyMeal>
     suspend fun createMealEntryAndSync(payload: MealEntryPayload)
-    suspend fun mealRecognize(image: ByteArray): MealRecognizeEntry
+    suspend fun mealRecognize(image: ByteArray): MealRecognizeResult
     suspend fun getMealEntry(mealEntryId: MealEntryId): MealEntry
     suspend fun updateMealEntryAndSync(mealEntryId: MealEntryId, payload: MealEntryPayload)
     suspend fun deleteMealEntryAndSync(mealEntryId: MealEntryId, date: String)

@@ -1,17 +1,20 @@
 package dev.calorai.mobile.features.meal.data.repository
 
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import dev.calorai.mobile.features.meal.data.api.MealApi
 import dev.calorai.mobile.features.meal.data.dao.DailyMealsDao
 import dev.calorai.mobile.features.meal.data.dao.IngredientsDao
 import dev.calorai.mobile.features.meal.data.entity.IngredientsEntity
 import dev.calorai.mobile.features.meal.data.mappers.MealMapper
 import dev.calorai.mobile.features.meal.domain.MealRepository
+import dev.calorai.mobile.features.meal.domain.ml.MealPhotoDetector
 import dev.calorai.mobile.features.meal.domain.model.DailyMeal
 import dev.calorai.mobile.features.meal.domain.model.MealEntry
 import dev.calorai.mobile.features.meal.domain.model.MealEntryId
 import dev.calorai.mobile.features.meal.domain.model.MealEntryPayload
 import dev.calorai.mobile.features.meal.domain.model.MealId
-import dev.calorai.mobile.features.meal.domain.model.MealRecognizeEntry
+import dev.calorai.mobile.features.meal.domain.model.MealRecognizeResult
 import dev.calorai.mobile.features.meal.domain.model.MealType
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
@@ -21,12 +24,15 @@ import okhttp3.MultipartBody
 import okhttp3.RequestBody.Companion.toRequestBody
 import retrofit2.HttpException
 import retrofit2.Response
+import java.io.ByteArrayOutputStream
+import androidx.core.graphics.scale
 
 class MealRepositoryImpl constructor(
     private val api: MealApi,
     private val dailyMealsDao: DailyMealsDao,
     private val ingredientsDao: IngredientsDao,
     private val mapper: MealMapper,
+    private val mealPhotoDetector: MealPhotoDetector,
     private val dispatcher: CoroutineDispatcher = Dispatchers.IO,
 ) : MealRepository {
 
@@ -119,16 +125,35 @@ class MealRepositoryImpl constructor(
         ingredientsDao.clearAll()
     }
 
-    override suspend fun mealRecognize(image: ByteArray): MealRecognizeEntry =
+    override suspend fun mealRecognize(image: ByteArray): MealRecognizeResult =
         withContext(dispatcher) {
+            val bitmap = BitmapFactory.decodeByteArray(image, 0, image.size)
+                ?: return@withContext MealRecognizeResult.NotDetected
+
+            if (!mealPhotoDetector.detect(bitmap)) {
+                return@withContext MealRecognizeResult.NotDetected
+            }
+
+            val uploadBitmap = bitmap.resizeForUpload()
+            val compressedImage = ByteArrayOutputStream().use { outputStream ->
+                uploadBitmap.compress(
+                    Bitmap.CompressFormat.JPEG,
+                    JPEG_QUALITY,
+                    outputStream,
+                )
+                outputStream.toByteArray()
+            }
+
             val contentType = "image/jpeg".toMediaTypeOrNull()
-            val requestFile = image.toRequestBody(contentType)
+            val requestFile = compressedImage.toRequestBody(contentType)
             val body = MultipartBody.Part.createFormData(
                 name = "image",
                 filename = "meal.jpg",
                 body = requestFile,
             )
-            return@withContext api.mealRecognize(image = body).getOrThrow().let(mapper::mapToDomain)
+            return@withContext MealRecognizeResult.Success(
+                api.mealRecognize(image = body).getOrThrow().let(mapper::mapToDomain)
+            )
         }
 
     private suspend fun syncDailyMealWithApi(date: String) = withContext(dispatcher) {
@@ -205,5 +230,22 @@ class MealRepositoryImpl constructor(
     private fun <T> List<T>.areListsEqual(other: List<T>): Boolean {
         if (size != other.size) return false
         return toSet() == other.toSet()
+    }
+
+    private fun Bitmap.resizeForUpload(): Bitmap {
+        val maxSide = maxOf(width, height)
+
+        if (maxSide <= MAX_UPLOAD_IMAGE_SIDE) return this
+
+        val scale = MAX_UPLOAD_IMAGE_SIDE.toFloat() / maxSide.toFloat()
+        val targetWidth = (width * scale).toInt()
+        val targetHeight = (height * scale).toInt()
+
+        return this.scale(targetWidth, targetHeight)
+    }
+
+    private companion object {
+        private const val MAX_UPLOAD_IMAGE_SIDE = 1024
+        private const val JPEG_QUALITY = 75
     }
 }

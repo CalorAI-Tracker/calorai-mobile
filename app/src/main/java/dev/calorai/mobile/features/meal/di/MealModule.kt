@@ -3,9 +3,12 @@ package dev.calorai.mobile.features.meal.di
 import dev.calorai.mobile.core.network.di.NetworkContext
 import dev.calorai.mobile.features.meal.data.api.MealApi
 import dev.calorai.mobile.features.meal.data.mappers.MealMapper
+import dev.calorai.mobile.features.meal.data.ml.ImagePreprocessor
+import dev.calorai.mobile.features.meal.data.ml.MealPhotoDetectorImpl
 import dev.calorai.mobile.features.meal.data.repository.MealRepositoryImpl
 import dev.calorai.mobile.features.meal.details.di.mealDetailsModule
 import dev.calorai.mobile.features.meal.domain.MealRepository
+import dev.calorai.mobile.features.meal.domain.ml.MealPhotoDetector
 import dev.calorai.mobile.features.meal.domain.usecases.CreateMealEntryUseCase
 import dev.calorai.mobile.features.meal.domain.usecases.CreateMealEntryUseCaseImpl
 import dev.calorai.mobile.features.meal.domain.usecases.DeleteMealEntryUseCase
@@ -34,6 +37,14 @@ internal val mealModule = module {
             dailyMealsDao = get(),
             ingredientsDao = get(),
             mapper = get(),
+            mealPhotoDetector = get(),
+        )
+    }
+    factory{ ImagePreprocessor() }
+    single<MealPhotoDetector> {
+        MealPhotoDetectorImpl(
+            context = get(),
+            imagePreprocessor = get(),
         )
     }
     factory<CreateMealEntryUseCase> {
