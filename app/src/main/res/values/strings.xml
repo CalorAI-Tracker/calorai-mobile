@@ -120,6 +120,5 @@
     <string name="meal_ready_empty">В базе пока нет сохраненных приемов пищи</string>
     <string name="meal_ready_search_placeholder">Поиск</string>
     <string name="meal_ready_nothing_found">Ничего не найдено</string>
-    <string name="meal_ready_title_with_weight">%1$s (%2$s г)</string>
-    <string name="meal_ready_summary">%1$d ккал, %2$s белка, %3$s жиров, %4$s углеводов</string>
+    <string name="meal_ready_summary">%1$d ккал, %2$s г белка, %3$s г жиров, %4$s г углеводов на 100 г</string>
 </resources>

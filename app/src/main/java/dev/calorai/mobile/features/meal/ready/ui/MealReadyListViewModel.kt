@@ -6,20 +6,30 @@ import androidx.lifecycle.viewModelScope
 import androidx.navigation.NavOptions
 import androidx.navigation.toRoute
 import dev.calorai.mobile.core.navigation.Router
+import dev.calorai.mobile.features.meal.details.navigateToMealDetailsScreen
+import dev.calorai.mobile.features.meal.domain.model.FoodCatalogItem
 import dev.calorai.mobile.features.meal.domain.model.MealEntryPayload
 import dev.calorai.mobile.features.meal.domain.usecases.CreateMealEntryUseCase
-import dev.calorai.mobile.features.meal.domain.usecases.GetAllMealEntriesUseCase
-import dev.calorai.mobile.features.meal.details.navigateToMealDetailsScreen
+import dev.calorai.mobile.features.meal.domain.usecases.SearchFoodCatalogUseCase
 import dev.calorai.mobile.features.meal.ready.MealReadyListRoute
+import dev.calorai.mobile.features.meal.ready.MealReadyListSource
+import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.debounce
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.drop
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlin.math.roundToInt
 
+@OptIn(FlowPreview::class)
 class MealReadyListViewModel(
     savedStateHandle: SavedStateHandle,
-    private val getAllMealEntriesUseCase: GetAllMealEntriesUseCase,
+    private val searchFoodCatalogUseCase: SearchFoodCatalogUseCase,
     private val createMealEntryUseCase: CreateMealEntryUseCase,
     private val globalRouter: Router,
 ) : ViewModel() {
@@ -29,35 +39,68 @@ class MealReadyListViewModel(
     private val _uiState = MutableStateFlow<MealReadyListUiState>(MealReadyListUiState.Loading)
     val uiState: StateFlow<MealReadyListUiState> = _uiState.asStateFlow()
 
+    private val searchQuery = MutableStateFlow("")
+    private var currentItemsById: Map<String, FoodCatalogItem> = emptyMap()
+
     init {
-        loadMeals()
+        searchQuery
+            .drop(1)
+            .debounce(300)
+            .distinctUntilChanged()
+            .onEach(::loadFirstPage)
+            .launchIn(viewModelScope)
+
+        loadFirstPage(search = "")
     }
 
-    fun onBackClick() {
-        viewModelScope.launch {
-            globalRouter.emit { popBackStack() }
+    fun onEvent(event: MealReadyListUiEvent) {
+        when (event) {
+            MealReadyListUiEvent.BackClick -> onBackClick()
+            MealReadyListUiEvent.AddClick -> onAddClick()
+            MealReadyListUiEvent.LoadNextPage -> onLoadNextPage()
+            is MealReadyListUiEvent.MealClick -> onMealClick(event.id)
+            is MealReadyListUiEvent.QueryChange -> onQueryChange(event.value)
         }
     }
 
-    fun onQueryChange(value: String) {
-        _uiState.update { current ->
-            when (current) {
-                MealReadyListUiState.Loading -> current
-                is MealReadyListUiState.Ready -> {
-                    val isSelectedVisible = current.meals.any { meal ->
-                        meal.id == current.selectedMealId &&
-                            (value.isBlank() || meal.title.contains(value, ignoreCase = true))
-                    }
-                    current.copy(
-                        query = value,
-                        selectedMealId = current.selectedMealId.takeIf { isSelectedVisible },
+    private fun onBackClick() {
+        viewModelScope.launch {
+            globalRouter.emit {
+                if (route.source == MealReadyListSource.DETAILS) {
+                    navigateToMealDetailsScreen(
+                        mealType = route.mealType,
+                        date = route.date,
+                        navOptions = NavOptions.Builder()
+                            .setPopUpTo<MealReadyListRoute>(inclusive = true)
+                            .build(),
                     )
+                } else {
+                    popBackStack()
                 }
             }
         }
     }
 
-    fun onMealClick(id: Long) {
+    private fun onQueryChange(value: String) {
+        _uiState.update { current ->
+            when (current) {
+                MealReadyListUiState.Loading -> MealReadyListUiState.Ready(
+                    meals = emptyList(),
+                    query = value,
+                )
+
+                is MealReadyListUiState.Ready -> current.copy(
+                    query = value,
+                    selectedMealId = null,
+                    isAppending = false,
+                    canLoadMore = false,
+                )
+            }
+        }
+        searchQuery.value = value
+    }
+
+    private fun onMealClick(id: String) {
         _uiState.update { current ->
             when (current) {
                 MealReadyListUiState.Loading -> current
@@ -66,22 +109,36 @@ class MealReadyListViewModel(
         }
     }
 
-    fun onAddClick() {
+    private fun onLoadNextPage() {
         val currentState = _uiState.value as? MealReadyListUiState.Ready ?: return
-        val selectedMeal = currentState.meals.find { it.id == currentState.selectedMealId } ?: return
+        if (currentState.isAppending || !currentState.canLoadMore) return
+
+        loadPage(
+            search = currentState.query,
+            page = currentState.currentPage + 1,
+            append = true,
+        )
+    }
+
+    private fun onAddClick() {
+        val currentState = _uiState.value as? MealReadyListUiState.Ready ?: return
+        val selectedId = currentState.selectedMealId ?: return
+        val selectedMeal = currentItemsById[selectedId] ?: return
 
         viewModelScope.launch {
             runCatching {
                 createMealEntryUseCase(
                     MealEntryPayload(
-                        entryName = selectedMeal.title,
+                        entryName = selectedMeal.name,
                         meal = route.mealType,
                         eatenAt = route.date,
-                        proteinPerBaseG = selectedMeal.protein,
-                        fatPerBaseG = selectedMeal.fat,
-                        carbsPerBaseG = selectedMeal.carbs,
+                        proteinPerBaseG = selectedMeal.proteinPer100g,
+                        fatPerBaseG = selectedMeal.fatPer100g,
+                        carbsPerBaseG = selectedMeal.carbsPer100g,
                         baseQuantityGrams = 100.0,
-                        portionQuantityGrams = selectedMeal.quantityGrams,
+                        portionQuantityGrams = 100.0,
+                        brand = selectedMeal.brand,
+                        barcode = selectedMeal.barcode,
                     )
                 )
             }.onSuccess {
@@ -98,34 +155,176 @@ class MealReadyListViewModel(
         }
     }
 
-    private fun loadMeals() {
+    private fun loadFirstPage(search: String) {
+        loadPage(search = search, page = FIRST_PAGE, append = false)
+    }
+
+    private fun loadPage(
+        search: String,
+        page: Int,
+        append: Boolean,
+    ) {
         viewModelScope.launch {
+            preparePageLoad(append = append)
+
             runCatching {
-                getAllMealEntriesUseCase()
-            }.onSuccess { entries ->
-                val uniqueEntries = entries.distinctBy { entry ->
-                    entry.name.trim().lowercase()
-                }
-                _uiState.update {
-                    MealReadyListUiState.Ready(
-                        meals = uniqueEntries.map { entry ->
-                            ReadyMealUi(
-                                id = entry.id.value,
-                                title = entry.name,
-                                kcal = entry.kcal,
-                                protein = entry.proteinG,
-                                fat = entry.fatG,
-                                carbs = entry.carbsG,
-                                quantityGrams = entry.quantityGrams,
-                            )
-                        }
+                searchFoodCatalogUseCase(
+                    search = search,
+                    page = page,
+                    size = PAGE_SIZE,
+                )
+            }
+                .onSuccess { result ->
+                    handleLoadPageSuccess(
+                        search = search,
+                        page = page,
+                        append = append,
+                        result = result,
                     )
                 }
-            }.onFailure {
-                _uiState.update {
-                    MealReadyListUiState.Ready(meals = emptyList())
+                .onFailure {
+                    handleLoadPageFailure(
+                        search = search,
+                        append = append,
+                    )
                 }
+        }
+    }
+
+    private fun preparePageLoad(append: Boolean) {
+        if (append) {
+            _uiState.update { current ->
+                (current as? MealReadyListUiState.Ready)?.copy(isAppending = true) ?: current
+            }
+            return
+        }
+
+        currentItemsById = emptyMap()
+        _uiState.update { current ->
+            when (current) {
+                MealReadyListUiState.Loading -> current
+                is MealReadyListUiState.Ready -> current.copy(
+                    meals = emptyList(),
+                    selectedMealId = null,
+                    isAppending = false,
+                    canLoadMore = false,
+                    currentPage = FIRST_PAGE,
+                )
             }
         }
     }
+
+    private fun handleLoadPageSuccess(
+        search: String,
+        page: Int,
+        append: Boolean,
+        result: dev.calorai.mobile.features.meal.domain.model.FoodCatalogSearchPage,
+    ) {
+        if (shouldIgnoreSuccess(search = search, page = page, append = append)) return
+
+        val newItems = result.items
+            .distinctBy(FoodCatalogItem::stableId)
+
+        currentItemsById = buildMap {
+            if (append) putAll(currentItemsById)
+            newItems.forEach { put(it.stableId(), it) }
+        }
+
+        val newMeals = newItems.map(::toReadyMealUi)
+
+        _uiState.update { current ->
+            val currentState = current as? MealReadyListUiState.Ready
+                ?: MealReadyListUiState.Ready(meals = emptyList(), query = search)
+            val mergedMeals = if (append) {
+                (currentState.meals + newMeals).distinctBy(ReadyMealUi::id)
+            } else {
+                newMeals
+            }
+            currentState.copy(
+                meals = mergedMeals,
+                query = search,
+                selectedMealId = currentState.selectedMealId.takeIf { selectedId ->
+                    mergedMeals.any { it.id == selectedId }
+                },
+                currentPage = page,
+                isAppending = false,
+                canLoadMore = page + 1 < result.totalPages,
+            )
+        }
+    }
+
+    private fun handleLoadPageFailure(
+        search: String,
+        append: Boolean,
+    ) {
+        if (shouldIgnoreFailure(search = search, append = append)) return
+
+        _uiState.update { current ->
+            when (current) {
+                MealReadyListUiState.Loading -> MealReadyListUiState.Ready(
+                    meals = emptyList(),
+                    query = search,
+                )
+
+                is MealReadyListUiState.Ready -> current.copy(
+                    isAppending = false,
+                    canLoadMore = false,
+                    meals = if (append) current.meals else emptyList(),
+                    currentPage = if (append) current.currentPage else FIRST_PAGE,
+                )
+            }
+        }
+    }
+
+    private fun shouldIgnoreSuccess(
+        search: String,
+        page: Int,
+        append: Boolean,
+    ): Boolean {
+        val latestState = _uiState.value as? MealReadyListUiState.Ready ?: return false
+        if (!append) {
+            return latestState.query != search
+        }
+        return latestState.query != search || latestState.currentPage >= page
+    }
+
+    private fun shouldIgnoreFailure(
+        search: String,
+        append: Boolean,
+    ): Boolean {
+        val latestState = _uiState.value as? MealReadyListUiState.Ready ?: return false
+        if (!append) {
+            return latestState.query != search
+        }
+        return latestState.query != search
+    }
+
+    private fun toReadyMealUi(item: FoodCatalogItem): ReadyMealUi =
+        ReadyMealUi(
+            id = item.stableId(),
+            title = item.name,
+            brand = item.brand,
+            barcode = item.barcode,
+            summary = item.toSummaryText(),
+        )
+
+    private fun FoodCatalogItem.toSummaryText(): String =
+        "${kcalPer100g.roundToInt()} ккал, ${proteinPer100g.formatNumber()} г белка, " +
+            "${fatPer100g.formatNumber()} г жиров, ${carbsPer100g.formatNumber()} г углеводов на 100 г"
+
+    private fun Double.formatNumber(): String =
+        if (this % 1.0 == 0.0) toInt().toString() else toString().trimEnd('0').trimEnd('.')
+
+    private companion object {
+        const val FIRST_PAGE = 0
+        const val PAGE_SIZE = 20
+    }
 }
+
+private fun FoodCatalogItem.stableId(): String = listOfNotNull(
+    id?.toString(),
+    barcode.takeIf { it.isNotBlank() },
+    provider.takeIf { it.isNotBlank() },
+    brand.takeIf { it.isNotBlank() },
+    name,
+).joinToString("|")

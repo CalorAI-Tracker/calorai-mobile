@@ -1,4 +1,4 @@
-﻿package dev.calorai.mobile.features.meal.ready.ui
+package dev.calorai.mobile.features.meal.ready.ui
 
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.border
@@ -6,6 +6,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
@@ -16,6 +17,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -25,7 +27,9 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
@@ -37,29 +41,29 @@ import dev.calorai.mobile.R
 import dev.calorai.mobile.core.uikit.CalorAiTheme
 import dev.calorai.mobile.core.uikit.PrimaryButton
 import dev.calorai.mobile.core.uikit.commonGradientBackground
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.map
 import org.koin.androidx.compose.koinViewModel
 
+private const val LOAD_MORE_THRESHOLD = 3
 @Composable
 fun MealReadyListRoot(
     viewModel: MealReadyListViewModel = koinViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
-    BackHandler(onBack = viewModel::onBackClick)
+    BackHandler { viewModel.onEvent(MealReadyListUiEvent.BackClick) }
     MealReadyListScreen(
         uiState = uiState,
-        onQueryChange = viewModel::onQueryChange,
-        onMealClick = viewModel::onMealClick,
-        onAddClick = viewModel::onAddClick,
+        onEvent = viewModel::onEvent,
     )
 }
 
 @Composable
 private fun MealReadyListScreen(
     uiState: MealReadyListUiState,
-    onQueryChange: (String) -> Unit,
-    onMealClick: (Long) -> Unit,
-    onAddClick: () -> Unit,
+    onEvent: (MealReadyListUiEvent) -> Unit,
 ) {
     val system = WindowInsets.systemBars.asPaddingValues()
 
@@ -90,76 +94,108 @@ private fun MealReadyListScreen(
                 CircularProgressIndicator()
             }
 
-            is MealReadyListUiState.Ready -> {
-                val filteredMeals = uiState.meals.filter { meal ->
-                    uiState.query.isBlank() || meal.title.contains(uiState.query, ignoreCase = true)
-                }
-
-                SearchField(
-                    value = uiState.query,
-                    onValueChange = onQueryChange,
-                    placeholder = stringResource(R.string.meal_ready_search_placeholder),
-                )
-
-                Spacer(modifier = Modifier.height(16.dp))
-
-                if (uiState.meals.isEmpty()) {
-                    Box(
-                        modifier = Modifier.fillMaxSize(),
-                        contentAlignment = Alignment.Center,
-                    ) {
-                        Text(
-                            text = stringResource(R.string.meal_ready_empty),
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onPrimary,
-                        )
-                    }
-                } else if (filteredMeals.isEmpty()) {
-                    Box(
-                        modifier = Modifier.fillMaxSize(),
-                        contentAlignment = Alignment.Center,
-                    ) {
-                        Text(
-                            text = stringResource(R.string.meal_ready_nothing_found),
-                            style = MaterialTheme.typography.titleLarge,
-                            color = MaterialTheme.colorScheme.onPrimary,
-                            fontWeight = FontWeight.Medium,
-                        )
-                    }
-                } else {
-                    LazyColumn(
-                        modifier = Modifier.weight(1f),
-                        verticalArrangement = Arrangement.spacedBy(12.dp),
-                    ) {
-                        items(
-                            items = filteredMeals,
-                            key = ReadyMealUi::id,
-                        ) { meal ->
-                            ReadyMealCard(
-                                meal = meal,
-                                isSelected = uiState.selectedMealId == meal.id,
-                                onClick = { onMealClick(meal.id) },
-                            )
-                        }
-                    }
-
-                    Spacer(modifier = Modifier.height(20.dp))
-
-                    PrimaryButton(
-                        onClick = onAddClick,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(56.dp),
-                        text = stringResource(R.string.add),
-                    )
-                }
-
-                if (uiState.meals.isNotEmpty() && filteredMeals.isEmpty().not()) {
-                    Spacer(modifier = Modifier.height(16.dp))
-                }
-            }
+            is MealReadyListUiState.Ready -> MealReadyListReadyContent(
+                uiState = uiState,
+                onEvent = onEvent,
+            )
         }
     }
+}
+
+@Composable
+private fun ColumnScope.MealReadyListReadyContent(
+    uiState: MealReadyListUiState.Ready,
+    onEvent: (MealReadyListUiEvent) -> Unit,
+) {
+    val listState = rememberLazyListState()
+
+    LaunchedEffect(listState, uiState.meals.size, uiState.canLoadMore, uiState.isAppending) {
+        snapshotFlow { listState.layoutInfo.visibleItemsInfo.lastOrNull()?.index }
+            .map { lastVisibleItemIndex ->
+                val lastDataIndex = uiState.meals.lastIndex
+                lastVisibleItemIndex != null &&
+                    lastDataIndex >= 0 &&
+                    lastVisibleItemIndex >= lastDataIndex - LOAD_MORE_THRESHOLD
+            }
+            .distinctUntilChanged()
+            .filter { it }
+            .collect {
+                onEvent(MealReadyListUiEvent.LoadNextPage)
+            }
+    }
+
+    SearchField(
+        value = uiState.query,
+        onValueChange = { onEvent(MealReadyListUiEvent.QueryChange(it)) },
+        placeholder = stringResource(R.string.meal_ready_search_placeholder),
+    )
+
+    Spacer(modifier = Modifier.height(16.dp))
+
+    when {
+        uiState.meals.isEmpty() -> {
+            Box(
+                modifier = Modifier.fillMaxSize(),
+                contentAlignment = Alignment.Center,
+            ) {
+                Text(
+                    text = stringResource(
+                        if (uiState.query.isBlank()) {
+                            R.string.meal_ready_empty
+                        } else {
+                            R.string.meal_ready_nothing_found
+                        }
+                    ),
+                    style = MaterialTheme.typography.titleLarge,
+                    color = MaterialTheme.colorScheme.onPrimary,
+                    fontWeight = FontWeight.Medium,
+                )
+            }
+        }
+
+        else -> {
+            LazyColumn(
+                state = listState,
+                modifier = Modifier.weight(1f),
+                verticalArrangement = Arrangement.spacedBy(12.dp),
+            ) {
+                items(
+                    items = uiState.meals,
+                    key = ReadyMealUi::id,
+                ) { meal ->
+                    ReadyMealCard(
+                        meal = meal,
+                        isSelected = uiState.selectedMealId == meal.id,
+                        onClick = { onEvent(MealReadyListUiEvent.MealClick(meal.id)) },
+                    )
+                }
+                if (uiState.isAppending) {
+                    item(key = "append_loader") {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(vertical = 8.dp),
+                            contentAlignment = Alignment.Center,
+                        ) {
+                            CircularProgressIndicator()
+                        }
+                    }
+                }
+            }
+
+            Spacer(modifier = Modifier.height(20.dp))
+
+            PrimaryButton(
+                onClick = { onEvent(MealReadyListUiEvent.AddClick) },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(56.dp),
+                text = stringResource(R.string.add),
+            )
+        }
+    }
+
+    Spacer(modifier = Modifier.height(16.dp))
 }
 
 @Composable
@@ -222,35 +258,24 @@ private fun ReadyMealCard(
             verticalArrangement = Arrangement.spacedBy(8.dp),
         ) {
             Text(
-                text = stringResource(
-                    R.string.meal_ready_title_with_weight,
-                    meal.title,
-                    formatNumber(meal.quantityGrams),
-                ),
+                text = meal.title,
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.Medium,
                 color = MaterialTheme.colorScheme.onPrimary,
             )
+            if (meal.brand.isNotBlank()) {
+                Text(
+                    text = meal.brand,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurface,
+                )
+            }
             Text(
-                text = stringResource(
-                    R.string.meal_ready_summary,
-                    meal.kcal,
-                    formatNumber(meal.protein),
-                    formatNumber(meal.fat),
-                    formatNumber(meal.carbs),
-                ),
+                text = meal.summary,
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onBackground,
             )
         }
-    }
-}
-
-private fun formatNumber(value: Double): String {
-    return if (value % 1.0 == 0.0) {
-        value.toInt().toString()
-    } else {
-        value.toString().trimEnd('0').trimEnd('.')
     }
 }
 
@@ -262,20 +287,16 @@ private fun MealReadyListScreenPreview() {
             uiState = MealReadyListUiState.Ready(
                 meals = listOf(
                     ReadyMealUi(
-                        id = 1L,
+                        id = "1",
                         title = "Йогурт греческий 2%",
-                        kcal = 420,
-                        protein = 24.0,
-                        fat = 16.5,
-                        carbs = 43.0,
-                        quantityGrams = 250.0,
+                        brand = "Teos",
+                        barcode = "1234567890",
+                        summary = "420 ккал, 24 г белка, 16.5 г жиров, 43 г углеводов на 100 г",
                     ),
                 ),
-                selectedMealId = 1L,
+                selectedMealId = "1",
             ),
-            onQueryChange = {},
-            onMealClick = {},
-            onAddClick = {},
+            onEvent = {},
         )
     }
 }
@@ -288,47 +309,38 @@ private fun MealReadyListScreenManyItemsPreview() {
             uiState = MealReadyListUiState.Ready(
                 meals = listOf(
                     ReadyMealUi(
-                        id = 1L,
+                        id = "1",
                         title = "Йогурт греческий 2%",
-                        kcal = 157,
-                        protein = 17.5,
-                        fat = 5.0,
-                        carbs = 10.5,
-                        quantityGrams = 250.0,
+                        brand = "Teos",
+                        barcode = "1234567890",
+                        summary = "157 ккал, 17.5 г белка, 5 г жиров, 10.5 г углеводов на 100 г",
                     ),
                     ReadyMealUi(
-                        id = 2L,
+                        id = "2",
                         title = "Йогурт греческий 5%",
-                        kcal = 187,
-                        protein = 17.5,
-                        fat = 10.0,
-                        carbs = 10.5,
-                        quantityGrams = 250.0,
+                        brand = "Teos",
+                        barcode = "1234567891",
+                        summary = "187 ккал, 17.5 г белка, 10 г жиров, 10.5 г углеводов на 100 г",
                     ),
                     ReadyMealUi(
-                        id = 3L,
+                        id = "3",
                         title = "Творог мягкий",
-                        kcal = 126,
-                        protein = 14.0,
-                        fat = 5.0,
-                        carbs = 3.0,
-                        quantityGrams = 180.0,
+                        brand = "Савушкин",
+                        barcode = "1234567892",
+                        summary = "126 ккал, 14 г белка, 5 г жиров, 3 г углеводов на 100 г",
                     ),
                     ReadyMealUi(
-                        id = 4L,
+                        id = "4",
                         title = "Овсяная каша",
-                        kcal = 210,
-                        protein = 6.0,
-                        fat = 4.5,
-                        carbs = 36.0,
-                        quantityGrams = 200.0,
+                        brand = "",
+                        barcode = "",
+                        summary = "210 ккал, 6 г белка, 4.5 г жиров, 36 г углеводов на 100 г",
                     ),
                 ),
-                selectedMealId = 2L,
+                selectedMealId = "2",
+                canLoadMore = true,
             ),
-            onQueryChange = {},
-            onMealClick = {},
-            onAddClick = {},
+            onEvent = {},
         )
     }
 }
@@ -339,31 +351,10 @@ private fun MealReadyListScreenNothingFoundPreview() {
     CalorAiTheme {
         MealReadyListScreen(
             uiState = MealReadyListUiState.Ready(
-                meals = listOf(
-                    ReadyMealUi(
-                        id = 1L,
-                        title = "Йогурт греческий 2%",
-                        kcal = 157,
-                        protein = 17.5,
-                        fat = 5.0,
-                        carbs = 10.5,
-                        quantityGrams = 250.0,
-                    ),
-                    ReadyMealUi(
-                        id = 2L,
-                        title = "Творог мягкий",
-                        kcal = 126,
-                        protein = 14.0,
-                        fat = 5.0,
-                        carbs = 3.0,
-                        quantityGrams = 180.0,
-                    ),
-                ),
+                meals = emptyList(),
                 query = "Авокадо",
             ),
-            onQueryChange = {},
-            onMealClick = {},
-            onAddClick = {},
+            onEvent = {},
         )
     }
 }

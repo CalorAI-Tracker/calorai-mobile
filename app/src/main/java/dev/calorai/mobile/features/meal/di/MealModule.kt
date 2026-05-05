@@ -12,12 +12,12 @@ import dev.calorai.mobile.features.meal.domain.usecases.DeleteMealEntryUseCase
 import dev.calorai.mobile.features.meal.domain.usecases.DeleteMealEntryUseCaseImpl
 import dev.calorai.mobile.features.meal.domain.usecases.DeleteMealUseCase
 import dev.calorai.mobile.features.meal.domain.usecases.DeleteMealUseCaseImpl
-import dev.calorai.mobile.features.meal.domain.usecases.GetAllMealEntriesUseCase
-import dev.calorai.mobile.features.meal.domain.usecases.GetAllMealEntriesUseCaseImpl
 import dev.calorai.mobile.features.meal.domain.usecases.GetMealEntryUseCase
 import dev.calorai.mobile.features.meal.domain.usecases.GetMealEntryUseCaseImpl
 import dev.calorai.mobile.features.meal.domain.usecases.RecognizeMealUseCase
 import dev.calorai.mobile.features.meal.domain.usecases.RecognizeMealUseCaseImpl
+import dev.calorai.mobile.features.meal.domain.usecases.SearchFoodCatalogUseCase
+import dev.calorai.mobile.features.meal.domain.usecases.SearchFoodCatalogUseCaseImpl
 import dev.calorai.mobile.features.meal.domain.usecases.UpdateMealEntryUseCase
 import dev.calorai.mobile.features.meal.domain.usecases.UpdateMealEntryUseCaseImpl
 import dev.calorai.mobile.features.meal.edit.manual.di.mealManualEditorModule
@@ -54,8 +54,8 @@ internal val mealModule = module {
     factory<DeleteMealUseCase> {
         DeleteMealUseCaseImpl(repository = get())
     }
-    factory<GetAllMealEntriesUseCase> {
-        GetAllMealEntriesUseCaseImpl(repository = get())
+    factory<SearchFoodCatalogUseCase> {
+        SearchFoodCatalogUseCaseImpl(repository = get())
     }
     factory<RecognizeMealUseCase> {
         RecognizeMealUseCaseImpl(

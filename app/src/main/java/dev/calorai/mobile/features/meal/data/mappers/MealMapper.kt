@@ -13,12 +13,18 @@ import dev.calorai.mobile.features.meal.data.dto.getDailyMeal.MealDto
 import dev.calorai.mobile.features.meal.data.dto.getDailyMealsComposition.MealEntryDto
 import dev.calorai.mobile.features.meal.data.dto.mealEntry.MealEntryRecognizeResponse
 import dev.calorai.mobile.features.meal.data.dto.mealEntry.MealEntryRequest
+import dev.calorai.mobile.features.meal.data.dto.searchFoodCatalog.FoodCatalogItemDto
+import dev.calorai.mobile.features.meal.data.dto.searchFoodCatalog.PageSettingsDto
+import dev.calorai.mobile.features.meal.data.dto.searchFoodCatalog.SearchFoodCatalogRequest
+import dev.calorai.mobile.features.meal.data.dto.searchFoodCatalog.SearchFoodCatalogResponse
 import dev.calorai.mobile.features.meal.data.entity.DailyMealsEntity
 import dev.calorai.mobile.features.meal.data.entity.IngredientsEntity
 import dev.calorai.mobile.features.meal.details.ui.IngredientUi
 import dev.calorai.mobile.features.meal.details.ui.MacroUi
 import dev.calorai.mobile.features.meal.details.ui.model.MealMacroLabelUi
 import dev.calorai.mobile.features.meal.domain.model.DailyMeal
+import dev.calorai.mobile.features.meal.domain.model.FoodCatalogItem
+import dev.calorai.mobile.features.meal.domain.model.FoodCatalogSearchPage
 import dev.calorai.mobile.features.meal.domain.model.MealEntry
 import dev.calorai.mobile.features.meal.domain.model.MealEntryId
 import dev.calorai.mobile.features.meal.domain.model.MealEntryPayload
@@ -29,6 +35,18 @@ import dev.calorai.mobile.features.meal.domain.model.MealType
 import java.time.LocalDate
 
 class MealMapper {
+
+    fun mapToRequest(
+        page: Int,
+        size: Int,
+        search: String,
+    ): SearchFoodCatalogRequest = SearchFoodCatalogRequest(
+        pageSettings = PageSettingsDto(
+            page = page,
+            size = size,
+        ),
+        search = search,
+    )
 
     fun mapToRequest(payload: MealEntryPayload): MealEntryRequest =
         MealEntryRequest(
@@ -173,6 +191,28 @@ class MealMapper {
         fatPer100g = dto.fatPer100g,
         carbsPer100g = dto.carbsPer100g,
     )
+
+    fun mapToDomain(dto: SearchFoodCatalogResponse): FoodCatalogSearchPage =
+        FoodCatalogSearchPage(
+            items = dto.content.map(::mapToDomain),
+            page = dto.page,
+            size = dto.size,
+            totalElements = dto.totalElements,
+            totalPages = dto.totalPages,
+        )
+
+    fun mapToDomain(dto: FoodCatalogItemDto): FoodCatalogItem =
+        FoodCatalogItem(
+            id = dto.id,
+            name = dto.name,
+            brand = dto.brand,
+            barcode = dto.barcode,
+            provider = dto.provider,
+            kcalPer100g = dto.kcalPer100g,
+            proteinPer100g = dto.proteinPer100g,
+            fatPer100g = dto.fatPer100g,
+            carbsPer100g = dto.carbsPer100g,
+        )
 
     private fun mapToData(mealType: MealType): MealTypeDto = when (mealType) {
         MealType.BREAKFAST -> MealTypeDto.BREAKFAST

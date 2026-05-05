@@ -15,9 +15,6 @@ interface IngredientsDao {
     @Query("SELECT * FROM ${IngredientsEntity.TABLE} WHERE date = :date")
     suspend fun getByDateOnce(date: String): List<IngredientsEntity>
 
-    @Query("SELECT * FROM ${IngredientsEntity.TABLE} ORDER BY entry_name ASC, id DESC")
-    suspend fun getAllOnce(): List<IngredientsEntity>
-
     @Query("SELECT * FROM ${IngredientsEntity.TABLE} WHERE date = :date AND meal_type = :mealType ORDER BY id ASC")
     suspend fun getByDateAndMealTypeOnce(date: String, mealType: String): List<IngredientsEntity>
 

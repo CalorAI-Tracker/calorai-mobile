@@ -13,6 +13,7 @@ import dev.calorai.mobile.features.meal.domain.model.MealProgressInfo
 import dev.calorai.mobile.features.meal.domain.usecases.DeleteMealEntryUseCase
 import dev.calorai.mobile.features.meal.domain.usecases.GetMealProgressUseCase
 import dev.calorai.mobile.features.meal.edit.manual.navigateToMealManualEditorScreen
+import dev.calorai.mobile.features.meal.ready.MealReadyListSource
 import dev.calorai.mobile.features.meal.ready.navigateToMealReadyListScreen
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -113,6 +114,10 @@ class MealDetailsViewModel constructor(
                 navigateToMealReadyListScreen(
                     mealType = mealRoute.mealType,
                     date = mealRoute.date,
+                    source = MealReadyListSource.DETAILS,
+                    navOptions = NavOptions.Builder()
+                        .setPopUpTo<MealDetailsRoute>(inclusive = true)
+                        .build(),
                 )
             }
             showAddIngredientSheetState.update { false }

@@ -11,7 +11,7 @@ internal val mealReadyListModule = module {
     viewModel {
         MealReadyListViewModel(
             savedStateHandle = get(),
-            getAllMealEntriesUseCase = get(),
+            searchFoodCatalogUseCase = get(),
             createMealEntryUseCase = get(),
             globalRouter = get<RouterController>(qualifier<GlobalRouterContext>()),
         )

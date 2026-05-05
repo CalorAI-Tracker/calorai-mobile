@@ -1,5 +1,6 @@
 package dev.calorai.mobile.features.meal.ready
 
+import androidx.annotation.Keep
 import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavOptions
@@ -9,21 +10,31 @@ import dev.calorai.mobile.features.meal.domain.model.MealType
 import dev.calorai.mobile.features.meal.ready.ui.MealReadyListRoot
 import kotlinx.serialization.Serializable
 
+@Keep
+@Serializable
+enum class MealReadyListSource {
+    HOME,
+    DETAILS,
+}
+
 @Serializable
 data class MealReadyListRoute(
     val mealType: MealType,
     val date: String,
+    val source: MealReadyListSource,
 ) : Destination
 
 fun NavController.navigateToMealReadyListScreen(
     mealType: MealType,
     date: String,
+    source: MealReadyListSource,
     navOptions: NavOptions? = null,
 ) {
     navigate(
         route = MealReadyListRoute(
             mealType = mealType,
             date = date,
+            source = source,
         ),
         navOptions = navOptions,
     )
