@@ -27,9 +27,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
@@ -41,9 +39,7 @@ import dev.calorai.mobile.R
 import dev.calorai.mobile.core.uikit.CalorAiTheme
 import dev.calorai.mobile.core.uikit.PrimaryButton
 import dev.calorai.mobile.core.uikit.commonGradientBackground
-import kotlinx.coroutines.flow.distinctUntilChanged
-import kotlinx.coroutines.flow.filter
-import kotlinx.coroutines.flow.map
+import dev.calorai.mobile.core.utils.OnLazyListReachedEnd
 import org.koin.androidx.compose.koinViewModel
 
 private const val LOAD_MORE_THRESHOLD = 3
@@ -109,20 +105,13 @@ private fun ColumnScope.MealReadyListReadyContent(
 ) {
     val listState = rememberLazyListState()
 
-    LaunchedEffect(listState, uiState.meals.size, uiState.canLoadMore, uiState.isAppending) {
-        snapshotFlow { listState.layoutInfo.visibleItemsInfo.lastOrNull()?.index }
-            .map { lastVisibleItemIndex ->
-                val lastDataIndex = uiState.meals.lastIndex
-                lastVisibleItemIndex != null &&
-                    lastDataIndex >= 0 &&
-                    lastVisibleItemIndex >= lastDataIndex - LOAD_MORE_THRESHOLD
-            }
-            .distinctUntilChanged()
-            .filter { it }
-            .collect {
-                onEvent(MealReadyListUiEvent.LoadNextPage)
-            }
-    }
+    OnLazyListReachedEnd(
+        listState = listState,
+        itemsCount = uiState.meals.size,
+        threshold = LOAD_MORE_THRESHOLD,
+        enabled = uiState.canLoadMore && !uiState.isAppending,
+        onReachedEnd = { onEvent(MealReadyListUiEvent.LoadNextPage) },
+    )
 
     SearchField(
         value = uiState.query,

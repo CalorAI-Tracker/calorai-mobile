@@ -1,18 +1,22 @@
 package dev.calorai.mobile.features.meal.ready.ui
 
+import android.content.Context
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.NavOptions
 import androidx.navigation.toRoute
+import dev.calorai.mobile.R
 import dev.calorai.mobile.core.navigation.Router
 import dev.calorai.mobile.features.meal.details.navigateToMealDetailsScreen
 import dev.calorai.mobile.features.meal.domain.model.FoodCatalogItem
+import dev.calorai.mobile.features.meal.domain.model.FoodCatalogSearchPage
 import dev.calorai.mobile.features.meal.domain.model.MealEntryPayload
 import dev.calorai.mobile.features.meal.domain.usecases.CreateMealEntryUseCase
 import dev.calorai.mobile.features.meal.domain.usecases.SearchFoodCatalogUseCase
 import dev.calorai.mobile.features.meal.ready.MealReadyListRoute
 import dev.calorai.mobile.features.meal.ready.MealReadyListSource
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -24,13 +28,16 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import kotlin.math.roundToInt
 
 @OptIn(FlowPreview::class)
 class MealReadyListViewModel(
     savedStateHandle: SavedStateHandle,
+    private val context: Context,
     private val searchFoodCatalogUseCase: SearchFoodCatalogUseCase,
     private val createMealEntryUseCase: CreateMealEntryUseCase,
+    private val uiMapper: MealReadyUiMapper,
     private val globalRouter: Router,
 ) : ViewModel() {
 
@@ -39,17 +46,17 @@ class MealReadyListViewModel(
     private val _uiState = MutableStateFlow<MealReadyListUiState>(MealReadyListUiState.Loading)
     val uiState: StateFlow<MealReadyListUiState> = _uiState.asStateFlow()
 
-    private val searchQuery = MutableStateFlow("")
-    private var currentItemsById: Map<String, FoodCatalogItem> = emptyMap()
-
-    init {
-        searchQuery
+    private val searchQuery = MutableStateFlow("").also { query ->
+        query
             .drop(1)
             .debounce(300)
             .distinctUntilChanged()
             .onEach(::loadFirstPage)
             .launchIn(viewModelScope)
+    }
+    private var currentItemsById: Map<String, FoodCatalogItem> = emptyMap()
 
+    init {
         loadFirstPage(search = "")
     }
 
@@ -214,13 +221,13 @@ class MealReadyListViewModel(
         }
     }
 
-    private fun handleLoadPageSuccess(
+    private suspend fun handleLoadPageSuccess(
         search: String,
         page: Int,
         append: Boolean,
-        result: dev.calorai.mobile.features.meal.domain.model.FoodCatalogSearchPage,
-    ) {
-        if (shouldIgnoreSuccess(search = search, page = page, append = append)) return
+        result: FoodCatalogSearchPage,
+    ) = withContext(Dispatchers.Default) {
+        if (shouldIgnoreSuccess(search = search, page = page, append = append)) return@withContext
 
         val newItems = result.items
             .distinctBy(FoodCatalogItem::stableId)
@@ -230,7 +237,13 @@ class MealReadyListViewModel(
             newItems.forEach { put(it.stableId(), it) }
         }
 
-        val newMeals = newItems.map(::toReadyMealUi)
+        val newMeals = newItems.map { item ->
+            uiMapper.mapToReadyMealUi(
+                item = item,
+                id = item.stableId(),
+                summary = item.toSummaryText(),
+            )
+        }
 
         _uiState.update { current ->
             val currentState = current as? MealReadyListUiState.Ready
@@ -299,18 +312,14 @@ class MealReadyListViewModel(
         return latestState.query != search
     }
 
-    private fun toReadyMealUi(item: FoodCatalogItem): ReadyMealUi =
-        ReadyMealUi(
-            id = item.stableId(),
-            title = item.name,
-            brand = item.brand,
-            barcode = item.barcode,
-            summary = item.toSummaryText(),
-        )
-
     private fun FoodCatalogItem.toSummaryText(): String =
-        "${kcalPer100g.roundToInt()} ккал, ${proteinPer100g.formatNumber()} г белка, " +
-            "${fatPer100g.formatNumber()} г жиров, ${carbsPer100g.formatNumber()} г углеводов на 100 г"
+        context.getString(
+            R.string.meal_ready_summary,
+            kcalPer100g.roundToInt(),
+            proteinPer100g.formatNumber(),
+            fatPer100g.formatNumber(),
+            carbsPer100g.formatNumber(),
+        )
 
     private fun Double.formatNumber(): String =
         if (this % 1.0 == 0.0) toInt().toString() else toString().trimEnd('0').trimEnd('.')
