@@ -2,6 +2,8 @@ package dev.calorai.mobile.features.meal.data.api
 
 import dev.calorai.mobile.features.meal.data.dto.getDailyMeal.GetDailyMealResponse
 import dev.calorai.mobile.features.meal.data.dto.getDailyMealsComposition.GetDailyMealsCompositionResponse
+import dev.calorai.mobile.features.meal.data.dto.searchFoodCatalog.SearchFoodCatalogRequest
+import dev.calorai.mobile.features.meal.data.dto.searchFoodCatalog.SearchFoodCatalogResponse
 import dev.calorai.mobile.features.meal.data.dto.mealEntry.MealEntryRecognizeResponse
 import dev.calorai.mobile.features.meal.data.dto.mealEntry.MealEntryRequest
 import okhttp3.MultipartBody
@@ -28,6 +30,11 @@ interface MealApi {
     suspend fun createMealEntry(
         @Body body: MealEntryRequest,
     ): Response<Unit>
+
+    @POST("food-catalog/search")
+    suspend fun searchFoodCatalog(
+        @Body body: SearchFoodCatalogRequest,
+    ): Response<SearchFoodCatalogResponse>
 
     @PUT("$FOOD_DIARY/entries/{entryId}")
     suspend fun updateMealEntry(

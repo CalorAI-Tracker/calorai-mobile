@@ -13,6 +13,8 @@ import dev.calorai.mobile.features.meal.domain.model.MealProgressInfo
 import dev.calorai.mobile.features.meal.domain.usecases.DeleteMealEntryUseCase
 import dev.calorai.mobile.features.meal.domain.usecases.GetMealProgressUseCase
 import dev.calorai.mobile.features.meal.edit.manual.navigateToMealManualEditorScreen
+import dev.calorai.mobile.features.meal.ready.MealReadyListSource
+import dev.calorai.mobile.features.meal.ready.navigateToMealReadyListScreen
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -107,8 +109,19 @@ class MealDetailsViewModel constructor(
     }
 
     private fun chooseReadyIngredient() {
-        // здесь будет навигация на экран выбора готового
-        showAddIngredientSheetState.update { false }
+        viewModelScope.launch {
+            globalRouter.emit {
+                navigateToMealReadyListScreen(
+                    mealType = mealRoute.mealType,
+                    date = mealRoute.date,
+                    source = MealReadyListSource.DETAILS,
+                    navOptions = NavOptions.Builder()
+                        .setPopUpTo<MealDetailsRoute>(inclusive = true)
+                        .build(),
+                )
+            }
+            showAddIngredientSheetState.update { false }
+        }
     }
 
     private fun continueClick() {

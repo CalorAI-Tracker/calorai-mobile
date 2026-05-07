@@ -7,6 +7,7 @@ import dev.calorai.mobile.features.meal.data.entity.IngredientsEntity
 import dev.calorai.mobile.features.meal.data.mappers.MealMapper
 import dev.calorai.mobile.features.meal.domain.MealRepository
 import dev.calorai.mobile.features.meal.domain.model.DailyMeal
+import dev.calorai.mobile.features.meal.domain.model.FoodCatalogSearchPage
 import dev.calorai.mobile.features.meal.domain.model.MealEntry
 import dev.calorai.mobile.features.meal.domain.model.MealEntryId
 import dev.calorai.mobile.features.meal.domain.model.MealEntryPayload
@@ -37,6 +38,20 @@ class MealRepositoryImpl constructor(
         } catch (_: Exception) {
             return@withContext getDailyMealsLocal(date)
         }
+    }
+
+    override suspend fun searchFoodCatalog(
+        search: String,
+        page: Int,
+        size: Int,
+    ): FoodCatalogSearchPage = withContext(dispatcher) {
+        api.searchFoodCatalog(
+            body = mapper.mapToRequest(
+                page = page,
+                size = size,
+                search = search,
+            )
+        ).getOrThrow().let(mapper::mapToDomain)
     }
 
     override suspend fun createMealEntryAndSync(payload: MealEntryPayload) =

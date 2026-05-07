@@ -1,6 +1,7 @@
 package dev.calorai.mobile.features.meal.domain
 
 import dev.calorai.mobile.features.meal.domain.model.DailyMeal
+import dev.calorai.mobile.features.meal.domain.model.FoodCatalogSearchPage
 import dev.calorai.mobile.features.meal.domain.model.MealEntry
 import dev.calorai.mobile.features.meal.domain.model.MealEntryId
 import dev.calorai.mobile.features.meal.domain.model.MealEntryPayload
@@ -11,6 +12,7 @@ import dev.calorai.mobile.features.meal.domain.model.MealType
 interface MealRepository {
 
     suspend fun getDailyMeals(date: String): List<DailyMeal>
+    suspend fun searchFoodCatalog(search: String, page: Int, size: Int): FoodCatalogSearchPage
     suspend fun createMealEntryAndSync(payload: MealEntryPayload)
     suspend fun mealRecognize(image: ByteArray): MealRecognizeEntry
     suspend fun getMealEntry(mealEntryId: MealEntryId): MealEntry

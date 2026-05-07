@@ -16,9 +16,12 @@ import dev.calorai.mobile.features.meal.domain.usecases.GetMealEntryUseCase
 import dev.calorai.mobile.features.meal.domain.usecases.GetMealEntryUseCaseImpl
 import dev.calorai.mobile.features.meal.domain.usecases.RecognizeMealUseCase
 import dev.calorai.mobile.features.meal.domain.usecases.RecognizeMealUseCaseImpl
+import dev.calorai.mobile.features.meal.domain.usecases.SearchFoodCatalogUseCase
+import dev.calorai.mobile.features.meal.domain.usecases.SearchFoodCatalogUseCaseImpl
 import dev.calorai.mobile.features.meal.domain.usecases.UpdateMealEntryUseCase
 import dev.calorai.mobile.features.meal.domain.usecases.UpdateMealEntryUseCaseImpl
 import dev.calorai.mobile.features.meal.edit.manual.di.mealManualEditorModule
+import dev.calorai.mobile.features.meal.ready.di.mealReadyListModule
 import org.koin.android.ext.koin.androidContext
 import org.koin.core.qualifier.qualifier
 import org.koin.dsl.module
@@ -51,6 +54,9 @@ internal val mealModule = module {
     factory<DeleteMealUseCase> {
         DeleteMealUseCaseImpl(repository = get())
     }
+    factory<SearchFoodCatalogUseCase> {
+        SearchFoodCatalogUseCaseImpl(repository = get())
+    }
     factory<RecognizeMealUseCase> {
         RecognizeMealUseCaseImpl(
             context = androidContext(),
@@ -60,5 +66,6 @@ internal val mealModule = module {
     includes(
         mealManualEditorModule,
         mealDetailsModule,
+        mealReadyListModule,
     )
 }
