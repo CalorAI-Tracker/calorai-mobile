@@ -97,7 +97,7 @@ dependencies {
     implementation(libs.kotlinx.serialization.json)
     implementation(libs.retrofit2.kotlinx.serialization.converter)
 
-    //Room
+    // Room
     implementation(libs.androidx.room.runtime)
     implementation(libs.androidx.room.ktx)
     ksp(libs.androidx.room.compiler)
@@ -117,6 +117,9 @@ dependencies {
     // Debug
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
+
+    // TFLite
+    implementation("com.google.ai.edge.litert:litert:2.1.4")
 }
 
 tasks.register<Copy>("installGitHooks") {

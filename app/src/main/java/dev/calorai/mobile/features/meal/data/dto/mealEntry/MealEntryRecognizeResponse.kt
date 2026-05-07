@@ -6,19 +6,19 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class MealEntryRecognizeResponse(
     @SerialName("id")
-    val id: Long,
+    val id: Long? = null,
 
     @SerialName("name")
     val name: String,
 
     @SerialName("brand")
-    val brand: String,
+    val brand: String? = null,
 
     @SerialName("barcode")
-    val barcode: String,
+    val barcode: String? = null,
 
     @SerialName("provider")
-    val provider: String,
+    val provider: String? = null,
 
     @SerialName("kcalPer100g")
     val kcalPer100g: Double,

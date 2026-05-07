@@ -1,9 +1,8 @@
 package dev.calorai.mobile.features.meal.edit.manual.ui
 
+import android.widget.Toast
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.PickVisualMediaRequest
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -32,6 +31,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusDirection
 import androidx.compose.ui.focus.FocusManager
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -45,6 +45,7 @@ import dev.calorai.mobile.core.uikit.PrimaryButton
 import dev.calorai.mobile.core.uikit.PrimaryTextField
 import dev.calorai.mobile.core.uikit.PrimaryTextFieldWithTitle
 import dev.calorai.mobile.core.uikit.commonGradientBackground
+import dev.calorai.mobile.core.utils.ObserveAsEvents
 import dev.calorai.mobile.features.meal.domain.model.MealType
 import org.koin.androidx.compose.koinViewModel
 
@@ -53,6 +54,21 @@ fun MealManualEditorRoot(
     viewModel: MealManualEditorViewModel = koinViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsState()
+    val context = LocalContext.current
+
+    ObserveAsEvents(viewModel.uiActions) { action ->
+        when (action) {
+            MealManualEditorUiAction.ShowMealNotRecognizedMessage -> {
+                Toast.makeText(
+                    context,
+                    context.getString(
+                        R.string.food_on_photo_wasnt_recognized
+                    ),
+                    Toast.LENGTH_SHORT,
+                ).show()
+            }
+        }
+    }
 
     BackHandler { viewModel.onEvent(MealManualEditorUiEvent.BackPressed) }
     MealManualEditorScreen(
@@ -107,7 +123,7 @@ private fun ColumnScope.MealManualEditorScreenReady(
     onEvent: (MealManualEditorUiEvent) -> Unit,
 ) {
     val singlePhotoPickerLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.PickVisualMedia(),
+        contract = MealPhotoCameraContract(),
         onResult = { uri ->
             onEvent(MealManualEditorUiEvent.PickImage(uri))
         }
@@ -133,12 +149,7 @@ private fun ColumnScope.MealManualEditorScreenReady(
                     containerColor = MaterialTheme.colorScheme.secondary
                 ),
                 onClick = {
-                    singlePhotoPickerLauncher.launch(
-                        PickVisualMediaRequest(
-                            mediaType = ActivityResultContracts.PickVisualMedia.ImageOnly,
-                            maxItems = 1
-                        )
-                    )
+                    singlePhotoPickerLauncher.launch(Unit)
                 }
             ) {
                 Icon(

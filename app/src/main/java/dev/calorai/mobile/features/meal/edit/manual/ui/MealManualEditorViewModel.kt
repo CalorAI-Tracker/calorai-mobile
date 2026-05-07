@@ -10,12 +10,16 @@ import dev.calorai.mobile.core.navigation.Router
 import dev.calorai.mobile.features.meal.details.navigateToMealDetailsScreen
 import dev.calorai.mobile.features.meal.domain.model.MealEntryId
 import dev.calorai.mobile.features.meal.domain.model.MealEntryPayload
+import dev.calorai.mobile.features.meal.domain.model.MealRecognizeResult
 import dev.calorai.mobile.features.meal.domain.usecases.CreateMealEntryUseCase
 import dev.calorai.mobile.features.meal.domain.usecases.GetMealEntryUseCase
 import dev.calorai.mobile.features.meal.domain.usecases.RecognizeMealUseCase
 import dev.calorai.mobile.features.meal.domain.usecases.UpdateMealEntryUseCase
 import dev.calorai.mobile.features.meal.edit.manual.MealManualEditorRoute
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharedFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -42,6 +46,10 @@ class MealManualEditorViewModel constructor(
         )
     val uiState = _uiState.asStateFlow()
 
+    private val _uiActions = MutableSharedFlow<MealManualEditorUiAction>()
+    val uiActions: SharedFlow<MealManualEditorUiAction> = _uiActions.asSharedFlow()
+
+
     init {
         when (mode) {
             is MealManualEditorMode.Edit -> setupEditMode(mode.entryId)
@@ -63,16 +71,49 @@ class MealManualEditorViewModel constructor(
     }
 
     private fun pickImageOnRecognize(uri: Uri?) {
+        if (uri == null) return
+        _uiState.update {
+            MealManualEditorUiState.Loading(
+                mode = mode,
+                mealType = mealRoute.mealType,
+            )
+        }
+
         viewModelScope.launch {
             runCatching {
-                recognizeMealUseCase.invoke(requireNotNull(uri))
-            }.onSuccess { meal ->
-                update {
-                    copy(
-                        name = meal.name,
-                        proteins = meal.proteinPer100g.toString(),
-                        fats = meal.fatPer100g.toString(),
-                        carbs = meal.carbsPer100g.toString(),
+                recognizeMealUseCase.invoke(uri)
+            }.onSuccess { result ->
+                when (result) {
+                    is MealRecognizeResult.Success -> {
+                        val meal = result.entry
+                        _uiState.update {
+                            MealManualEditorUiState.Ready(
+                                mode = mode,
+                                mealType = mealRoute.mealType,
+                                name = meal.name,
+                                proteins = meal.proteinPer100g.toString(),
+                                fats = meal.fatPer100g.toString(),
+                                carbs = meal.carbsPer100g.toString(),
+                            )
+                        }
+                    }
+
+                    MealRecognizeResult.NotDetected -> {
+                        _uiState.update {
+                            MealManualEditorUiState.Ready(
+                                mode = mode,
+                                mealType = mealRoute.mealType,
+                            )
+                        }
+                        _uiActions.emit(MealManualEditorUiAction.ShowMealNotRecognizedMessage)
+                    }
+
+                }
+            }.onFailure {
+                _uiState.update {
+                    MealManualEditorUiState.Ready(
+                        mode = mode,
+                        mealType = mealRoute.mealType,
                     )
                 }
             }
